@@ -267,13 +267,13 @@ bool BasicExample::keyboardCallback(int key, int state)
 		{
 		case B3G_HOME:
 		{
-			b3Printf("Rest.\n");
+			// b3Printf("Rest.\n");
 			initState(this);
 			break;
 		}
 		case B3G_LEFT_ARROW:
 		{
-			b3Printf("left.\n");
+			// b3Printf("left.\n");
 
 			hinge->setLimit(-M_PI / 1.0f, M_PI / 1.0f);
 			hinge->enableAngularMotor(true, -15.0, 4000.f);
@@ -283,7 +283,7 @@ bool BasicExample::keyboardCallback(int key, int state)
 		}
 		case B3G_RIGHT_ARROW:
 		{
-			b3Printf("right.\n");
+			// b3Printf("right.\n");
 
 			hinge->setLimit(-M_PI / 1.0f, M_PI / 1.0f);
 			hinge->enableAngularMotor(true, 15.0, 4000.f);
