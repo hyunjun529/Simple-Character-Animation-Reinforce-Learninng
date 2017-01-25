@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "App", "App\App.vcxproj", "{5636E679-9665-4CC6-9209-B7A1CAAC0BFA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NeuralNetwork", "..\NeuralNetwork\NeuralNetwork.vcxproj", "{31E180BA-D470-4637-B9B4-3ECE985C65B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{5636E679-9665-4CC6-9209-B7A1CAAC0BFA}.Release|x64.Build.0 = Release|x64
 		{5636E679-9665-4CC6-9209-B7A1CAAC0BFA}.Release|x86.ActiveCfg = Release|Win32
 		{5636E679-9665-4CC6-9209-B7A1CAAC0BFA}.Release|x86.Build.0 = Release|Win32
+		{31E180BA-D470-4637-B9B4-3ECE985C65B1}.Debug|x64.ActiveCfg = Debug|x64
+		{31E180BA-D470-4637-B9B4-3ECE985C65B1}.Debug|x64.Build.0 = Debug|x64
+		{31E180BA-D470-4637-B9B4-3ECE985C65B1}.Debug|x86.ActiveCfg = Debug|Win32
+		{31E180BA-D470-4637-B9B4-3ECE985C65B1}.Debug|x86.Build.0 = Debug|Win32
+		{31E180BA-D470-4637-B9B4-3ECE985C65B1}.Release|x64.ActiveCfg = Release|x64
+		{31E180BA-D470-4637-B9B4-3ECE985C65B1}.Release|x64.Build.0 = Release|x64
+		{31E180BA-D470-4637-B9B4-3ECE985C65B1}.Release|x86.ActiveCfg = Release|Win32
+		{31E180BA-D470-4637-B9B4-3ECE985C65B1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
