@@ -1,4 +1,3 @@
-
 #include "BasicExample.h"
 
 #include "btBulletDynamicsCommon.h"
@@ -51,6 +50,7 @@ BasicExample::BasicExample(struct GUIHelperInterface* helper)
 	m_once(true)
 {
 }
+
 BasicExample::~BasicExample()
 {
 	for (int i = 0; i<m_jointFeedback.size(); i++)
@@ -60,6 +60,18 @@ BasicExample::~BasicExample()
 
 }
 
+/********************************************************************************************
+* start custom Functions
+*********************************************************************************************/
+
+void initState(BasicExample* target) {
+	target->m_guiHelper->removeAllGraphicsInstances();
+	target->initPhysics();
+}
+
+/********************************************************************************************
+* end custom Functions
+*********************************************************************************************/
 
 void BasicExample::stepSimulation(float deltaTime)
 {
@@ -90,9 +102,10 @@ void BasicExample::stepSimulation(float deltaTime)
 			btManifoldPoint& pt = contactManifold->getContactPoint(j);
 			if (pt.getDistance() < 0.f)
 			{
-				const btVector3& ptA = pt.getPositionWorldOnA();
-				const btVector3& ptB = pt.getPositionWorldOnB();
-				const btVector3& normalOnB = pt.m_normalWorldOnB;
+				//const btVector3& ptA = pt.getPositionWorldOnA();
+				//const btVector3& ptB = pt.getPositionWorldOnB();
+				//const btVector3& normalOnB = pt.m_normalWorldOnB;
+				initState(this);
 				b3Printf("check\n");
 			}
 		}
@@ -107,8 +120,6 @@ void BasicExample::stepSimulation(float deltaTime)
 	static int count = 0;
 
 }
-
-
 
 void BasicExample::initPhysics()
 {
@@ -246,6 +257,7 @@ void BasicExample::initPhysics()
 	}
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
 }
+
 bool BasicExample::keyboardCallback(int key, int state)
 {
 	bool handled = false;
@@ -256,8 +268,7 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_HOME:
 		{
 			b3Printf("Rest.\n");
-			m_guiHelper->removeAllGraphicsInstances();
-			initPhysics();
+			initState(this);
 			break;
 		}
 		case B3G_LEFT_ARROW:
