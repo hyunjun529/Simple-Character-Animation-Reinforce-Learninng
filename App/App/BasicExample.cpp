@@ -13,6 +13,10 @@
 #define M_PI       3.14159265358979323846
 #endif
 
+#include "ActionRecorder.h"
+
+ActionRecorder AR;
+
 int num = 0;
 short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
 short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
@@ -113,8 +117,11 @@ void BasicExample::stepSimulation(float deltaTime)
 
 	//get distance
 	btScalar distance = sqrt(pow((groundOrigin_target.getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((groundOrigin_target.getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
-	b3Printf("distance = %f", distance);
-	b3Printf("\n");
+	b3Printf("distance = %f\n", distance);
+
+	//memory
+	AR.recordHistory(ACT_MOVE_RIGHT, ACT_MOVE_RIGHT, distance);
+
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 
 	static int count = 0;

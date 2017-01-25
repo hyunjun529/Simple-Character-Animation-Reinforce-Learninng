@@ -8,6 +8,9 @@
     <Filter Include="Source\BasicExample">
       <UniqueIdentifier>{a712f2ac-e710-4eaf-b038-b2db8a898df7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\BasicNN">
+      <UniqueIdentifier>{0aa9125b-2841-492c-81fa-bb4fb2189c70}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -16,10 +19,25 @@
     <ClCompile Include="BasicExample.cpp">
       <Filter>Source\BasicExample</Filter>
     </ClCompile>
+    <ClCompile Include="ActionRecorder.cpp">
+      <Filter>Source\BasicNN</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionMemory.cpp">
+      <Filter>Source\BasicNN</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BasicExample.h">
       <Filter>Source\BasicExample</Filter>
+    </ClInclude>
+    <ClInclude Include="Action.h">
+      <Filter>Source\BasicNN</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionMemory.h">
+      <Filter>Source\BasicNN</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionRecorder.h">
+      <Filter>Source\BasicNN</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
