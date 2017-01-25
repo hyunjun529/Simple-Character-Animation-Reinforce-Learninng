@@ -1,3 +1,4 @@
+
 #include "BasicExample.h"
 
 #include "btBulletDynamicsCommon.h"
@@ -23,14 +24,16 @@ struct BasicExample : public CommonRigidBodyBase
 	bool m_once;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
 	btHingeConstraint* hinge;
-	btHingeConstraint* hinge1;
+	btRigidBody* linkBody;
+	btVector3 groundOrigin_target;
+	btRigidBody* body;
 	BasicExample(struct GUIHelperInterface* helper);
 	virtual ~BasicExample();
 	virtual void initPhysics();
 
 	virtual void stepSimulation(float deltaTime);
 	void lockLiftHinge(void);
-	void lockLiftHinge1(void);
+
 	virtual bool keyboardCallback(int key, int state);
 	virtual void resetCamera()
 	{
@@ -41,8 +44,6 @@ struct BasicExample : public CommonRigidBodyBase
 		float targetPos[3] = { -1.34,3.4,-0.44 };
 		m_guiHelper->resetCamera(dist, pitch, yaw, targetPos[0], targetPos[1], targetPos[2]);
 	}
-
-
 };
 
 BasicExample::BasicExample(struct GUIHelperInterface* helper)
@@ -75,6 +76,32 @@ void BasicExample::stepSimulation(float deltaTime)
 
 	}
 
+	//collison check
+	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
+	for (int i = 0; i < numManifolds; i++)
+	{
+		btPersistentManifold* contactManifold = m_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
+		const btCollisionObject* obA = contactManifold->getBody0();
+		const btCollisionObject* obB = contactManifold->getBody1();
+
+		int numContacts = contactManifold->getNumContacts();
+		for (int j = 0; j < numContacts; j++)
+		{
+			btManifoldPoint& pt = contactManifold->getContactPoint(j);
+			if (pt.getDistance() < 0.f)
+			{
+				const btVector3& ptA = pt.getPositionWorldOnA();
+				const btVector3& ptB = pt.getPositionWorldOnB();
+				const btVector3& normalOnB = pt.m_normalWorldOnB;
+				b3Printf("check\n");
+			}
+		}
+	}
+
+	//get distance
+	btScalar distance = sqrt(pow((groundOrigin_target.getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((groundOrigin_target.getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	b3Printf("distance = %f", distance);
+	b3Printf("\n");
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 
 	static int count = 0;
@@ -102,7 +129,7 @@ void BasicExample::initPhysics()
 
 	{ // create a door using hinge constraint attached to the world
 
-		int numLinks = 3;
+		int numLinks = 2;
 		bool spherical = false;					//set it ot false -to use 1DoF hinges instead of 3DoF sphericals
 		bool canSleep = false;
 		bool selfCollide = false;
@@ -111,7 +138,7 @@ void BasicExample::initPhysics()
 		btVector3 linkHalfExtents(0.05, 0.37, 0.1);
 
 		btBoxShape* baseBox = new btBoxShape(baseHalfExtents);
-		btVector3 basePosition = btVector3(0.f, 3.f, 1.f);
+		btVector3 basePosition = btVector3(-0.4f, 4.f, 0.f);
 		btTransform baseWorldTrans;
 		baseWorldTrans.setIdentity();
 		baseWorldTrans.setOrigin(basePosition);
@@ -127,7 +154,6 @@ void BasicExample::initPhysics()
 		base->setDamping(0, 0);
 		m_dynamicsWorld->addRigidBody(base, collisionFilterGroup, collisionFilterMask);
 		btBoxShape* linkBox1 = new btBoxShape(linkHalfExtents);
-		btBoxShape* linkBox2 = new btBoxShape(linkHalfExtents);
 		btSphereShape* linkSphere = new btSphereShape(radius);
 
 		btRigidBody* prevBody = base;
@@ -145,15 +171,11 @@ void BasicExample::initPhysics()
 			{
 				colOb = linkBox1;
 			}
-			else if (i == 1)
-			{
-				colOb = linkBox2;
-			}
 			else
 			{
 				colOb = linkSphere;
 			}
-			btRigidBody* linkBody = createRigidBody(linkMass, linkTrans, colOb);
+			linkBody = createRigidBody(linkMass, linkTrans, colOb);
 			m_dynamicsWorld->removeRigidBody(linkBody);
 			m_dynamicsWorld->addRigidBody(linkBody, collisionFilterGroup, collisionFilterMask);
 			linkBody->setDamping(0, 0);
@@ -173,20 +195,6 @@ void BasicExample::initPhysics()
 				hinge->setLimit(0.0f, 0.0f);
 				m_dynamicsWorld->addConstraint(hinge, true);
 				con = hinge;
-			}
-			else if (i == 1)
-			{
-				btVector3 pivotInA(0, -linkHalfExtents[1], 0);
-				btVector3 pivotInB(0, linkHalfExtents[1], 0);
-				btVector3 axisInA(1, 0, 0);
-				btVector3 axisInB(1, 0, 0);
-				bool useReferenceA = true;
-				hinge1 = new btHingeConstraint(*prevBody, *linkBody,
-					pivotInA, pivotInB,
-					axisInA, axisInB, useReferenceA);
-				hinge1->setLimit(0.0f, 0.0f);
-				m_dynamicsWorld->addConstraint(hinge1, true);
-				con = hinge1;
 			}
 			else
 			{
@@ -219,21 +227,20 @@ void BasicExample::initPhysics()
 
 	if (1)
 	{
-		btVector3 groundHalfExtents(1, 1, 0.2);
-		groundHalfExtents[upAxis] = 1.f;
+		btVector3 groundHalfExtents(0.4, 0.0, 0.4);
+		groundHalfExtents[upAxis] = 0.025f;
 		btBoxShape* box = new btBoxShape(groundHalfExtents);
 		box->initializePolyhedralFeatures();
 
 		btTransform start; start.setIdentity();
-		btVector3 groundOrigin(-0.4f, 3.f, 0.f);
+		groundOrigin_target = btVector3(-0.4f, 3.9f, -0.77f);
 		btVector3 basePosition = btVector3(-0.4f, 3.f, 0.f);
 		btQuaternion groundOrn(btVector3(0, 1, 0), 0.25*SIMD_PI);
 
-		groundOrigin[upAxis] -= .5;
-		groundOrigin[2] -= 0.6;
-		start.setOrigin(groundOrigin);
-		//	start.setRotation(groundOrn);
-		btRigidBody* body = createRigidBody(0, start, box);
+
+		start.setOrigin(groundOrigin_target);
+		body = createRigidBody(0, start, box);
+
 		body->setFriction(0);
 
 	}
@@ -249,6 +256,7 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_HOME:
 		{
 			b3Printf("Rest.\n");
+			m_guiHelper->removeAllGraphicsInstances();
 			initPhysics();
 			break;
 		}
@@ -271,38 +279,12 @@ bool BasicExample::keyboardCallback(int key, int state)
 			handled = true;
 			break;
 		}
-		case B3G_UP_ARROW:
-		{
-			b3Printf("up.\n");
-
-			hinge1->setLimit(-M_PI / 1.0f, M_PI / 1.0f);
-			hinge1->enableAngularMotor(true, -15.0, 4000.f);
-			handled = true;
-			break;
-		}
-		case B3G_DOWN_ARROW:
-		{
-			b3Printf("down.\n");
-
-			hinge1->setLimit(-M_PI / 1.0f, M_PI / 1.0f);
-			hinge1->enableAngularMotor(true, 15.0, 4000.f);
-			handled = true;
-			break;
-		}
-
 		}
 	}
 	else
 	{
 		switch (key)
 		{
-		case B3G_UP_ARROW:
-		case B3G_DOWN_ARROW:
-		{
-			lockLiftHinge1();
-			handled = true;
-			break;
-		}
 		case B3G_LEFT_ARROW:
 		case B3G_RIGHT_ARROW:
 		{
@@ -343,38 +325,9 @@ void BasicExample::lockLiftHinge(void)
 	}
 	return;
 }
-void BasicExample::lockLiftHinge1(void)
-{
-	btScalar hingeAngle = hinge1->getHingeAngle();
-	btScalar lowLim = hinge1->getLowerLimit();
-	btScalar hiLim = hinge1->getUpperLimit();
-	hinge1->enableAngularMotor(false, 0, 0);
-	//b3Printf("Connected to existing shared memory, status OK.\n");
-	if (hingeAngle < lowLim)
-	{
-		//		m_liftHinge->setLimit(lowLim, lowLim + LIFT_EPS);
-		hinge1->setLimit(lowLim, lowLim);
-	}
-	else if (hingeAngle > hiLim)
-	{
-		//		m_liftHinge->setLimit(hiLim - LIFT_EPS, hiLim);
-		hinge1->setLimit(hiLim, hiLim);
-	}
-	else
-	{
-		//		m_liftHinge->setLimit(hingeAngle - LIFT_EPS, hingeAngle + LIFT_EPS);
-		hinge1->setLimit(hingeAngle, hingeAngle);
-	}
-	return;
-}
 
 
-
-
-
-
-
-CommonExampleInterface* BasicExampleCreateFunc(CommonExampleOptions& options)
+CommonExampleInterface*    BasicExampleCreateFunc(CommonExampleOptions& options)
 {
 	return new BasicExample(options.m_guiHelper);
 
