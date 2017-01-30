@@ -138,7 +138,7 @@ void BasicExample::stepSimulation(float deltaTime)
 				float lr = 0.5f;
 
 				// LR
-				for(int t = 0; t < 1000; t++) {
+				for(int t = 0; t < 10000; t++) {
 					for (int i = 0; i < AR.memory.num_elements; i++) {
 						float a = (float)AR.memory.moved_array[i];
 						float b = AR.memory.reward_array[i]; 
@@ -179,7 +179,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	}
 	else {
 		// learned move
-		thisMoved = (lh.getY(distance) >= -0.5)?(1):(0);
+		thisMoved = (lh.getY(distance) >= 0.5)?(0):(1);
 	}
 
 	// moving
