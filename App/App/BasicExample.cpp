@@ -98,8 +98,8 @@ void BasicExample::stepSimulation(float deltaTime)
 	{
 		if (m_dynamicsWorld->getDispatcher()->getNumManifolds() == 0) continue;
 		btPersistentManifold* contactManifold = m_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
-		//const btCollisionObject* obA = contactManifold->getBody0();
-		//const btCollisionObject* obB = contactManifold->getBody1();
+		const btCollisionObject* obA = contactManifold->getBody0();
+		const btCollisionObject* obB = contactManifold->getBody1();
 
 		int numContacts = contactManifold->getNumContacts();
 		for (int j = 0; j < numContacts; j++)
@@ -107,9 +107,9 @@ void BasicExample::stepSimulation(float deltaTime)
 			btManifoldPoint& pt = contactManifold->getContactPoint(j);
 			if (pt.getDistance() < 0.f)
 			{
-				//const btVector3& ptA = pt.getPositionWorldOnA();
-				//const btVector3& ptB = pt.getPositionWorldOnB();
-				//const btVector3& normalOnB = pt.m_normalWorldOnB;
+				const btVector3& ptA = pt.getPositionWorldOnA();
+				const btVector3& ptB = pt.getPositionWorldOnB();
+				const btVector3& normalOnB = pt.m_normalWorldOnB;
 				initState(this);
 				b3Printf("check\n");
 			}
