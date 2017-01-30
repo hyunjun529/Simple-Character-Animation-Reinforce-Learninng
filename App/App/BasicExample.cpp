@@ -73,12 +73,34 @@ void initState(BasicExample* target) {
 	target->initPhysics();
 }
 
+void moveLeft(btHingeConstraint *target) {
+	target->setLimit(-M_PI / 1.0f, M_PI / 1.0f);
+	target->enableAngularMotor(true, -15.0, 4000.f);
+	
+}
+
+void moveRight(btHingeConstraint *target) {
+	target->setLimit(-M_PI / 1.0f, M_PI / 1.0f);
+	target->enableAngularMotor(true, 15.0, 4000.f);
+}
+
 /********************************************************************************************
 * end custom Functions
 *********************************************************************************************/
 
 void BasicExample::stepSimulation(float deltaTime)
 {
+	/********************************************************************************************
+	* start Linear Regression
+	*********************************************************************************************/
+
+	
+
+	/********************************************************************************************
+	* end Linear Regression
+	*********************************************************************************************/
+
+
 	if (0)//m_once)
 	{
 		m_once = false;
@@ -282,9 +304,7 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_LEFT_ARROW:
 		{
 			// b3Printf("left.\n");
-
-			hinge->setLimit(-M_PI / 1.0f, M_PI / 1.0f);
-			hinge->enableAngularMotor(true, -15.0, 4000.f);
+			moveLeft(hinge);
 			handled = true;
 			break;
 
@@ -292,9 +312,7 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_RIGHT_ARROW:
 		{
 			// b3Printf("right.\n");
-
-			hinge->setLimit(-M_PI / 1.0f, M_PI / 1.0f);
-			hinge->enableAngularMotor(true, 15.0, 4000.f);
+			moveRight(hinge);
 			handled = true;
 			break;
 		}
