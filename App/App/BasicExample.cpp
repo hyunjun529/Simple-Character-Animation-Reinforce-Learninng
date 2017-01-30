@@ -13,9 +13,12 @@
 #define M_PI       3.14159265358979323846
 #endif
 
+#include "LinearHypothesis.h"
 #include "ActionRecorder.h"
 
+LinearHypothesis lh;
 ActionRecorder AR;
+bool needStuding = true;
 
 int num = 0;
 short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
@@ -90,17 +93,6 @@ void moveRight(btHingeConstraint *target) {
 
 void BasicExample::stepSimulation(float deltaTime)
 {
-	/********************************************************************************************
-	* start Linear Regression
-	*********************************************************************************************/
-
-	
-
-	/********************************************************************************************
-	* end Linear Regression
-	*********************************************************************************************/
-
-
 	if (0)//m_once)
 	{
 		m_once = false;
@@ -113,6 +105,10 @@ void BasicExample::stepSimulation(float deltaTime)
 		hinge->getRigidBodyB().applyTorque(hingeAxisInWorld * 10);
 
 	}
+
+	//get distance
+	btScalar distance = sqrt(pow((groundOrigin_target.getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((groundOrigin_target.getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	//b3Printf("distance = %f\n", distance);
 
 	//collison check
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
@@ -134,21 +130,79 @@ void BasicExample::stepSimulation(float deltaTime)
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
 				initState(this);
 				b3Printf("check\n");
+
+				/********************************************************************************************
+				* start RL
+				*********************************************************************************************/
+
+				float lr = 0.5f;
+
+				// LR
+				for(int t = 0; t < 1000; t++) {
+					for (int i = 0; i < AR.memory.num_elements; i++) {
+						float a = (float)AR.memory.moved_array[i];
+						float b = AR.memory.reward_array[i]; 
+
+						const float error = b - lh.getY(a);
+						const float sqr_error = 0.5 * error * error;
+
+						const float da = 2.0 * error * -a;
+						const float db = 2.0 * error * -1;
+
+						lh.a -= da * lr;
+						lh.b -= db * lr;
+					}
+				}
+				
+				needStuding = false;
+
+				AR.clearHistory();
+
+				/********************************************************************************************
+				* end RL
+				*********************************************************************************************/
 			}
 		}
 	}
 
-	//get distance
-	btScalar distance = sqrt(pow((groundOrigin_target.getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((groundOrigin_target.getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
-	b3Printf("distance = %f\n", distance);
+	/********************************************************************************************
+	* start select Move
+	*********************************************************************************************/
 
-	//memory
-	AR.recordHistory(ACT_MOVE_RIGHT, ACT_MOVE_RIGHT, distance);
+	
+	int thisMoved = -1;
+
+	
+	if(needStuding){
+		// random move
+		thisMoved = ((int)rand() % 2 == 0) ? (1):(0);
+	}
+	else {
+		// learned move
+		thisMoved = (lh.getY(distance) >= -0.5)?(1):(0);
+	}
+
+	// moving
+	if (thisMoved == ACT_MOVE_LEFT) {
+		moveLeft(hinge);
+	}
+	else {
+		moveRight(hinge);
+	}
+
+	// check current
+	b3Printf("moved = %d\tdistance=%f\ttcurrent Y = %f\n", thisMoved, distance, lh.getY(distance));
+
+	// Memory
+	AR.recordHistory(thisMoved, distance);
+
+	/********************************************************************************************
+	* end select RL
+	*********************************************************************************************/
 
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 
 	static int count = 0;
-
 }
 
 void BasicExample::initPhysics()
