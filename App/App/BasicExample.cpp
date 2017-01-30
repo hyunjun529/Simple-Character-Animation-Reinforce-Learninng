@@ -96,9 +96,10 @@ void BasicExample::stepSimulation(float deltaTime)
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
 	for (int i = 0; i < numManifolds; i++)
 	{
+		if (m_dynamicsWorld->getDispatcher()->getNumManifolds() == 0) continue;
 		btPersistentManifold* contactManifold = m_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
-		const btCollisionObject* obA = contactManifold->getBody0();
-		const btCollisionObject* obB = contactManifold->getBody1();
+		//const btCollisionObject* obA = contactManifold->getBody0();
+		//const btCollisionObject* obB = contactManifold->getBody1();
 
 		int numContacts = contactManifold->getNumContacts();
 		for (int j = 0; j < numContacts; j++)

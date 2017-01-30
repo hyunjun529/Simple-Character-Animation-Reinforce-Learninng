@@ -128,10 +128,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ActionMemory.cpp" />
     <ClCompile Include="BasicExample.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="ActionRecorder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Action.h" />

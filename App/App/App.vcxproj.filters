@@ -19,12 +19,6 @@
     <ClCompile Include="BasicExample.cpp">
       <Filter>Source\BasicExample</Filter>
     </ClCompile>
-    <ClCompile Include="ActionRecorder.cpp">
-      <Filter>Source\BasicNN</Filter>
-    </ClCompile>
-    <ClCompile Include="ActionMemory.cpp">
-      <Filter>Source\BasicNN</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BasicExample.h">
