@@ -33,6 +33,7 @@ struct BasicExample : public CommonRigidBodyBase
 	btRigidBody* linkBody;
 	btVector3 groundOrigin_target;
 	btRigidBody* body;
+	btBoxShape* box;
 	BasicExample(struct GUIHelperInterface* helper);
 	virtual ~BasicExample();
 	virtual void initPhysics();
@@ -77,13 +78,13 @@ void initState(BasicExample* target) {
 }
 
 void moveLeft(btHingeConstraint *target) {
-	target->setLimit(-M_PI / 1.0f, M_PI / 1.0f);
+	target->setLimit(-M_PI / 1.2f, M_PI / 1.2f);
 	target->enableAngularMotor(true, -15.0, 4000.f);
-	
+
 }
 
 void moveRight(btHingeConstraint *target) {
-	target->setLimit(-M_PI / 1.0f, M_PI / 1.0f);
+	target->setLimit(-M_PI / 1.2f, M_PI / 1.2f);
 	target->enableAngularMotor(true, 15.0, 4000.f);
 }
 
@@ -107,7 +108,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	}
 
 	//get distance
-	btScalar distance = sqrt(pow((groundOrigin_target.getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((groundOrigin_target.getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	btScalar distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
 	//b3Printf("distance = %f\n", distance);
 
 	//collison check
@@ -138,10 +139,10 @@ void BasicExample::stepSimulation(float deltaTime)
 				float lr = 0.5f;
 
 				// LR
-				for(int t = 0; t < 10000; t++) {
+				for (int t = 0; t < 10000; t++) {
 					for (int i = 0; i < AR.memory.num_elements; i++) {
 						float a = (float)AR.memory.moved_array[i];
-						float b = AR.memory.reward_array[i]; 
+						float b = AR.memory.reward_array[i];
 
 						const float error = b - lh.getY(a);
 						const float sqr_error = 0.5 * error * error;
@@ -153,7 +154,7 @@ void BasicExample::stepSimulation(float deltaTime)
 						lh.b -= db * lr;
 					}
 				}
-				
+
 				needStuding = false;
 
 				AR.clearHistory();
@@ -169,17 +170,17 @@ void BasicExample::stepSimulation(float deltaTime)
 	* start select Move
 	*********************************************************************************************/
 
-	
+
 	int thisMoved = -1;
 
-	
-	if(needStuding){
+
+	if (needStuding) {
 		// random move
-		thisMoved = ((int)rand() % 2 == 0) ? (1):(0);
+		thisMoved = ((int)rand() % 2 == 0) ? (1) : (0);
 	}
 	else {
 		// learned move
-		thisMoved = (lh.getY(distance) >= 0.5)?(0):(1);
+		thisMoved = (lh.getY(distance) >= 0.5) ? (0) : (1);
 	}
 
 	// moving
@@ -329,8 +330,8 @@ void BasicExample::initPhysics()
 
 		btTransform start; start.setIdentity();
 		groundOrigin_target = btVector3(-0.4f, 3.9f, -0.77f);
-		btVector3 basePosition = btVector3(-0.4f, 3.f, 0.f);
-		btQuaternion groundOrn(btVector3(0, 1, 0), 0.25*SIMD_PI);
+		/*	btVector3 basePosition = btVector3(-0.4f, 3.f, 0.f);
+		btQuaternion groundOrn(btVector3(0, 1, 0), 0.25*SIMD_PI);*/
 
 
 		start.setOrigin(groundOrigin_target);
@@ -369,6 +370,26 @@ bool BasicExample::keyboardCallback(int key, int state)
 			moveRight(hinge);
 			handled = true;
 			break;
+		}
+		case B3G_UP_ARROW:
+		{
+			// b3Printf("left.\n");
+
+			btVector3 basePosition = btVector3(0.0, 0.0f,1.54f);
+			body->translate(basePosition);
+
+			break;
+
+		}
+		case B3G_DOWN_ARROW:
+		{
+			// b3Printf("left.\n");
+
+			btVector3 basePosition = btVector3(0.0, 0.0f, -0.77f);
+			body->translate(basePosition);
+
+			break;
+
 		}
 		}
 	}
