@@ -142,18 +142,18 @@ void BasicExample::stepSimulation(float deltaTime)
 				*********************************************************************************************/
 
 				if (needStuding){
-					float lr = 0.5f;
+					float lr = 0.2f;
 
 					// LR
-					for (int t = 0; t < 10000; t++) {
+					for (int t = 0; t < 1000; t++) {
 						for (int i = 0; i < AR.memory.num_elements; i++) {
-							float a = (float)AR.memory.moved_array[i];
-							float b = AR.memory.reward_array[i];
 
-							const float error = b - lh.getY(a);
-							const float sqr_error = 0.5 * error * error;
+							float x = AR.memory.reward_array[i];
+							float y = (float)AR.memory.moved_array[i];
 
-							const float da = 2.0 * error * -a;
+							const float error = y - lh.getY(x);
+
+							const float da = 2.0 * error * -x;
 							const float db = 2.0 * error * -1;
 
 							lh.a -= da * lr;
@@ -186,7 +186,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	}
 	else {
 		// learned move
-		thisMoved = (lh.getY(distance) >= 0.5) ? (0) : (1);
+		thisMoved = (lh.getY(distance) >= 0) ? (1) : (0);
 	}
 
 	// moving
