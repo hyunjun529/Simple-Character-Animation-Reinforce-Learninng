@@ -182,15 +182,11 @@ void BasicExample::stepSimulation(float deltaTime)
 
 	if (needStuding) {
 		// random move
-		// thisMoved = ((int)rand() % 2 == 0) ? (1) : (0);
-		// fake move
-		thisMoved = (distance < 0) ? (0) : (1);
+		thisMoved = ((int)rand() % 2 == 0) ? (1) : (0);
 	}
 	else {
 		// learned move
-		// thisMoved = (lh.getY(distance) >= 0.5) ? (0) : (1);
-		// fake move
-		thisMoved = (distance < 0) ? (0) : (1);
+		thisMoved = (lh.getY(distance) >= 0.5) ? (0) : (1);
 	}
 
 	// moving
@@ -202,8 +198,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	}
 
 	// check current
-	b3Printf("WARNING!!! : this is Heuristic!!!\n");
-	// b3Printf("moved = %d\tdistance=%f\ttcurrent Y = %f\n", thisMoved, distance, lh.getY(distance));
+	b3Printf("moved = %d\tdistance=%f\tlh.get(distance) = %f\n", thisMoved, distance, lh.getY(distance));
 
 	// Memory
 	if(needStuding) AR.recordHistory(thisMoved, distance);
