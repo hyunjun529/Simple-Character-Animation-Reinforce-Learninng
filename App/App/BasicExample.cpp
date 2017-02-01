@@ -191,7 +191,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	}
 
 	// check current
-	b3Printf("moved = %d\tdistance=%f\ttcurrent Y = %f\n", thisMoved, distance, lh.getY(distance));
+	b3Printf("!!?!moved = %d\tdistance=%f\ttcurrent Y = %f\n", thisMoved, distance, lh.getY(distance));
 
 	
 
