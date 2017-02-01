@@ -28,6 +28,7 @@ static btScalar radius(0.2);
 struct BasicExample : public CommonRigidBodyBase
 {
 	bool m_once;
+	btScalar distance;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
 	btHingeConstraint* hinge;
 	btRigidBody* linkBody;
@@ -108,8 +109,12 @@ void BasicExample::stepSimulation(float deltaTime)
 	}
 
 	//get distance
-	btScalar distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	//check distance
+	if (body->getCenterOfMassPosition().getZ() < 0)
+		distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
 	//b3Printf("distance = %f\n", distance);
+	else
+		distance = -sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
 
 	//collison check
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
@@ -374,7 +379,7 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_UP_ARROW:
 		{
 			// b3Printf("left.\n");
-
+			
 			btVector3 basePosition = btVector3(0.0, 0.0f,1.54f);
 			body->translate(basePosition);
 
@@ -384,8 +389,8 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_DOWN_ARROW:
 		{
 			// b3Printf("left.\n");
-
-			btVector3 basePosition = btVector3(0.0, 0.0f, -0.77f);
+			
+			btVector3 basePosition = btVector3(0.0, 0.0f, -1.54f);
 			body->translate(basePosition);
 
 			break;
