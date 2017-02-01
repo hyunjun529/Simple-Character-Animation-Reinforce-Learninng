@@ -141,29 +141,30 @@ void BasicExample::stepSimulation(float deltaTime)
 				* start RL
 				*********************************************************************************************/
 
-				float lr = 0.5f;
+				if (needStuding){
+					float lr = 0.5f;
 
-				// LR
-				for (int t = 0; t < 10000; t++) {
-					for (int i = 0; i < AR.memory.num_elements; i++) {
-						float a = (float)AR.memory.moved_array[i];
-						float b = AR.memory.reward_array[i];
+					// LR
+					for (int t = 0; t < 10000; t++) {
+						for (int i = 0; i < AR.memory.num_elements; i++) {
+							float a = (float)AR.memory.moved_array[i];
+							float b = AR.memory.reward_array[i];
 
-						const float error = b - lh.getY(a);
-						const float sqr_error = 0.5 * error * error;
+							const float error = b - lh.getY(a);
+							const float sqr_error = 0.5 * error * error;
 
-						const float da = 2.0 * error * -a;
-						const float db = 2.0 * error * -1;
+							const float da = 2.0 * error * -a;
+							const float db = 2.0 * error * -1;
 
-						lh.a -= da * lr;
-						lh.b -= db * lr;
+							lh.a -= da * lr;
+							lh.b -= db * lr;
+						}
 					}
+
+					needStuding = false;
+
+					AR.clearHistory();
 				}
-
-				needStuding = false;
-
-				AR.clearHistory();
-
 				/********************************************************************************************
 				* end RL
 				*********************************************************************************************/
@@ -200,7 +201,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	b3Printf("moved = %d\tdistance=%f\ttcurrent Y = %f\n", thisMoved, distance, lh.getY(distance));
 
 	// Memory
-	AR.recordHistory(thisMoved, distance);
+	if(needStuding) AR.recordHistory(thisMoved, distance);
 
 	/********************************************************************************************
 	* end select RL
