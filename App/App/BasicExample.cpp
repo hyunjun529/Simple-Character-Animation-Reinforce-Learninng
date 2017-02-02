@@ -15,7 +15,7 @@
 
 #include "LinearHypothesis.h"
 #include "ActionRecorder.h"
-
+#include <cstdlib>
 LinearHypothesis lh;
 ActionRecorder AR;
 bool needStuding = true;
@@ -30,22 +30,23 @@ struct BasicExample : public CommonRigidBodyBase
 	bool m_once;
 	btScalar distance;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
-	btHingeConstraint* hinge;
+	btHingeConstraint* hinge_shader;
+	btHingeConstraint* hinge_elbow;
 	btRigidBody* linkBody;
 	btVector3 groundOrigin_target;
 	btRigidBody* body;
-	btBoxShape* box;
+	btRigidBody* human_body;
+	
 	BasicExample(struct GUIHelperInterface* helper);
 	virtual ~BasicExample();
 	virtual void initPhysics();
 
 	virtual void stepSimulation(float deltaTime);
-	void lockLiftHinge(void);
+	void lockLiftHinge(btHingeConstraint* hinge);
 
 	virtual bool keyboardCallback(int key, int state);
 	virtual void resetCamera()
 	{
-
 		float dist = 5;
 		float pitch = 270;
 		float yaw = 21;
@@ -79,14 +80,39 @@ void initState(BasicExample* target) {
 }
 
 void moveLeft(btHingeConstraint *target) {
-	target->setLimit(-M_PI / 1.2f, M_PI / 1.2f);
+	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 	target->enableAngularMotor(true, -15.0, 4000.f);
 
 }
 
 void moveRight(btHingeConstraint *target) {
-	target->setLimit(-M_PI / 1.2f, M_PI / 1.2f);
+	target->setLimit(M_PI /360.0f, M_PI / 1.2f);
 	target->enableAngularMotor(true, 15.0, 4000.f);
+}
+
+void BasicExample::lockLiftHinge(btHingeConstraint* hinge)
+{
+	btScalar hingeAngle = hinge->getHingeAngle();
+	btScalar lowLim = hinge->getLowerLimit();
+	btScalar hiLim = hinge->getUpperLimit();
+	hinge->enableAngularMotor(false, 0, 0);
+
+	if (hingeAngle < lowLim)
+	{
+		//		m_liftHinge->setLimit(lowLim, lowLim + LIFT_EPS);
+		hinge->setLimit(lowLim, lowLim);
+	}
+	else if (hingeAngle > hiLim)
+	{
+		//		m_liftHinge->setLimit(hiLim - LIFT_EPS, hiLim);
+		hinge->setLimit(hiLim, hiLim);
+	}
+	else
+	{
+		//		m_liftHinge->setLimit(hingeAngle - LIFT_EPS, hingeAngle + LIFT_EPS);
+		hinge->setLimit(hingeAngle, hingeAngle);
+	}
+	return;
 }
 
 /********************************************************************************************
@@ -110,11 +136,9 @@ void BasicExample::stepSimulation(float deltaTime)
 
 	//get distance
 	//check distance
-	if (body->getCenterOfMassPosition().getZ() < 0)
-		distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
 	//b3Printf("distance = %f\n", distance);
-	else
-		distance = -sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	
 
 	//collison check
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
@@ -134,73 +158,83 @@ void BasicExample::stepSimulation(float deltaTime)
 				const btVector3& ptA = pt.getPositionWorldOnA();
 				const btVector3& ptB = pt.getPositionWorldOnB();
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
-				initState(this);
-				b3Printf("check\n");
-
+				//initState(this);
+				
+				//check the head or body
+				if (distance <= sqrt(0.08))
+				{
+					b3Printf("goal:10\n");
+				}
+				else
+				{
+					b3Printf("check\n");
+				}
 				/********************************************************************************************
 				* start RL
 				*********************************************************************************************/
 
-				float lr = 0.5f;
+				//if (needStuding) {
+				//	float lr = 0.2f;
 
-				// LR
-				for (int t = 0; t < 10000; t++) {
-					for (int i = 0; i < AR.memory.num_elements; i++) {
-						float a = (float)AR.memory.moved_array[i];
-						float b = AR.memory.reward_array[i];
+				//	// LR
+				//	for (int t = 0; t < 1000; t++) {
+				//		for (int i = 0; i < AR.memory.num_elements; i++) {
 
-						const float error = b - lh.getY(a);
-						const float sqr_error = 0.5 * error * error;
+				//			float x = AR.memory.reward_array[i];
+				//			float y = (float)AR.memory.moved_array[i];
 
-						const float da = 2.0 * error * -a;
-						const float db = 2.0 * error * -1;
+				//			const float error = y - lh.getY(x);
 
-						lh.a -= da * lr;
-						lh.b -= db * lr;
-					}
-				}
+				//			const float da = 2.0 * error * -x;
+				//			const float db = 2.0 * error * -1;
 
-				needStuding = false;
+				//			lh.a -= da * lr;
+				//			lh.b -= db * lr;
+				//		}
+				//	}
 
-				AR.clearHistory();
+				//	needStuding = false;
 
+				//	AR.clearHistory();
+				
 				/********************************************************************************************
 				* end RL
 				*********************************************************************************************/
 			}
 		}
 	}
+	
 
 	/********************************************************************************************
 	* start select Move
 	*********************************************************************************************/
 
 
-	int thisMoved = -1;
+	//int thisMoved = -1;
 
 
-	if (needStuding) {
-		// random move
-		thisMoved = ((int)rand() % 2 == 0) ? (1) : (0);
-	}
-	else {
-		// learned move
-		thisMoved = (lh.getY(distance) >= 0.5) ? (0) : (1);
-	}
+	//if (needStuding) {
+	//	// random move
+	//	thisMoved = ((int)rand() % 2 == 0) ? (1) : (0);
+	//}
+	//else {
+	//	// learned move
+	//	thisMoved = (lh.getY(distance) >= 0) ? (1) : (0);
+	//}
 
-	// moving
-	if (thisMoved == ACT_MOVE_LEFT) {
-		moveLeft(hinge);
-	}
-	else {
-		moveRight(hinge);
-	}
+	//// moving
+	//if (thisMoved == ACT_MOVE_LEFT) {
+	//	moveLeft(hinge);
+	//}
+	//else {
+	//	moveRight(hinge);
+	//}
 
 	// check current
-	b3Printf("moved = %d\tdistance=%f\ttcurrent Y = %f\n", thisMoved, distance, lh.getY(distance));
-
+	/*b3Printf("moved = %d\tdistance=%f\tlh.get(distance) = %f\n", thisMoved, distance, lh.getY(distance));
+*/
 	// Memory
-	AR.recordHistory(thisMoved, distance);
+	/*if (needStuding) AR.recordHistory(thisMoved, distance);*/
 
 	/********************************************************************************************
 	* end select RL
@@ -230,7 +264,7 @@ void BasicExample::initPhysics()
 
 	{ // create a door using hinge constraint attached to the world
 
-		int numLinks = 2;
+		int numLinks = 3;
 		bool spherical = false;					//set it ot false -to use 1DoF hinges instead of 3DoF sphericals
 		bool canSleep = false;
 		bool selfCollide = false;
@@ -255,6 +289,7 @@ void BasicExample::initPhysics()
 		base->setDamping(0, 0);
 		m_dynamicsWorld->addRigidBody(base, collisionFilterGroup, collisionFilterMask);
 		btBoxShape* linkBox1 = new btBoxShape(linkHalfExtents);
+		btBoxShape* linkBox2 = new btBoxShape(linkHalfExtents);
 		btSphereShape* linkSphere = new btSphereShape(radius);
 
 		btRigidBody* prevBody = base;
@@ -271,6 +306,10 @@ void BasicExample::initPhysics()
 			if (i == 0)
 			{
 				colOb = linkBox1;
+			}
+			else if (i == 1)
+			{
+				colOb = linkBox2;
 			}
 			else
 			{
@@ -290,12 +329,27 @@ void BasicExample::initPhysics()
 				btVector3 axisInA(1, 0, 0);
 				btVector3 axisInB(1, 0, 0);
 				bool useReferenceA = true;
-				hinge = new btHingeConstraint(*prevBody, *linkBody,
+				hinge_shader = new btHingeConstraint(*prevBody, *linkBody,
 					pivotInA, pivotInB,
 					axisInA, axisInB, useReferenceA);
-				hinge->setLimit(0.0f, 0.0f);
-				m_dynamicsWorld->addConstraint(hinge, true);
-				con = hinge;
+				hinge_shader->setLimit(0.0f, 0.0f);
+				m_dynamicsWorld->addConstraint(hinge_shader, true);
+				con = hinge_shader;
+			}
+			else if (i == 1)
+			{
+				//create a hinge constraint
+				btVector3 pivotInA(0, -linkHalfExtents[1], 0);
+				btVector3 pivotInB(0, linkHalfExtents[1], 0);
+				btVector3 axisInA(1, 0, 0);
+				btVector3 axisInB(1, 0, 0);
+				bool useReferenceA = true;
+				hinge_elbow = new btHingeConstraint(*prevBody, *linkBody,
+					pivotInA, pivotInB,
+					axisInA, axisInB, useReferenceA);
+				hinge_elbow->setLimit(0.0f, 0.0f);
+				m_dynamicsWorld->addConstraint(hinge_elbow, true);
+				con = hinge_elbow;
 			}
 			else
 			{
@@ -328,29 +382,46 @@ void BasicExample::initPhysics()
 
 	if (1)
 	{
-		btVector3 groundHalfExtents(0.4, 0.0, 0.4);
-		groundHalfExtents[upAxis] = 0.025f;
+		btVector3 groundHalfExtents(0.4, 0.0, 0.025);
+		groundHalfExtents[upAxis] = 0.4f;
 		btBoxShape* box = new btBoxShape(groundHalfExtents);
 		box->initializePolyhedralFeatures();
 
 		btTransform start; start.setIdentity();
-		groundOrigin_target = btVector3(-0.4f, 3.9f, -0.77f);
-		/*	btVector3 basePosition = btVector3(-0.4f, 3.f, 0.f);
-		btQuaternion groundOrn(btVector3(0, 1, 0), 0.25*SIMD_PI);*/
-
-
+		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.25f);
+	
 		start.setOrigin(groundOrigin_target);
 		body = createRigidBody(0, start, box);
 
 		body->setFriction(0);
 
+
+
+		btVector3 human_HalfExtents(0.8, 0.0, 0.025);
+		human_HalfExtents[upAxis] = 0.8f;
+		btBoxShape* human_box = new btBoxShape(human_HalfExtents);
+		human_box->initializePolyhedralFeatures();
+
+		btTransform human_start; 
+		human_start.setIdentity();
+		groundOrigin_target = btVector3(-0.4f, 2.8f, -1.25f);
+
+		human_start.setOrigin(groundOrigin_target);
+		human_body = createRigidBody(0, human_start, human_box);
+
+		human_body->setFriction(0);
+
+	
+
+
 	}
+
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
 }
 
 bool BasicExample::keyboardCallback(int key, int state)
 {
-	bool handled = false;
+	bool handled = true;
 	if (state)
 	{
 		switch (key)
@@ -364,7 +435,7 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_LEFT_ARROW:
 		{
 			// b3Printf("left.\n");
-			moveLeft(hinge);
+			moveLeft(hinge_shader);
 			handled = true;
 			break;
 
@@ -372,16 +443,17 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_RIGHT_ARROW:
 		{
 			// b3Printf("right.\n");
-			moveRight(hinge);
+			moveRight(hinge_shader);
 			handled = true;
 			break;
 		}
 		case B3G_UP_ARROW:
 		{
 			// b3Printf("left.\n");
-			
-			btVector3 basePosition = btVector3(0.0, 0.0f,1.54f);
-			body->translate(basePosition);
+			moveLeft(hinge_elbow);
+			handled = true;
+			/*btVector3 basePosition = btVector3(0.0, 0.0f, 1.54f);
+			body->translate(basePosition);*/
 
 			break;
 
@@ -389,12 +461,11 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_DOWN_ARROW:
 		{
 			// b3Printf("left.\n");
-			
-			btVector3 basePosition = btVector3(0.0, 0.0f, -1.54f);
-			body->translate(basePosition);
-
+			moveRight(hinge_elbow);
+			handled = true;
+			/*btVector3 basePosition = btVector3(0.0, 0.0f, -1.54f);
+			body->translate(basePosition);*/
 			break;
-
 		}
 		}
 	}
@@ -405,8 +476,15 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_LEFT_ARROW:
 		case B3G_RIGHT_ARROW:
 		{
+			lockLiftHinge(hinge_shader);
+			handled = true;
+			break;
+		}
+		case B3G_UP_ARROW:
+		case B3G_DOWN_ARROW:
+		{
 
-			lockLiftHinge();
+			lockLiftHinge(hinge_elbow);
 			handled = true;
 			break;
 		}
@@ -417,32 +495,6 @@ bool BasicExample::keyboardCallback(int key, int state)
 	}
 	return handled;
 }
-
-void BasicExample::lockLiftHinge(void)
-{
-	btScalar hingeAngle = hinge->getHingeAngle();
-	btScalar lowLim = hinge->getLowerLimit();
-	btScalar hiLim = hinge->getUpperLimit();
-	hinge->enableAngularMotor(false, 0, 0);
-
-	if (hingeAngle < lowLim)
-	{
-		//		m_liftHinge->setLimit(lowLim, lowLim + LIFT_EPS);
-		hinge->setLimit(lowLim, lowLim);
-	}
-	else if (hingeAngle > hiLim)
-	{
-		//		m_liftHinge->setLimit(hiLim - LIFT_EPS, hiLim);
-		hinge->setLimit(hiLim, hiLim);
-	}
-	else
-	{
-		//		m_liftHinge->setLimit(hingeAngle - LIFT_EPS, hingeAngle + LIFT_EPS);
-		hinge->setLimit(hingeAngle, hingeAngle);
-	}
-	return;
-}
-
 
 CommonExampleInterface*    BasicExampleCreateFunc(CommonExampleOptions& options)
 {
