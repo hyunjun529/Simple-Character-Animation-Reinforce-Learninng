@@ -148,7 +148,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	//get distance
 	//check distance
 	distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
-	//b3Printf("distance = %f\n", distance);
+	b3Printf("distance = %f\n", distance);
 
 
 	//collison check
