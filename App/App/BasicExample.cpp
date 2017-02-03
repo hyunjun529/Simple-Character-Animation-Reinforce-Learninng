@@ -36,7 +36,7 @@ struct BasicExample : public CommonRigidBodyBase
 	btVector3 groundOrigin_target;
 	btRigidBody* body;
 	btRigidBody* human_body;
-	
+
 	BasicExample(struct GUIHelperInterface* helper);
 	virtual ~BasicExample();
 	virtual void initPhysics();
@@ -79,15 +79,26 @@ void initState(BasicExample* target) {
 	target->initPhysics();
 }
 
-void moveLeft(btHingeConstraint *target) {
+void moveIn(btHingeConstraint *target) {
 	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, -15.0, 4000.f);
+	target->enableAngularMotor(true, 15.0, 4000.f);
 
 }
 
-void moveRight(btHingeConstraint *target) {
-	target->setLimit(M_PI /360.0f, M_PI / 1.2f);
+void moveOut(btHingeConstraint *target) {
+	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+	target->enableAngularMotor(true, -15.0, 4000.f);
+}
+
+void moveUp(btHingeConstraint *target) {
+	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 	target->enableAngularMotor(true, 15.0, 4000.f);
+
+}
+
+void moveDown(btHingeConstraint *target) {
+	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+	target->enableAngularMotor(true, -15.0, 4000.f);
 }
 
 void BasicExample::lockLiftHinge(btHingeConstraint* hinge)
@@ -138,7 +149,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	//check distance
 	distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
 	//b3Printf("distance = %f\n", distance);
-	
+
 
 	//collison check
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
@@ -159,7 +170,7 @@ void BasicExample::stepSimulation(float deltaTime)
 				const btVector3& ptB = pt.getPositionWorldOnB();
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
 				//initState(this);
-				
+
 				//check the head or body
 				if (distance <= sqrt(0.08))
 				{
@@ -196,14 +207,14 @@ void BasicExample::stepSimulation(float deltaTime)
 				//	needStuding = false;
 
 				//	AR.clearHistory();
-				
+
 				/********************************************************************************************
 				* end RL
 				*********************************************************************************************/
 			}
 		}
 	}
-	
+
 
 	/********************************************************************************************
 	* start select Move
@@ -211,6 +222,7 @@ void BasicExample::stepSimulation(float deltaTime)
 
 
 	//int thisMoved = -1;
+
 
 	//if (needStuding) {
 	//	// random move
@@ -230,7 +242,8 @@ void BasicExample::stepSimulation(float deltaTime)
 	//}
 
 	// check current
-	/*b3Printf("moved = %d\tdistance=%f\tlh.get(distance) = %f\n", thisMoved, distance, lh.getY(distance)); */
+	/*b3Printf("moved = %d\tdistance=%f\tlh.get(distance) = %f\n", thisMoved, distance, lh.getY(distance));
+	*/
 	// Memory
 	/*if (needStuding) AR.recordHistory(thisMoved, distance);*/
 
@@ -387,7 +400,7 @@ void BasicExample::initPhysics()
 
 		btTransform start; start.setIdentity();
 		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.25f);
-	
+
 		start.setOrigin(groundOrigin_target);
 		body = createRigidBody(0, start, box);
 
@@ -400,7 +413,7 @@ void BasicExample::initPhysics()
 		btBoxShape* human_box = new btBoxShape(human_HalfExtents);
 		human_box->initializePolyhedralFeatures();
 
-		btTransform human_start; 
+		btTransform human_start;
 		human_start.setIdentity();
 		groundOrigin_target = btVector3(-0.4f, 2.8f, -1.25f);
 
@@ -409,7 +422,7 @@ void BasicExample::initPhysics()
 
 		human_body->setFriction(0);
 
-	
+
 
 
 	}
@@ -433,7 +446,7 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_LEFT_ARROW:
 		{
 			// b3Printf("left.\n");
-			moveLeft(hinge_shader);
+			moveIn(hinge_elbow);
 			handled = true;
 			break;
 
@@ -441,14 +454,14 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_RIGHT_ARROW:
 		{
 			// b3Printf("right.\n");
-			moveRight(hinge_shader);
+			moveOut(hinge_elbow);
 			handled = true;
 			break;
 		}
 		case B3G_UP_ARROW:
 		{
 			// b3Printf("left.\n");
-			moveLeft(hinge_elbow);
+			moveUp(hinge_shader);
 			handled = true;
 			/*btVector3 basePosition = btVector3(0.0, 0.0f, 1.54f);
 			body->translate(basePosition);*/
@@ -459,7 +472,7 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_DOWN_ARROW:
 		{
 			// b3Printf("left.\n");
-			moveRight(hinge_elbow);
+			moveDown(hinge_shader);
 			handled = true;
 			/*btVector3 basePosition = btVector3(0.0, 0.0f, -1.54f);
 			body->translate(basePosition);*/
@@ -474,15 +487,14 @@ bool BasicExample::keyboardCallback(int key, int state)
 		case B3G_LEFT_ARROW:
 		case B3G_RIGHT_ARROW:
 		{
-			lockLiftHinge(hinge_shader);
+			lockLiftHinge(hinge_elbow);
 			handled = true;
 			break;
 		}
 		case B3G_UP_ARROW:
 		case B3G_DOWN_ARROW:
 		{
-
-			lockLiftHinge(hinge_elbow);
+			lockLiftHinge(hinge_shader);
 			handled = true;
 			break;
 		}
