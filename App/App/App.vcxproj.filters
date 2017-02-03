@@ -27,13 +27,10 @@
     <ClInclude Include="Action.h">
       <Filter>Source\BasicNN</Filter>
     </ClInclude>
-    <ClInclude Include="ActionMemory.h">
+    <ClInclude Include="AnimationMemory.h">
       <Filter>Source\BasicNN</Filter>
     </ClInclude>
-    <ClInclude Include="ActionRecorder.h">
-      <Filter>Source\BasicNN</Filter>
-    </ClInclude>
-    <ClInclude Include="LinearHypothesis.h">
+    <ClInclude Include="AnimationRecorder.h">
       <Filter>Source\BasicNN</Filter>
     </ClInclude>
   </ItemGroup>

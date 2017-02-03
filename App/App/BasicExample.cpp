@@ -13,12 +13,20 @@
 #define M_PI       3.14159265358979323846
 #endif
 
-#include "LinearHypothesis.h"
-#include "ActionRecorder.h"
+
+/********************************************************************************************
+* start global
+*********************************************************************************************/
+
 #include <cstdlib>
-LinearHypothesis lh;
-ActionRecorder AR;
-bool needStuding = true;
+#include "AnimationRecorder.h"
+
+AnimationRecorder AR;
+
+/********************************************************************************************
+* end global
+*********************************************************************************************/
+
 
 int num = 0;
 short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
@@ -145,11 +153,12 @@ void BasicExample::stepSimulation(float deltaTime)
 
 	}
 
-	//get distance
-	//check distance
+	// get distance
 	distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
-	b3Printf("distance = %f\n", distance);
+	// b3Printf("distance = %f\n", distance);
 
+	// set reward
+	float reward = 0.1f;
 
 	//collison check
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
@@ -169,48 +178,24 @@ void BasicExample::stepSimulation(float deltaTime)
 				const btVector3& ptA = pt.getPositionWorldOnA();
 				const btVector3& ptB = pt.getPositionWorldOnB();
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
-				//initState(this);
 
 				//check the head or body
 				if (distance <= sqrt(0.08))
 				{
-					b3Printf("goal:10\n");
+					// b3Printf("goal:10\n");
+					
+					initState(this);
+
+					reward = 0.5f;
+
+					AR.clearHistory();
 				}
 				else
 				{
-					b3Printf("check\n");
+					// b3Printf("check\n");
+					
+					reward = 0.0f;
 				}
-				/********************************************************************************************
-				* start RL
-				*********************************************************************************************/
-
-				//if (needStuding) {
-				//	float lr = 0.2f;
-
-				//	// LR
-				//	for (int t = 0; t < 1000; t++) {
-				//		for (int i = 0; i < AR.memory.num_elements; i++) {
-
-				//			float x = AR.memory.reward_array[i];
-				//			float y = (float)AR.memory.moved_array[i];
-
-				//			const float error = y - lh.getY(x);
-
-				//			const float da = 2.0 * error * -x;
-				//			const float db = 2.0 * error * -1;
-
-				//			lh.a -= da * lr;
-				//			lh.b -= db * lr;
-				//		}
-				//	}
-
-				//	needStuding = false;
-
-				//	AR.clearHistory();
-
-				/********************************************************************************************
-				* end RL
-				*********************************************************************************************/
 			}
 		}
 	}
@@ -220,32 +205,42 @@ void BasicExample::stepSimulation(float deltaTime)
 	* start select Move
 	*********************************************************************************************/
 
+	// set random action
+	int probability_shoulder = ((int)rand() % 6);
+	int probability_elbow = ((int)rand() % 5);
+	int action_shoulder = -1;
+	int action_elbow = -1;
 
-	//int thisMoved = -1;
+	// decide the action
+	if (probability_shoulder == ACTION_SHOULDER_UP) {
+		moveUp(hinge_shader);
+		action_shoulder = ACTION_SHOULDER_UP;
+	}
+	else if (probability_shoulder == ACTION_SHOULDER_DOWN) {
+		moveDown(hinge_shader);
+		action_shoulder = ACTION_SHOULDER_DOWN;
+	}
+	else {
+		action_shoulder = ACTION_SHOULDER_STAY;
+	}
 
+	if (probability_elbow == ACTION_ELBOW_IN) {
+		moveIn(hinge_elbow);
+		action_elbow = ACTION_ELBOW_IN;
+	}
+	else if (probability_elbow == ACTION_ELBOW_OUT) {
+		moveOut(hinge_elbow);
+		action_elbow = ACTION_ELBOW_OUT;
+	}
+	else {
+		action_elbow = ACTION_ELBOW_STAY;
+	}
 
-	//if (needStuding) {
-	//	// random move
-	//	thisMoved = ((int)rand() % 2 == 0) ? (1) : (0);
-	//}
-	//else {
-	//	// learned move
-	//	thisMoved = (lh.getY(distance) >= 0) ? (1) : (0);
-	//}
-
-	//// moving
-	//if (thisMoved == ACT_MOVE_LEFT) {
-	//	moveLeft(hinge);
-	//}
-	//else {
-	//	moveRight(hinge);
-	//}
-
-	// check current
-	/*b3Printf("moved = %d\tdistance=%f\tlh.get(distance) = %f\n", thisMoved, distance, lh.getY(distance));
-	*/
 	// Memory
-	/*if (needStuding) AR.recordHistory(thisMoved, distance);*/
+	AR.recordHistory(action_shoulder, action_elbow, distance, reward);
+
+	// print
+	b3Printf("act_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n",action_shoulder, action_elbow, distance, reward);
 
 	/********************************************************************************************
 	* end select RL

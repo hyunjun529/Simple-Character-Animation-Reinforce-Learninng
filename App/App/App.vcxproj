@@ -133,10 +133,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Action.h" />
-    <ClInclude Include="ActionMemory.h" />
-    <ClInclude Include="ActionRecorder.h" />
+    <ClInclude Include="AnimationMemory.h" />
+    <ClInclude Include="AnimationRecorder.h" />
     <ClInclude Include="BasicExample.h" />
-    <ClInclude Include="LinearHypothesis.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
