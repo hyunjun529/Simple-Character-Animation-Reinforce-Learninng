@@ -18,12 +18,16 @@
 * start global
 *********************************************************************************************/
 
+/*
+ * Naming convention
+ * 1. _variave = temp inner scope variables
+ * 2. class_ = custom created(not bullet or opengl) class
+ */
+
 #include <cstdlib>
-#include "AnimationRecorder.h"
 #include "ArmRL.h"
 
-AnimationRecorder AR;
-ArmRL RL;
+ArmRL rl_;
 
 /********************************************************************************************
 * end global
@@ -111,6 +115,10 @@ void moveDown(btHingeConstraint *target) {
 	target->enableAngularMotor(true, -15.0, 4000.f);
 }
 
+/********************************************************************************************
+* end custom Functions
+*********************************************************************************************/
+
 void BasicExample::lockLiftHinge(btHingeConstraint* hinge)
 {
 	btScalar hingeAngle = hinge->getHingeAngle();
@@ -136,10 +144,6 @@ void BasicExample::lockLiftHinge(btHingeConstraint* hinge)
 	return;
 }
 
-/********************************************************************************************
-* end custom Functions
-*********************************************************************************************/
-
 void BasicExample::stepSimulation(float deltaTime)
 {
 	// get distance
@@ -148,53 +152,13 @@ void BasicExample::stepSimulation(float deltaTime)
 	// set reward
 	float reward = 0.1f;
 
-	//collison check
-	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
-	for (int i = 0; i < numManifolds; i++)
-	{
-		if (m_dynamicsWorld->getDispatcher()->getNumManifolds() == 0) continue;
-		btPersistentManifold* contactManifold = m_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
-		const btCollisionObject* obA = contactManifold->getBody0();
-		const btCollisionObject* obB = contactManifold->getBody1();
+	// set checkEndLearningCycle
+	bool checkEndLearningCycle = false;
 
-		int numContacts = contactManifold->getNumContacts();
-		for (int j = 0; j < numContacts; j++)
-		{
-			btManifoldPoint& pt = contactManifold->getContactPoint(j);
-			if (pt.getDistance() < 0.f)
-			{
-				const btVector3& ptA = pt.getPositionWorldOnA();
-				const btVector3& ptB = pt.getPositionWorldOnB();
-				const btVector3& normalOnB = pt.m_normalWorldOnB;
-				//check the head or body
-				if (distance <= sqrt(0.08))
-				{	
-					/********************************************************************************************
-					* start Trainning
-					*********************************************************************************************/
-					
-					reward = 0.5f;
-
-					AR.clearHistory();
-
-					initState(this);
-
-					/********************************************************************************************
-					* start Tranning
-					*********************************************************************************************/
-				}
-				else
-				{	
-					reward = 0.0f;
-				}
-			}
-		}
-	}
-	
 	/********************************************************************************************
 	* start Action
 	*********************************************************************************************/
-
+	
 	// set random action
 	int probability_shoulder = ((int)rand() % 6);
 	int probability_elbow = ((int)rand() % 5);
@@ -226,15 +190,67 @@ void BasicExample::stepSimulation(float deltaTime)
 		action_elbow = ACTION_ELBOW_STAY;
 	}
 
-	// Memory
-	AR.recordHistory(action_shoulder, action_elbow, distance, reward);
-
-	// print
-	b3Printf("act_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n",action_shoulder, action_elbow, distance, reward);
-
 	/********************************************************************************************
 	* end Action
 	*********************************************************************************************/
+
+	//collison check
+	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
+	for (int i = 0; i < numManifolds; i++)
+	{
+		if (m_dynamicsWorld->getDispatcher()->getNumManifolds() == 0) continue;
+		btPersistentManifold* contactManifold = m_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
+		const btCollisionObject* obA = contactManifold->getBody0();
+		const btCollisionObject* obB = contactManifold->getBody1();
+
+		int numContacts = contactManifold->getNumContacts();
+		for (int j = 0; j < numContacts; j++)
+		{
+			btManifoldPoint& pt = contactManifold->getContactPoint(j);
+			if (pt.getDistance() < 0.f)
+			{
+				const btVector3& ptA = pt.getPositionWorldOnA();
+				const btVector3& ptB = pt.getPositionWorldOnB();
+				const btVector3& normalOnB = pt.m_normalWorldOnB;
+				//check the head or body
+				if (distance <= sqrt(0.08))
+				{	
+					reward = 0.5f;
+					checkEndLearningCycle = true;
+				}
+				else
+				{	
+					reward = 0.0f;
+				}
+			}
+		}
+	}
+
+	// Memory current state
+	rl_.recordHistory(action_shoulder, action_elbow, distance, reward);
+
+	// print current state
+	b3Printf("act_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", action_shoulder, action_elbow, distance, reward);
+
+	// if end LearningCycle, then it's time to tranning!
+	if (checkEndLearningCycle) {
+		/********************************************************************************************
+		* start Trainning
+		*********************************************************************************************/
+		
+		// print this cycle's info
+		b3Printf("=====================================================\n");
+		b3Printf("steps(num_reserve) : %d\n", rl_.memory_.num_elements);
+		b3Printf("=====================================================\n");
+
+		// reset & restart
+		rl_.clearHistory();
+		initState(this);
+
+		/********************************************************************************************
+		* end Tranning
+		*********************************************************************************************/
+	}
 
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 

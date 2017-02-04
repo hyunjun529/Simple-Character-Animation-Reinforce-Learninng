@@ -30,9 +30,6 @@
     <ClInclude Include="AnimationMemory.h">
       <Filter>Source\BasicNN</Filter>
     </ClInclude>
-    <ClInclude Include="AnimationRecorder.h">
-      <Filter>Source\BasicNN</Filter>
-    </ClInclude>
     <ClInclude Include="ArmRL.h">
       <Filter>Source\BasicNN</Filter>
     </ClInclude>
