@@ -6,6 +6,7 @@
 
 class ArmRL {
 public:
+	NeuralNetwork nn_;
 	AnimationMemory memory_;
 
 	ArmRL() {}
