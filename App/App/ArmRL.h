@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CircularQueue.h"
+#include "NeuralNetwork.h"
 #include "AnimationMemory.h"
 
 class ArmRL {
