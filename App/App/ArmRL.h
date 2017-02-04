@@ -46,6 +46,8 @@ public:
 
 		vector_elbow_old_input_.initialize(nn_elbow_.num_input_, true);
 		vector_elbow_next_input_.initialize(nn_elbow_.num_input_, true);
+
+		memory_.num_elements = 0;
 	}
 
 	void recordHistory(const int& _action_shoulder, const int& _action_elbow, const float& _distance, const float& _reward) {
@@ -80,15 +82,62 @@ public:
 	}
 
 	void trainReward_shoulder_(const int ix_from_end) {
+		// guess next Q value
+		makeInputVectorFromHistory_shoulder_(ix_from_end, vector_shoulder_next_input_);
 
+		const float reward_ix = memory_.getRewardFromLast(ix_from_end);
+
+		nn_shoulder_.setInputVector(vector_shoulder_next_input_);
+		nn_shoulder_.feedForward();
+
+		const float next_Q = reward_ix < 0.0f ? 0.0f : nn_shoulder_.getOutputValueMaxComponent();
+
+		const int selected_dir = memory_.getSelectedIxFromLast_shoulder_(ix_from_end);
+		//TODO: default training direction!
+
+		makeInputVectorFromHistory_shoulder_(ix_from_end - 1, vector_shoulder_old_input_);
+
+		//const float high_reward_th = 0.8;
+		const float high_reward_tr_ep = 0.1f;
+
+		{
+			int count = 0;
+			while (true)
+			{
+				nn_shoulder_.setInputVector(vector_shoulder_old_input_); // old input
+				nn_shoulder_.feedForward();
+				nn_shoulder_.copyOutputVectorTo(false, vector_shoulder_reward_);
+
+				const float target = reward_ix + gamma_ * next_Q;
+				const float error = ABS(vector_shoulder_reward_[selected_dir] - target);
+
+				vector_shoulder_reward_[selected_dir] = reward_ix + gamma_ * next_Q;
+
+				nn_shoulder_.propBackward(vector_shoulder_reward_);
+
+				nn_shoulder_.check();
+
+				if (error < high_reward_tr_ep || count > 10000) break;
+
+				count++;
+			}
+		}
 	}
 
 	void forward_shoulder_() {
-
+		makeInputVectorFromHistory_shoulder_(0, vector_shoulder_old_input_);
+		nn_shoulder_.setInputVector(vector_shoulder_old_input_);
+		nn_shoulder_.feedForward();
 	}
 
 	void makeInputVectorFromHistory_shoulder_(const int& ix_from_end, VectorND<float>& input) {
+		for (int r = 0, count = 0; r < num_input_histories_; r++, count += num_state_variables_)
+		{
+			const VectorND<float> &state_vector =
+				memory_.getStateVectorFromLast_shoulder_(ix_from_end - r);
 
+			input.copyPartial(state_vector, count, 0, num_state_variables_);
+		}
 	}
 
 	/********************************************************************************************

@@ -154,9 +154,14 @@ void BasicExample::stepSimulation(float deltaTime)
 	* start Action
 	*********************************************************************************************/
 	
-	// set random action
+	// forward
+	// rl_.forward_shoulder_();
+	VectorND<float> output_vector_temp_shoulder_;
+	rl_.nn_shoulder_.copyOutputVectorTo(false, output_vector_temp_shoulder_);
+	VectorND<float> output_vector_target_shoulder_;
 
-	float dice = stateStudy ? 0.7f : 0.0f;
+	// input
+	float dice = stateStudy ? 0.6f : 0.0f;
 
 	int probability_shoulder = rl_.nn_shoulder_.getOutputIXEpsilonGreedy(dice);
 	int probability_elbow = rl_.nn_elbow_.getOutputIXEpsilonGreedy(dice);
@@ -225,7 +230,9 @@ void BasicExample::stepSimulation(float deltaTime)
 	}
 
 	// Memory current state
-	rl_.recordHistory(action_shoulder, action_elbow, distance, reward);
+	rl_.recordVectorHistory(action_shoulder, action_elbow, distance, reward,
+		distance, distance,
+		output_vector_temp_shoulder_, output_vector_temp_shoulder_);
 
 	// print current state
 	b3Printf("md(%s)\tact_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", stateStudy? "st" : "rn", action_shoulder, action_elbow, distance, reward);
@@ -390,6 +397,7 @@ void BasicExample::initPhysics()
 
 		}
 
+
 	}
 
 	if (1)
@@ -429,6 +437,20 @@ void BasicExample::initPhysics()
 	}
 
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
+
+
+	/********************************************************************************************
+	* start init RL
+	*********************************************************************************************/
+	
+	for (int h = 0; h < rl_.num_input_histories_; h++)
+	{
+		rl_.recordVectorHistory(0, 0, 2.0f, 0.0f, 2.0f, 2.0f, VectorND<float>(3), VectorND<float>(3));
+	}
+
+	/********************************************************************************************
+	* end init RL
+	*********************************************************************************************/
 }
 
 bool BasicExample::keyboardCallback(int key, int state)

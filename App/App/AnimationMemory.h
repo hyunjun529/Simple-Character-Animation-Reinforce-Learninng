@@ -74,33 +74,33 @@ public:
 
 
 	// about Shoulder
-	const VectorND<float>& getShoulderStateVectorFromLast(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
+	const VectorND<float>& getStateVectorFromLast_shoulder_(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
 	{
 		return shoulder_state_vector_array_[num_elements - 1 + ix_from_last];
 	}
 
-	const int& getShoulderSelectedIxFromLast(const int& ix_from_last)
+	const int& getSelectedIxFromLast_shoulder_(const int& ix_from_last)
 	{
 		return shoulder_action_array_[num_elements - 1 + ix_from_last];
 	}
 
-	const VectorND<float>& getShoulderQValuesFromLast(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
+	const VectorND<float>& getQValuesFromLast_shoulder_(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
 	{
 		return shoulder_q_values_array_[num_elements - 1 + ix_from_last];
 	}
 
 	// about Elbow
-	const VectorND<float>& getElbowStateVectorFromLast(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
+	const VectorND<float>& getStateVectorFromLast_elbow_(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
 	{
 		return elbow_state_vector_array_[num_elements - 1 + ix_from_last];
 	}
 
-	const int& getElbowSelectedIxFromLast(const int& ix_from_last)
+	const int& getSelectedIxFromLast_elbow_(const int& ix_from_last)
 	{
 		return elbow_action_array_[num_elements - 1 + ix_from_last];
 	}
 
-	const VectorND<float>& getElbowQValuesFromLast(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
+	const VectorND<float>& getQValuesFromLast_elbow_(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
 	{
 		return elbow_q_values_array_[num_elements - 1 + ix_from_last];
 	}
