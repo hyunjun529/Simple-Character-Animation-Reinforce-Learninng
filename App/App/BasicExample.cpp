@@ -243,6 +243,8 @@ void BasicExample::stepSimulation(float deltaTime)
 		b3Printf("steps(num_reserve) : %d\n", rl_.memory_.num_elements);
 		b3Printf("=====================================================\n");
 
+
+
 		// reset & restart
 		rl_.clearHistory();
 		initState(this);
