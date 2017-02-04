@@ -48,6 +48,29 @@ public:
 		vector_elbow_next_input_.initialize(nn_elbow_.num_input_, true);
 	}
 
+	void recordHistory(const int& _action_shoulder, const int& _action_elbow, const float& _distance, const float& _reward) {
+		memory_.append(_action_shoulder, _action_elbow, _distance, _reward);
+	}
+
+	void recordVectorHistory(const int& _action_shoulder, const int& _action_elbow, const float& _distance, const float& _reward,
+		const VectorND<float> _shoulder_state_vector_array,
+		const VectorND<float> _elbow_state_vector_array,
+		const VectorND<float> _shoulder_q_values_array,
+		const VectorND<float> _elbow_q_values_array) {
+		memory_.append(_action_shoulder, _action_elbow, _distance, _reward
+			,_shoulder_state_vector_array, _elbow_state_vector_array,
+			_shoulder_q_values_array, _elbow_q_values_array);
+	}
+
+	/********************************************************************************************
+	* start IT IS TOO BAD : shoulder
+	*********************************************************************************************/
+
+	void clearHistory() {
+		memory_.reset();
+	}
+
+
 	void trainReward() {
 		trainReward(0);	// train with last memory
 	}
@@ -69,21 +92,7 @@ public:
 
 	}
 
-	void recordHistory(const int& _action_shoulder, const int& _action_elbow, const float& _distance, const float& _reward) {
-		memory_.append(_action_shoulder, _action_elbow, _distance, _reward);
-	}
-
-	void recordVectorHistory(const int& _action_shoulder, const int& _action_elbow, const float& _distance, const float& _reward,
-		const VectorND<float> _shoulder_state_vector_array,
-		const VectorND<float> _elbow_state_vector_array,
-		const VectorND<float> _shoulder_q_values_array,
-		const VectorND<float> _elbow_q_values_array) {
-		memory_.append(_action_shoulder, _action_elbow, _distance, _reward
-			,_shoulder_state_vector_array, _elbow_state_vector_array,
-			_shoulder_q_values_array, _elbow_q_values_array);
-	}
-
-	void clearHistory() {
-		memory_.reset();
-	}
+	/********************************************************************************************
+	* end IT IS TOO BAD : shoulder
+	*********************************************************************************************/
 };
