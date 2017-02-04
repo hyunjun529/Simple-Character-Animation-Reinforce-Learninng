@@ -18,16 +18,11 @@
 * start global
 *********************************************************************************************/
 
-/*
- * Naming convention
- * 1. _variave = temp inner scope variables
- * 2. class_ = custom created(not bullet or opengl) class
- */
-
 #include <cstdlib>
 #include "ArmRL.h"
 
 ArmRL rl_;
+bool stateStudy = true;
 
 /********************************************************************************************
 * end global
@@ -160,8 +155,11 @@ void BasicExample::stepSimulation(float deltaTime)
 	*********************************************************************************************/
 	
 	// set random action
-	int probability_shoulder = ((int)rand() % 6);
-	int probability_elbow = ((int)rand() % 5);
+
+	float dice = stateStudy ? 0.7f : 0.0f;
+
+	int probability_shoulder = rl_.nn_shoulder_.getOutputIXEpsilonGreedy(dice);
+	int probability_elbow = rl_.nn_elbow_.getOutputIXEpsilonGreedy(dice);
 	int action_shoulder = -1;
 	int action_elbow = -1;
 
@@ -230,7 +228,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	rl_.recordHistory(action_shoulder, action_elbow, distance, reward);
 
 	// print current state
-	b3Printf("act_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", action_shoulder, action_elbow, distance, reward);
+	b3Printf("md(%s)\tact_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", stateStudy? "st" : "rn", action_shoulder, action_elbow, distance, reward);
 
 	// if end LearningCycle, then it's time to tranning!
 	if (checkEndLearningCycle) {
@@ -444,6 +442,11 @@ bool BasicExample::keyboardCallback(int key, int state)
 		{
 			// b3Printf("Rest.\n");
 			initState(this);
+			break;
+		}
+		case B3G_END:
+		{
+			stateStudy = stateStudy ? false : true;
 			break;
 		}
 		case B3G_LEFT_ARROW:
