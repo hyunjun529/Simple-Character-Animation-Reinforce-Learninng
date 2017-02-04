@@ -70,28 +70,57 @@ public:
 	* start IT IS TOO BAD : shoulder
 	*********************************************************************************************/
 
-	void trainReward() {
-		trainReward(0);	// train with last memory
+	void trainReward_shoulder_() {
+		trainReward_shoulder_(0);	// train with last memory
 	}
 
-	void trainRewardMemory() {
+	void trainRewardMemory_shoulder_() {
 		for (int ix_from_end = 0; ix_from_end > -(memory_.num_elements - num_input_histories_); ix_from_end--)
-			trainReward(ix_from_end);
+			trainReward_shoulder_(ix_from_end);
 	}
 
-	void trainReward(const int ix_from_end) {
-
-	}
-
-	void forward() {
+	void trainReward_shoulder_(const int ix_from_end) {
 
 	}
 
-	void makeInputVectorFromHistory(const int& ix_from_end, VectorND<float>& input) {
+	void forward_shoulder_() {
+
+	}
+
+	void makeInputVectorFromHistory_shoulder_(const int& ix_from_end, VectorND<float>& input) {
 
 	}
 
 	/********************************************************************************************
 	* end IT IS TOO BAD : shoulder
+	*********************************************************************************************/
+
+	/********************************************************************************************
+	* start IT IS TOO BAD : elbow
+	*********************************************************************************************/
+
+	void trainReward_elbow_() {
+		trainReward_elbow_(0);	// train with last memory
+	}
+
+	void trainRewardMemory_elbow_() {
+		for (int ix_from_end = 0; ix_from_end > -(memory_.num_elements - num_input_histories_); ix_from_end--)
+			trainReward_elbow_(ix_from_end);
+	}
+
+	void trainReward_elbow_(const int ix_from_end) {
+
+	}
+
+	void forward_elbow_() {
+
+	}
+
+	void makeInputVectorFromHistory_elbow_(const int& ix_from_end, VectorND<float>& input) {
+
+	}
+
+	/********************************************************************************************
+	* end IT IS TOO BAD : elbow
 	*********************************************************************************************/
 };
