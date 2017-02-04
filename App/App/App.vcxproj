@@ -135,6 +135,7 @@
     <ClInclude Include="Action.h" />
     <ClInclude Include="AnimationMemory.h" />
     <ClInclude Include="AnimationRecorder.h" />
+    <ClInclude Include="ArmRL.h" />
     <ClInclude Include="BasicExample.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -20,8 +20,10 @@
 
 #include <cstdlib>
 #include "AnimationRecorder.h"
+#include "ArmRL.h"
 
 AnimationRecorder AR;
+ArmRL RL;
 
 /********************************************************************************************
 * end global
@@ -140,22 +142,8 @@ void BasicExample::lockLiftHinge(btHingeConstraint* hinge)
 
 void BasicExample::stepSimulation(float deltaTime)
 {
-	if (0)//m_once)
-	{
-		m_once = false;
-		btHingeConstraint* hinge = (btHingeConstraint*)m_dynamicsWorld->getConstraint(0);
-
-		btRigidBody& bodyA = hinge->getRigidBodyA();
-		btTransform trA = bodyA.getWorldTransform();
-		btVector3 hingeAxisInWorld = trA.getBasis()*hinge->getFrameOffsetA().getBasis().getColumn(2);
-		hinge->getRigidBodyA().applyTorque(-hingeAxisInWorld * 10);
-		hinge->getRigidBodyB().applyTorque(hingeAxisInWorld * 10);
-
-	}
-
 	// get distance
 	distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
-	// b3Printf("distance = %f\n", distance);
 
 	// set reward
 	float reward = 0.1f;
@@ -178,31 +166,33 @@ void BasicExample::stepSimulation(float deltaTime)
 				const btVector3& ptA = pt.getPositionWorldOnA();
 				const btVector3& ptB = pt.getPositionWorldOnB();
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
-
 				//check the head or body
 				if (distance <= sqrt(0.08))
-				{
-					// b3Printf("goal:10\n");
+				{	
+					/********************************************************************************************
+					* start Trainning
+					*********************************************************************************************/
 					
-					initState(this);
-
 					reward = 0.5f;
 
 					AR.clearHistory();
+
+					initState(this);
+
+					/********************************************************************************************
+					* start Tranning
+					*********************************************************************************************/
 				}
 				else
-				{
-					// b3Printf("check\n");
-					
+				{	
 					reward = 0.0f;
 				}
 			}
 		}
 	}
-
-
+	
 	/********************************************************************************************
-	* start select Move
+	* start Action
 	*********************************************************************************************/
 
 	// set random action
@@ -243,7 +233,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	b3Printf("act_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n",action_shoulder, action_elbow, distance, reward);
 
 	/********************************************************************************************
-	* end select RL
+	* end Action
 	*********************************************************************************************/
 
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
