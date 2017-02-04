@@ -103,7 +103,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <OmitFramePointers>false</OmitFramePointers>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_DEBUG;_WIN64;USE_GRAPHICAL_BENCHMARK;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;GLEW_STATIC;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WIN64;USE_GRAPHICAL_BENCHMARK;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;B3_USE_STANDALONE_EXAMPLE;GLEW_STATIC;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -112,7 +112,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>..\lib_x64\;.\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>..\lib_x64\Bullet3Common_Debug.lib;..\lib_x64\BulletCollision_Debug.lib;..\lib_x64\BulletDynamics_Debug.lib;..\lib_x64\BulletExampleBrowserLib_Debug.lib;..\lib_x64\LinearMath_Debug.lib;..\lib_x64\OpenGLWindow_Debug.lib;..\x64\Debug\NeuralNetwork.lib;opengl32.lib;glu32.lib</AdditionalDependencies>
+      <AdditionalDependencies>..\lib_x64\Bullet3Common_Debug.lib;..\lib_x64\BulletCollision_Debug.lib;..\lib_x64\BulletDynamics_Debug.lib;..\lib_x64\BulletExampleBrowserLib_Debug.lib;..\lib_x64\LinearMath_Debug.lib;..\lib_x64\OpenGLWindow_Debug.lib;..\x64\Debug\NeuralNetwork.lib;opengl32.lib;glu32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
