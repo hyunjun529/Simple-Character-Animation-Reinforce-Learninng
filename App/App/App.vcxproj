@@ -86,7 +86,7 @@
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories);</AdditionalLibraryDirectories>
       <AdditionalDependencies>..\lib\Bullet3Common_Debug.lib;..\lib\BulletCollision_Debug.lib;..\lib\BulletDynamics_Debug.lib;..\lib\BulletExampleBrowserLib_Debug.lib;..\lib\LinearMath_Debug.lib;..\lib\OpenGLWindow_Debug.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>DEBUG</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -111,8 +111,8 @@
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\lib_x64\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>..\lib_x64\Bullet3Common_Debug.lib;..\lib_x64\BulletCollision_Debug.lib;..\lib_x64\BulletDynamics_Debug.lib;..\lib_x64\BulletExampleBrowserLib_Debug.lib;..\lib_x64\LinearMath_Debug.lib;..\lib_x64\OpenGLWindow_Debug.lib;opengl32.lib;glu32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\lib_x64\;.\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>..\lib_x64\Bullet3Common_Debug.lib;..\lib_x64\BulletCollision_Debug.lib;..\lib_x64\BulletDynamics_Debug.lib;..\lib_x64\BulletExampleBrowserLib_Debug.lib;..\lib_x64\LinearMath_Debug.lib;..\lib_x64\OpenGLWindow_Debug.lib;..\x64\Debug\NeuralNetwork.lib;opengl32.lib;glu32.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
