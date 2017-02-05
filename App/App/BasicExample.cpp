@@ -263,7 +263,7 @@ void BasicExample::stepSimulation(float deltaTime)
 		b3Printf("=======================================================================\n");
 
 		// start trainning
-		int tr_num = 100;
+		int tr_num = 10;
 
 		// h529 : 인위적인 강화
 		if (distance_ < 1.0f) {
