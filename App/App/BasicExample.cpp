@@ -154,8 +154,8 @@ void BasicExample::stepSimulation(float deltaTime)
 	// set reward
 	// h529 : 거리가 가까울수록 칭찬
 	float reward_ = (1 - (distance_ / 2.5f));
-	if (reward_ < 0.2) {
-		reward_ = 0.01f;
+	if (reward_ < 0.15f) {
+		reward_ = 0.0f;
 	}
 
 	// set checkEndLearningCycle
@@ -179,7 +179,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	VectorND<float> output_target_temp_sd_;
 
 	// set Random percent
-	float dice = chkModeStudying ? 0.6f : 0.0f;
+	float dice = chkModeStudying ? 0.2f : 0.0f;
 
 	// decide the shoulder action
 	int probability_shoulder = rl_sd_.nn_.getOutputIXEpsilonGreedy(dice); // fix only up
@@ -256,11 +256,9 @@ void BasicExample::stepSimulation(float deltaTime)
 	rl_sd_.recordHistory(state_buffer_, reward_, action_shoulder, output_vector_temp);
 
 	// force reset
-	/*
-	if (rl_.memory_.num_elements_ > 350) {
+	if (rl_.memory_.num_elements_ > 300) {
 		checkEndLearningCycle = true;
 	}
-	*/
 
 	// print current state
 	b3Printf("md(%s)\tact_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", chkModeStudying? "st" : "rn", action_shoulder, action_elbow, distance_, reward_);
