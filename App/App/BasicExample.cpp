@@ -187,7 +187,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	}
 
 	// decide the elbow action
-	int probability_elbow = chkModeStudying ? rl_.nn_.getOutputIXEpsilonGreedy(0.3f) : rl_.nn_.getOutputIXEpsilonGreedy(0.0f);
+	int probability_elbow = chkModeStudying ? rl_.nn_.getOutputIXEpsilonGreedy(0.5f) : rl_.nn_.getOutputIXEpsilonGreedy(0.0f);
 	int action_elbow = -1;
 
 	if (probability_elbow == ACTION_ELBOW_IN) {
