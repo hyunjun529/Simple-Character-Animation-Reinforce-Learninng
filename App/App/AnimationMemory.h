@@ -6,102 +6,68 @@
 
 class AnimationMemory {
 public:
-	int num_elements = 0;
-	int num_reserve = 10000;
+	int num_elements_ = 0;
+	int num_reserve_ = 10000;
 
-	std::vector<float> distance_fist_to_head_array_;
+	std::vector<VectorND<float> > state_vector_array_;
+	std::vector<int> selected_array_;
 	std::vector<float> reward_array_;
-
-	std::vector<int> shoulder_action_array_; // it's selected
-	std::vector<int> elbow_action_array_;
-
-	std::vector<VectorND<float>> shoulder_state_vector_array_;
-	std::vector<VectorND<float>> elbow_state_vector_array_;
-
-	std::vector<VectorND<float>> shoulder_q_values_array_;
-	std::vector<VectorND<float>> elbow_q_values_array_;
+	std::vector<VectorND<float> > q_values_array_;
 
 	AnimationMemory() {}
 
-	void reset() {
-		num_elements = 0;
+	void reserve(const int& num_reserve)
+	{
+		state_vector_array_.reserve(num_reserve);
+		selected_array_.reserve(num_reserve);
+		reward_array_.reserve(num_reserve);
+		q_values_array_.reserve(num_reserve);
 
-		shoulder_action_array_.clear();
-		elbow_action_array_.clear();
-		distance_fist_to_head_array_.clear();
+		num_reserve_ = num_reserve;
+	}
+
+	void reset()
+	{
+		num_elements_ = 0;
+
+		state_vector_array_.clear();
+		selected_array_.clear();
 		reward_array_.clear();
+		q_values_array_.clear();
 
-		shoulder_state_vector_array_.clear();
-		elbow_state_vector_array_.clear();
-		shoulder_q_values_array_.clear();
-		elbow_q_values_array_.clear();
+		reserve(num_reserve_);
 	}
 
-	// case about not use VectorND
-	void append(const int& _action_shoulder, const int& _action_elbow, const float& _distance, const float& _reward) {
-		num_elements++;
+	void append(const VectorND<float>& state_vector, const int& choice, const float& reward, const VectorND<float>& q_values)
+	{
+		assert(num_elements_ < num_reserve_);
 
-		shoulder_action_array_.push_back(_action_shoulder);
-		elbow_action_array_.push_back(_action_elbow);
-		distance_fist_to_head_array_.push_back(_distance);
-		reward_array_.push_back(_reward);
+		state_vector_array_.push_back(state_vector);
+		selected_array_.push_back(choice);
+		reward_array_.push_back(reward);
+		q_values_array_.push_back(q_values);
+
+		num_elements_++;
 	}
 
-	// case about use VectorND
-	void append(const int& _action_shoulder, const int& _action_elbow, const float& _distance, const float& _reward,
-		const VectorND<float> _shoulder_state_vector_array,
-		const VectorND<float> _elbow_state_vector_array,
-		const VectorND<float> _shoulder_q_values_array,
-		const VectorND<float> _elbow_q_values_array) {
-		num_elements++;
-
-		shoulder_action_array_.push_back(_action_shoulder);
-		elbow_action_array_.push_back(_action_elbow);
-		distance_fist_to_head_array_.push_back(_distance);
-		reward_array_.push_back(_reward);
-
-		shoulder_state_vector_array_.push_back(_shoulder_state_vector_array);
-		elbow_state_vector_array_.push_back(_elbow_state_vector_array);
-		shoulder_q_values_array_.push_back(_shoulder_q_values_array);
-		elbow_q_values_array_.push_back(_elbow_q_values_array);
+	const VectorND<float>& getStateVectorFromLast(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
+	{
+		return state_vector_array_[num_elements_ - 1 + ix_from_last];
 	}
-	
-	// get Reward
+
+	const int& getSelectedIxFromLast(const int& ix_from_last)
+	{
+		return selected_array_[num_elements_ - 1 + ix_from_last];
+	}
+
 	const float& getRewardFromLast(const int& ix_from_last)
 	{
-		return reward_array_[num_elements - 1 + ix_from_last];
+		return reward_array_[num_elements_ - 1 + ix_from_last];
 	}
 
-
-	// about Shoulder
-	const VectorND<float>& getStateVectorFromLast_shoulder_(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
+	const VectorND<float>& getQValuesFromLast(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
 	{
-		return shoulder_state_vector_array_[num_elements - 1 + ix_from_last];
+		return q_values_array_[num_elements_ - 1 + ix_from_last];
 	}
 
-	const int& getSelectedIxFromLast_shoulder_(const int& ix_from_last)
-	{
-		return shoulder_action_array_[num_elements - 1 + ix_from_last];
-	}
-
-	const VectorND<float>& getQValuesFromLast_shoulder_(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
-	{
-		return shoulder_q_values_array_[num_elements - 1 + ix_from_last];
-	}
-
-	// about Elbow
-	const VectorND<float>& getStateVectorFromLast_elbow_(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
-	{
-		return elbow_state_vector_array_[num_elements - 1 + ix_from_last];
-	}
-
-	const int& getSelectedIxFromLast_elbow_(const int& ix_from_last)
-	{
-		return elbow_action_array_[num_elements - 1 + ix_from_last];
-	}
-
-	const VectorND<float>& getQValuesFromLast_elbow_(const int& ix_from_last) // ix_from_last = 0 returns last element, use -1, -2 ,...
-	{
-		return elbow_q_values_array_[num_elements - 1 + ix_from_last];
-	}
 };

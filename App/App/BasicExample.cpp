@@ -22,7 +22,10 @@
 #include "ArmRL.h"
 
 ArmRL rl_;
-bool stateStudy = true;
+
+VectorND<float> state_buffer_;
+
+bool chkModeStudying;
 
 /********************************************************************************************
 * end global
@@ -37,7 +40,7 @@ static btScalar radius(0.2);
 struct BasicExample : public CommonRigidBodyBase
 {
 	bool m_once;
-	btScalar distance;
+	btScalar distance_;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
 	btHingeConstraint* hinge_shader;
 	btHingeConstraint* hinge_elbow;
@@ -90,24 +93,24 @@ void initState(BasicExample* target) {
 
 void moveIn(btHingeConstraint *target) {
 	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, 15.0, 4000.f);
+	target->enableAngularMotor(true, 9.0, 4000.f);
 
 }
 
 void moveOut(btHingeConstraint *target) {
 	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, -15.0, 4000.f);
+	target->enableAngularMotor(true, -9.0, 4000.f);
 }
 
 void moveUp(btHingeConstraint *target) {
 	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, 15.0, 4000.f);
+	target->enableAngularMotor(true, 3.0, 4000.f);
 
 }
 
 void moveDown(btHingeConstraint *target) {
 	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, -15.0, 4000.f);
+	target->enableAngularMotor(true, -3.0, 4000.f);
 }
 
 /********************************************************************************************
@@ -142,10 +145,13 @@ void BasicExample::lockLiftHinge(btHingeConstraint* hinge)
 void BasicExample::stepSimulation(float deltaTime)
 {
 	// get distance
-	distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	distance_ = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+
+	// make VectorND state
+	state_buffer_[0] = distance_;
 
 	// set reward
-	float reward = 0.1f;
+	float reward_ = 0.1f;
 
 	// set checkEndLearningCycle
 	bool checkEndLearningCycle = false;
@@ -155,20 +161,14 @@ void BasicExample::stepSimulation(float deltaTime)
 	*********************************************************************************************/
 	
 	// forward
-	// rl_.forward_shoulder_();
-	VectorND<float> output_vector_temp_shoulder_;
-	rl_.nn_shoulder_.copyOutputVectorTo(false, output_vector_temp_shoulder_);
-	VectorND<float> output_vector_target_shoulder_;
 
-	// input
-	float dice = stateStudy ? 0.6f : 0.0f;
+	// set Random percent
+	float dice = chkModeStudying ? 0.6f : 0.0f;
 
-	int probability_shoulder = rl_.nn_shoulder_.getOutputIXEpsilonGreedy(dice);
-	int probability_elbow = rl_.nn_elbow_.getOutputIXEpsilonGreedy(dice);
+	// decide the shoulder action
+	int probability_shoulder = ACTION_SHOULDER_UP; // fix only up
 	int action_shoulder = -1;
-	int action_elbow = -1;
 
-	// decide the action
 	if (probability_shoulder == ACTION_SHOULDER_UP) {
 		moveUp(hinge_shader);
 		action_shoulder = ACTION_SHOULDER_UP;
@@ -180,6 +180,10 @@ void BasicExample::stepSimulation(float deltaTime)
 	else {
 		action_shoulder = ACTION_SHOULDER_STAY;
 	}
+
+	// decide the elbow action
+	int probability_elbow = chkModeStudying?(int)rand() % 3 : ACTION_ELBOW_IN;
+	int action_elbow = -1;
 
 	if (probability_elbow == ACTION_ELBOW_IN) {
 		moveIn(hinge_elbow);
@@ -210,32 +214,35 @@ void BasicExample::stepSimulation(float deltaTime)
 		for (int j = 0; j < numContacts; j++)
 		{
 			btManifoldPoint& pt = contactManifold->getContactPoint(j);
-			if (pt.getDistance() < 0.f)
+			if (pt.getDistance() < 0.1f)
 			{
 				const btVector3& ptA = pt.getPositionWorldOnA();
 				const btVector3& ptB = pt.getPositionWorldOnB();
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
 				//check the head or body
-				if (distance <= sqrt(0.08))
+				if (distance_ <= sqrt(0.08))
 				{	
-					reward = 0.5f;
+					reward_ = 0.5f;
 					checkEndLearningCycle = true;
 				}
 				else
 				{	
-					reward = 0.0f;
+					reward_ = 0.0f;
 				}
 			}
 		}
 	}
 
 	// Memory current state
-	rl_.recordVectorHistory(action_shoulder, action_elbow, distance, reward,
-		distance, distance,
-		output_vector_temp_shoulder_, output_vector_temp_shoulder_);
+	rl_.recordHistory(state_buffer_, reward_, action_elbow, VectorND<float>(3));
+
+	// force reset
+	if (rl_.memory_.num_elements_ > 250) {
+		checkEndLearningCycle = true;
+	}
 
 	// print current state
-	b3Printf("md(%s)\tact_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", stateStudy? "st" : "rn", action_shoulder, action_elbow, distance, reward);
+	b3Printf("md(%s)\tact_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", chkModeStudying? "st" : "rn", action_shoulder, action_elbow, distance_, reward_);
 
 	// if end LearningCycle, then it's time to tranning!
 	if (checkEndLearningCycle) {
@@ -244,14 +251,14 @@ void BasicExample::stepSimulation(float deltaTime)
 		*********************************************************************************************/
 		
 		// print this cycle's info
-		b3Printf("=====================================================\n");
-		b3Printf("steps(num_reserve) : %d\n", rl_.memory_.num_elements);
-		b3Printf("=====================================================\n");
+		b3Printf("=======================================================================\n");
+		b3Printf("steps(num_reserve) : %d\n", rl_.memory_.num_elements_);
+		b3Printf("=======================================================================\n");
 
 
 
 		// reset & restart
-		rl_.clearHistory();
+		rl_.memory_.reset();
 		initState(this);
 
 		/********************************************************************************************
@@ -408,7 +415,7 @@ void BasicExample::initPhysics()
 		box->initializePolyhedralFeatures();
 
 		btTransform start; start.setIdentity();
-		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.25f);
+		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.45f);
 
 		start.setOrigin(groundOrigin_target);
 		body = createRigidBody(0, start, box);
@@ -424,7 +431,7 @@ void BasicExample::initPhysics()
 
 		btTransform human_start;
 		human_start.setIdentity();
-		groundOrigin_target = btVector3(-0.4f, 2.8f, -1.25f);
+		groundOrigin_target = btVector3(-0.4f, 2.8f, -1.45f);
 
 		human_start.setOrigin(groundOrigin_target);
 		human_body = createRigidBody(0, human_start, human_box);
@@ -442,10 +449,18 @@ void BasicExample::initPhysics()
 	/********************************************************************************************
 	* start init RL
 	*********************************************************************************************/
-	
+
+	// initializeAI
+	chkModeStudying = true;
+
+	state_buffer_.initialize(1, true); // 1 = num of state
+	state_buffer_.assignAllValues(2.0f);
+
+	state_buffer_[0] = 2.0f; // 2.0f = max length of fist to head distance
+
 	for (int h = 0; h < rl_.num_input_histories_; h++)
 	{
-		rl_.recordVectorHistory(0, 0, 2.0f, 0.0f, 2.0f, 2.0f, VectorND<float>(3), VectorND<float>(3));
+		rl_.recordHistory(state_buffer_, 0.0f, 2, VectorND<float>(3)); // 3 = num of action
 	}
 
 	/********************************************************************************************
@@ -468,7 +483,7 @@ bool BasicExample::keyboardCallback(int key, int state)
 		}
 		case B3G_END:
 		{
-			stateStudy = stateStudy ? false : true;
+			chkModeStudying = chkModeStudying ? false : true;
 			break;
 		}
 		case B3G_LEFT_ARROW:
