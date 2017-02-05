@@ -19,7 +19,7 @@ public:
 	VectorND<float> reward_vector_;
 
 	ArmRL()
-		:gamma_(0.5f),
+		:gamma_(0.3f),
 		num_input_histories_(1),
 		num_state_variables_(1),
 		num_game_actions_(3) {
