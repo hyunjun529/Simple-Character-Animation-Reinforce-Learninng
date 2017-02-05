@@ -285,6 +285,7 @@ void BasicExample::stepSimulation(float deltaTime)
 			tr_num += 100;
 		}
 
+		if (chkModeStudying == true)
 		for (int tr = 0; tr < tr_num; tr++)
 			for (int m_tr = rl_.memory_.num_elements_ - 2; m_tr >= rl_.num_input_histories_; m_tr--)
 			{
