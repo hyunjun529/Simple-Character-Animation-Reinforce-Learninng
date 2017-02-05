@@ -94,24 +94,24 @@ void initState(BasicExample* target) {
 
 void moveIn(btHingeConstraint *target) {
 	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, 9.0, 4000.f);
+	target->enableAngularMotor(true, 6.0, 4000.f);
 
 }
 
 void moveOut(btHingeConstraint *target) {
 	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, -9.0, 4000.f);
+	target->enableAngularMotor(true, -6.0, 4000.f);
 }
 
 void moveUp(btHingeConstraint *target) {
 	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, 3.0, 4000.f);
+	target->enableAngularMotor(true, 6.0, 4000.f);
 
 }
 
 void moveDown(btHingeConstraint *target) {
 	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, -3.0, 4000.f);
+	target->enableAngularMotor(true, -6.0, 4000.f);
 }
 
 /********************************************************************************************
@@ -154,6 +154,9 @@ void BasicExample::stepSimulation(float deltaTime)
 	// set reward
 	// h529 : 거리가 가까울수록 칭찬
 	float reward_ = (1 - (distance_ / 2.5f));
+	if (reward_ < 0.2) {
+		reward_ = 0.01f;
+	}
 
 	// set checkEndLearningCycle
 	bool checkEndLearningCycle = false;
@@ -253,12 +256,14 @@ void BasicExample::stepSimulation(float deltaTime)
 	rl_sd_.recordHistory(state_buffer_, reward_, action_shoulder, output_vector_temp);
 
 	// force reset
-	if (rl_.memory_.num_elements_ > 250) {
+	/*
+	if (rl_.memory_.num_elements_ > 350) {
 		checkEndLearningCycle = true;
 	}
+	*/
 
 	// print current state
-	b3Printf("md(%s)\tact_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", chkModeStudying? "st" : "rn", action_shoulder, action_elbow, state_buffer_[0], reward_);
+	b3Printf("md(%s)\tact_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", chkModeStudying? "st" : "rn", action_shoulder, action_elbow, distance_, reward_);
 
 	// if end LearningCycle, then it's time to tranning!
 	if (checkEndLearningCycle) {
@@ -274,21 +279,18 @@ void BasicExample::stepSimulation(float deltaTime)
 		// start trainning
 		int tr_num = 10;
 
-		// h529 : 인위적인 강화
-		if (distance_ < 1.0f) {
-			tr_num += 100;
-		}
+		// h529 : 인위적인 강화		
 		if (distance_ < 0.7f) {
-			tr_num += 100;
+			tr_num += 50;
 		}
 		if (distance_ < 0.5f) {
-			tr_num += 100;
+			tr_num += 50;
 		}
 		if (distance_ < 0.3f) {
-			tr_num += 100;
+			tr_num += 50;
 		}
 		if (distance_ < 0.2f) {
-			tr_num += 100;
+			tr_num += 50;
 		}
 
 		// elbow
