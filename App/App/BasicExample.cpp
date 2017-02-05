@@ -154,6 +154,9 @@ void BasicExample::stepSimulation(float deltaTime)
 	// set reward
 	// h529 : 거리가 가까울수록 칭찬
 	float reward_ = (1 - (distance_ / 2.5f));
+	if (reward_ < 0.2f) {
+		reward_ = 0.0f;
+	}
 
 	// set checkEndLearningCycle
 	bool checkEndLearningCycle = false;
