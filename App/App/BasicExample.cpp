@@ -244,7 +244,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	rl_.recordHistory(state_buffer_, reward_, action_elbow, output_vector_temp);
 
 	// force reset
-	if (rl_.memory_.num_elements_ > 180) {
+	if (rl_.memory_.num_elements_ > 140) {
 		checkEndLearningCycle = true;
 	}
 
@@ -275,7 +275,10 @@ void BasicExample::stepSimulation(float deltaTime)
 		if (distance_ < 0.5f) {
 			tr_num += 100;
 		}
-		if (rl_.memory_.num_elements_ > 110) {
+		if (distance_ < 0.3f) {
+			tr_num += 100;
+		}
+		if (distance_ < 0.2f) {
 			tr_num += 100;
 		}
 
