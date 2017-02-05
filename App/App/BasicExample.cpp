@@ -252,7 +252,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	}
 
 	// print current state
-	b3Printf("md(%s)\tact_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", chkModeStudying? "st" : "rn", action_shoulder, action_elbow, distance_, reward_);
+	b3Printf("md(%s)\tact_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", chkModeStudying? "st" : "rn", action_shoulder, action_elbow, state_buffer_[0], reward_);
 
 	// if end LearningCycle, then it's time to tranning!
 	if (checkEndLearningCycle) {

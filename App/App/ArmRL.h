@@ -29,7 +29,6 @@ public:
 		// initialize neural network
 		const int num_hidden_layers = 1;
 
-		// h529 : state_variables_ by input_histories로 2차원 배열 생성 > 이게 나중에 value로 넘어감
 		nn_.initialize(num_state_variables_ * num_input_histories_, num_game_actions_, num_hidden_layers);
 
 		for (int i = 0; i <= num_hidden_layers + 1; i++)
