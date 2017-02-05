@@ -25,7 +25,7 @@ ArmRL rl_;
 
 VectorND<float> state_buffer_;
 
-bool chkModeStudying;
+bool chkModeStudying = true;
 
 /********************************************************************************************
 * end global
@@ -151,7 +151,8 @@ void BasicExample::stepSimulation(float deltaTime)
 	state_buffer_[0] = distance_;
 
 	// set reward
-	float reward_ = 0.1f;
+	// h529 : 거리가 가까울수록 칭찬
+	float reward_ = (1 - (distance_ / 2.5f));
 
 	// set checkEndLearningCycle
 	bool checkEndLearningCycle = false;
@@ -161,6 +162,10 @@ void BasicExample::stepSimulation(float deltaTime)
 	*********************************************************************************************/
 	
 	// forward
+	rl_.forward();
+	VectorND<float> output_vector_temp;
+	rl_.nn_.copyOutputVectorTo(false, output_vector_temp);
+	VectorND<float> output_target_temp;
 
 	// set Random percent
 	float dice = chkModeStudying ? 0.6f : 0.0f;
@@ -182,7 +187,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	}
 
 	// decide the elbow action
-	int probability_elbow = chkModeStudying?(int)rand() % 3 : ACTION_ELBOW_IN;
+	int probability_elbow = chkModeStudying ? rl_.nn_.getOutputIXEpsilonGreedy(0.3f) : rl_.nn_.getOutputIXEpsilonGreedy(0.0f);
 	int action_elbow = -1;
 
 	if (probability_elbow == ACTION_ELBOW_IN) {
@@ -222,19 +227,21 @@ void BasicExample::stepSimulation(float deltaTime)
 				//check the head or body
 				if (distance_ <= sqrt(0.08))
 				{	
-					reward_ = 0.5f;
+					// h529 : 새 보상값에 의해 강제 값은 필요없음
+					// reward_ = 0.9f;
 					checkEndLearningCycle = true;
 				}
 				else
 				{	
 					reward_ = 0.0f;
+					checkEndLearningCycle = true;
 				}
 			}
 		}
 	}
 
 	// Memory current state
-	rl_.recordHistory(state_buffer_, reward_, action_elbow, VectorND<float>(3));
+	rl_.recordHistory(state_buffer_, reward_, action_elbow, output_vector_temp);
 
 	// force reset
 	if (rl_.memory_.num_elements_ > 250) {
@@ -255,7 +262,62 @@ void BasicExample::stepSimulation(float deltaTime)
 		b3Printf("steps(num_reserve) : %d\n", rl_.memory_.num_elements_);
 		b3Printf("=======================================================================\n");
 
+		// start trainning
+		int tr_num = 100;
 
+		// h529 : 인위적인 강화
+		if (distance_ < 1.0f) {
+			tr_num += 100;
+		}
+		if (distance_ < 0.7f) {
+			tr_num += 100;
+		}
+		if (distance_ < 0.5f) {
+			tr_num += 100;
+		}
+		if (rl_.memory_.num_elements_ > 110) {
+			tr_num += 100;
+		}
+
+		for (int tr = 0; tr < tr_num; tr++)
+			for (int m_tr = rl_.memory_.num_elements_ - 2; m_tr >= rl_.num_input_histories_; m_tr--)
+			{
+				// stochastic training
+				// h529 : 전체를 요약한 부분을 확률적으로 선택해서 학습하는 방법론
+				// h529 : http://sanghyukchun.github.io/74/
+				int m = rand() % (rl_.memory_.num_elements_ - 1 - rl_.num_input_histories_) + rl_.num_input_histories_;
+
+				// memory index from end
+				const int inv_m = m - (rl_.memory_.num_elements_ - 1);
+
+				float Q_next = 0.0f;
+				if (m != rl_.memory_.num_elements_ - 2) // if next is not the terminal state
+				{
+					// Q_next = ...;
+					Q_next = rl_.memory_.q_values_array_[m + 1].getMaxValue();
+				}
+
+				float Q_target;
+				// Q_target = ...;
+				Q_target = Q_next + rl_.memory_.reward_array_[m];
+
+				// forward propagation from previous inputs
+				rl_.makeInputVectorFromHistory(inv_m - 1, rl_.old_input_vector_);
+				rl_.nn_.setInputVector(rl_.old_input_vector_);
+				for (int i = 0; i < 100; i++)
+				{
+					rl_.nn_.feedForward();
+					rl_.nn_.copyOutputVectorTo(false, output_target_temp);
+
+					// output_target_temp[...] = ...;
+					// h529 : Q_next와 Q_target으로 강화한 값을 새로 역전파시킬 준비
+					output_target_temp[rl_.memory_.selected_array_[m]] = Q_target;
+
+					rl_.nn_.propBackward(output_target_temp);
+				}
+
+				rl_.nn_.check();
+			}
 
 		// reset & restart
 		rl_.memory_.reset();
@@ -451,7 +513,6 @@ void BasicExample::initPhysics()
 	*********************************************************************************************/
 
 	// initializeAI
-	chkModeStudying = true;
 
 	state_buffer_.initialize(1, true); // 1 = num of state
 	state_buffer_.assignAllValues(2.0f);

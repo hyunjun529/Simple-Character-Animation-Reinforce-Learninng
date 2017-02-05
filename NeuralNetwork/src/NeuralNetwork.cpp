@@ -92,7 +92,8 @@ void NeuralNetwork::propBackward(const VectorND<T>& target)
 	//Note: two steps are implemented separately in case for combining multiple neural networks
 
 	propBackwardError(target);
-	updateConnectionWeights();
+	// h529 : 어차피 1 depth에서는 오류만 발생함
+	// updateConnectionWeights();
 }
 
 void NeuralNetwork::propBackwardError(const VectorND<T>& target)
