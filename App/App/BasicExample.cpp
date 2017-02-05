@@ -22,6 +22,7 @@
 #include "ArmRL.h"
 
 ArmRL rl_;
+ArmRL rl_sd_;
 
 VectorND<float> state_buffer_;
 
@@ -167,11 +168,18 @@ void BasicExample::stepSimulation(float deltaTime)
 	rl_.nn_.copyOutputVectorTo(false, output_vector_temp);
 	VectorND<float> output_target_temp;
 
+	// forward_sd
+
+	rl_sd_.forward();
+	VectorND<float> output_vector_temp_sd_;
+	rl_.nn_.copyOutputVectorTo(false, output_vector_temp_sd_);
+	VectorND<float> output_target_temp_sd_;
+
 	// set Random percent
 	float dice = chkModeStudying ? 0.6f : 0.0f;
 
 	// decide the shoulder action
-	int probability_shoulder = ACTION_SHOULDER_UP; // fix only up
+	int probability_shoulder = rl_sd_.nn_.getOutputIXEpsilonGreedy(dice); // fix only up
 	int action_shoulder = -1;
 
 	if (probability_shoulder == ACTION_SHOULDER_UP) {
@@ -233,8 +241,7 @@ void BasicExample::stepSimulation(float deltaTime)
 				}
 				else
 				{	
-					// h529 : shoulder가 자동으로 움직이면 해당 값이 오히려 공해를 유발함
-					// reward_ = 0.0f;
+					reward_ = 0.0f;
 					checkEndLearningCycle = true;
 				}
 			}
@@ -243,9 +250,10 @@ void BasicExample::stepSimulation(float deltaTime)
 
 	// Memory current state
 	rl_.recordHistory(state_buffer_, reward_, action_elbow, output_vector_temp);
+	rl_sd_.recordHistory(state_buffer_, reward_, action_shoulder, output_vector_temp);
 
 	// force reset
-	if (rl_.memory_.num_elements_ > 140) {
+	if (rl_.memory_.num_elements_ > 250) {
 		checkEndLearningCycle = true;
 	}
 
@@ -283,6 +291,7 @@ void BasicExample::stepSimulation(float deltaTime)
 			tr_num += 100;
 		}
 
+		// elbow
 		if (chkModeStudying == true)
 		for (int tr = 0; tr < tr_num; tr++)
 			for (int m_tr = rl_.memory_.num_elements_ - 2; m_tr >= rl_.num_input_histories_; m_tr--)
@@ -324,8 +333,51 @@ void BasicExample::stepSimulation(float deltaTime)
 				rl_.nn_.check();
 			}
 
+		// shoulder
+		if (chkModeStudying == true)
+			for (int tr = 0; tr < tr_num; tr++)
+				for (int m_tr = rl_sd_.memory_.num_elements_ - 2; m_tr >= rl_sd_.num_input_histories_; m_tr--)
+				{
+					// stochastic training
+					// h529 : 전체를 요약한 부분을 확률적으로 선택해서 학습하는 방법론
+					// h529 : http://sanghyukchun.github.io/74/
+					int m = rand() % (rl_sd_.memory_.num_elements_ - 1 - rl_sd_.num_input_histories_) + rl_sd_.num_input_histories_;
+
+					// memory index from end
+					const int inv_m = m - (rl_sd_.memory_.num_elements_ - 1);
+
+					float Q_next = 0.0f;
+					if (m != rl_sd_.memory_.num_elements_ - 2) // if next is not the terminal state
+					{
+						// Q_next = ...;
+						Q_next = rl_sd_.memory_.q_values_array_[m + 1].getMaxValue();
+					}
+
+					float Q_target;
+					// Q_target = ...;
+					Q_target = Q_next + rl_sd_.memory_.reward_array_[m];
+
+					// forward propagation from previous inputs
+					rl_sd_.makeInputVectorFromHistory(inv_m - 1, rl_sd_.old_input_vector_);
+					rl_sd_.nn_.setInputVector(rl_sd_.old_input_vector_);
+					for (int i = 0; i < 100; i++)
+					{
+						rl_sd_.nn_.feedForward();
+						rl_sd_.nn_.copyOutputVectorTo(false, output_target_temp);
+
+						// output_target_temp[...] = ...;
+						// h529 : Q_next와 Q_target으로 강화한 값을 새로 역전파시킬 준비
+						output_target_temp[rl_sd_.memory_.selected_array_[m]] = Q_target;
+
+						rl_sd_.nn_.propBackward(output_target_temp);
+					}
+
+					rl_sd_.nn_.check();
+				}
+
 		// reset & restart
 		rl_.memory_.reset();
+		rl_sd_.memory_.reset();
 		initState(this);
 
 		/********************************************************************************************
@@ -527,6 +579,11 @@ void BasicExample::initPhysics()
 	for (int h = 0; h < rl_.num_input_histories_; h++)
 	{
 		rl_.recordHistory(state_buffer_, 0.0f, 2, VectorND<float>(3)); // 3 = num of action
+	}
+
+	for (int h = 0; h < rl_sd_.num_input_histories_; h++)
+	{
+		rl_sd_.recordHistory(state_buffer_, 0.0f, 2, VectorND<float>(3)); // 3 = num of action
 	}
 
 	/********************************************************************************************
