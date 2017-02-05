@@ -244,7 +244,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	rl_.recordHistory(state_buffer_, reward_, action_elbow, output_vector_temp);
 
 	// force reset
-	if (rl_.memory_.num_elements_ > 250) {
+	if (rl_.memory_.num_elements_ > 180) {
 		checkEndLearningCycle = true;
 	}
 
