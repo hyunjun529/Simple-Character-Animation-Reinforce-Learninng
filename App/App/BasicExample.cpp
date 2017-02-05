@@ -153,9 +153,6 @@ void BasicExample::stepSimulation(float deltaTime)
 	// set reward
 	// h529 : 거리가 가까울수록 칭찬
 	float reward_ = (1 - (distance_ / 2.5f));
-	if (reward_ < 0.5f) {
-		reward_ = 0.1f;
-	}
 
 	// set checkEndLearningCycle
 	bool checkEndLearningCycle = false;
@@ -190,7 +187,7 @@ void BasicExample::stepSimulation(float deltaTime)
 	}
 
 	// decide the elbow action
-	int probability_elbow = chkModeStudying ? rl_.nn_.getOutputIXEpsilonGreedy(0.4f) : rl_.nn_.getOutputIXEpsilonGreedy(0.0f);
+	int probability_elbow = rl_.nn_.getOutputIXEpsilonGreedy(dice);
 	int action_elbow = -1;
 
 	if (probability_elbow == ACTION_ELBOW_IN) {
@@ -231,12 +228,13 @@ void BasicExample::stepSimulation(float deltaTime)
 				if (distance_ <= sqrt(0.08))
 				{	
 					// h529 : 새 보상값에 의해 강제 값은 필요없음
-					// reward_ = 0.9f;
+					// reward_ = 0.5f;
 					checkEndLearningCycle = true;
 				}
 				else
 				{	
-					reward_ = 0.0f;
+					// h529 : shoulder가 자동으로 움직이면 해당 값이 오히려 공해를 유발함
+					// reward_ = 0.0f;
 					checkEndLearningCycle = true;
 				}
 			}
