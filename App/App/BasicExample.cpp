@@ -358,10 +358,10 @@ void BasicExample::updateSubstep(const bool print)
 	pos_z_ = linkBody->getCenterOfMassPosition().getZ();
 	pos_y_ = linkBody->getCenterOfMassPosition().getY();
 
-	////shader의 각도
-	//hinge_shader_Angle = hinge_shader->getHingeAngle() / M_PI * 180;
-	////elbow의 각도
-	//hinge_elbow_Angle = hinge_elbow->getHingeAngle() / M_PI * 180;
+	//shader의 각도
+	// hinge_shader_Angle = hinge_shader->getHingeAngle() / M_PI * 180;
+	//elbow의 각도
+	// hinge_elbow_Angle = hinge_elbow->getHingeAngle() / M_PI * 180;
 
 
 	const double new_distance_ = (Vector2D<double>(pos_y_, pos_z_) - Vector2D<double>(target_y_, target_z_)).getMagnitude();
@@ -414,6 +414,8 @@ void BasicExample::updateSubstep(const bool print)
 	}
 
 	distance_ = new_distance_;
+
+	// b3Printf("%f, %f, %f, %f, %f \n", distance_, hinge_shader_Angle, hinge_elbow_Angle, pos_y_, pos_z_);
 }
 
 void BasicExample::moveTarget()
