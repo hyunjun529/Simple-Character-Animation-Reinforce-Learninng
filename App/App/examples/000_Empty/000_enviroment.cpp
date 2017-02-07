@@ -1,4 +1,4 @@
-#include "BasicExample.h"
+癤�#include "000_enviroment.h"
 
 #include "btBulletDynamicsCommon.h"
 #define ARRAY_SIZE_Y 5
@@ -13,12 +13,7 @@
 #define M_PI       3.14159265358979323846
 #endif
 
-#include "NeuralNetwork.h"
-#include "Vector2D.h"
-#ifndef M_PI
-#define M_PI       3.14159265358979323846
-#endif
-#define NUM_TRAIN 1000000 // Use 1000000
+bool needStuding = true;
 
 int num = 0;
 short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
@@ -27,17 +22,8 @@ static btScalar radius(0.2);
 
 struct BasicExample : public CommonRigidBodyBase
 {
-	int j;
-	double pos_x_, pos_y_, pos_z_;
-	double target_x_, target_y_, target_z_;
-	int num_data = 0;
-	int handled = 1;
-	double hinge_shader_Angle;
-	double hinge_elbow_Angle;
-	NeuralNetwork nn_;
-	btScalar distance_;
 	bool m_once;
-	double distance;
+	btScalar distance;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
 	btHingeConstraint* hinge_shader;
 	btHingeConstraint* hinge_elbow;
@@ -45,12 +31,10 @@ struct BasicExample : public CommonRigidBodyBase
 	btVector3 groundOrigin_target;
 	btRigidBody* body;
 	btRigidBody* human_body;
+
 	BasicExample(struct GUIHelperInterface* helper);
 	virtual ~BasicExample();
 	virtual void initPhysics();
-
-	void updateSubstep(const bool print = false);
-	void moveTarget();
 
 	virtual void stepSimulation(float deltaTime);
 	void lockLiftHinge(btHingeConstraint* hinge);
@@ -58,7 +42,6 @@ struct BasicExample : public CommonRigidBodyBase
 	virtual bool keyboardCallback(int key, int state);
 	virtual void resetCamera()
 	{
-
 		float dist = 5;
 		float pitch = 270;
 		float yaw = 21;
@@ -68,10 +51,11 @@ struct BasicExample : public CommonRigidBodyBase
 };
 
 BasicExample::BasicExample(struct GUIHelperInterface* helper)
-	:CommonRigidBodyBase(helper), nn_(2 + 2 + 2, 4, 1),
+	:CommonRigidBodyBase(helper),
 	m_once(true)
 {
 }
+
 BasicExample::~BasicExample()
 {
 	for (int i = 0; i<m_jointFeedback.size(); i++)
@@ -81,6 +65,65 @@ BasicExample::~BasicExample()
 
 }
 
+/********************************************************************************************
+* start custom Functions
+*********************************************************************************************/
+
+void initState(BasicExample* target) {
+	target->m_guiHelper->removeAllGraphicsInstances();
+	target->initPhysics();
+}
+
+void moveIn(btHingeConstraint *target) {
+	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+	target->enableAngularMotor(true, 15.0, 4000.f);
+
+}
+
+void moveOut(btHingeConstraint *target) {
+	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+	target->enableAngularMotor(true, -15.0, 4000.f);
+}
+
+void moveUp(btHingeConstraint *target) {
+	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+	target->enableAngularMotor(true, 15.0, 4000.f);
+
+}
+
+void moveDown(btHingeConstraint *target) {
+	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+	target->enableAngularMotor(true, -15.0, 4000.f);
+}
+
+void BasicExample::lockLiftHinge(btHingeConstraint* hinge)
+{
+	btScalar hingeAngle = hinge->getHingeAngle();
+	btScalar lowLim = hinge->getLowerLimit();
+	btScalar hiLim = hinge->getUpperLimit();
+	hinge->enableAngularMotor(false, 0, 0);
+
+	if (hingeAngle < lowLim)
+	{
+		//		m_liftHinge->setLimit(lowLim, lowLim + LIFT_EPS);
+		hinge->setLimit(lowLim, lowLim);
+	}
+	else if (hingeAngle > hiLim)
+	{
+		//		m_liftHinge->setLimit(hiLim - LIFT_EPS, hiLim);
+		hinge->setLimit(hiLim, hiLim);
+	}
+	else
+	{
+		//		m_liftHinge->setLimit(hingeAngle - LIFT_EPS, hingeAngle + LIFT_EPS);
+		hinge->setLimit(hingeAngle, hingeAngle);
+	}
+	return;
+}
+
+/********************************************************************************************
+* end custom Functions
+*********************************************************************************************/
 
 void BasicExample::stepSimulation(float deltaTime)
 {
@@ -97,10 +140,17 @@ void BasicExample::stepSimulation(float deltaTime)
 
 	}
 
+	//get distance
+	//check distance
+	distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	b3Printf("distance = %f\n", distance);
+
+
 	//collison check
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
 	for (int i = 0; i < numManifolds; i++)
 	{
+		if (m_dynamicsWorld->getDispatcher()->getNumManifolds() == 0) continue;
 		btPersistentManifold* contactManifold = m_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
 		const btCollisionObject* obA = contactManifold->getBody0();
 		const btCollisionObject* obB = contactManifold->getBody1();
@@ -114,32 +164,91 @@ void BasicExample::stepSimulation(float deltaTime)
 				const btVector3& ptA = pt.getPositionWorldOnA();
 				const btVector3& ptB = pt.getPositionWorldOnB();
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
-				b3Printf("check\n");
+				//initState(this);
+
+				//check the head or body
+				if (distance <= sqrt(0.08))
+				{
+					b3Printf("goal:10\n");
+				}
+				else
+				{
+					b3Printf("check\n");
+				}
+				/********************************************************************************************
+				* start RL
+				*********************************************************************************************/
+
+				//if (needStuding) {
+				//	float lr = 0.2f;
+
+				//	// LR
+				//	for (int t = 0; t < 1000; t++) {
+				//		for (int i = 0; i < AR.memory.num_elements; i++) {
+
+				//			float x = AR.memory.reward_array[i];
+				//			float y = (float)AR.memory.moved_array[i];
+
+				//			const float error = y - lh.getY(x);
+
+				//			const float da = 2.0 * error * -x;
+				//			const float db = 2.0 * error * -1;
+
+				//			lh.a -= da * lr;
+				//			lh.b -= db * lr;
+				//		}
+				//	}
+
+				//	needStuding = false;
+
+				//	AR.clearHistory();
+
+				/********************************************************************************************
+				* end RL
+				*********************************************************************************************/
 			}
 		}
 	}
 
-	updateSubstep(false);
+
+	/********************************************************************************************
+	* start select Move
+	*********************************************************************************************/
+
+
+	//int thisMoved = -1;
+
+
+	//if (needStuding) {
+	//	// random move
+	//	thisMoved = ((int)rand() % 2 == 0) ? (1) : (0);
+	//}
+	//else {
+	//	// learned move
+	//	thisMoved = (lh.getY(distance) >= 0) ? (1) : (0);
+	//}
+
+	//// moving
+	//if (thisMoved == ACT_MOVE_LEFT) {
+	//	moveLeft(hinge);
+	//}
+	//else {
+	//	moveRight(hinge);
+	//}
+
+	// check current
+	/*b3Printf("moved = %d\tdistance=%f\tlh.get(distance) = %f\n", thisMoved, distance, lh.getY(distance));
+	*/
+	// Memory
+	/*if (needStuding) AR.recordHistory(thisMoved, distance);*/
+
+	/********************************************************************************************
+	* end select RL
+	*********************************************************************************************/
+
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 
 	static int count = 0;
-
-}
-
-void initState(BasicExample* target) {
-	target->m_guiHelper->removeAllGraphicsInstances();
-	target->initPhysics();
-}
-
-void moveLeft(btHingeConstraint *target) {
-	target->setLimit(-M_PI / 1.2f, M_PI / 1.2f);
-	target->enableAngularMotor(true, -15.0, 4000.f);
-
-}
-
-void moveRight(btHingeConstraint *target) {
-	target->setLimit(-M_PI / 1.2f, M_PI / 1.2f);
-	target->enableAngularMotor(true, 15.0, 4000.f);
 }
 
 void BasicExample::initPhysics()
@@ -279,185 +388,43 @@ void BasicExample::initPhysics()
 
 	if (1)
 	{
-
-		btSphereShape* linkSphere_1 = new btSphereShape(radius);
+		btVector3 groundHalfExtents(0.4, 0.0, 0.025);
+		groundHalfExtents[upAxis] = 0.4f;
+		btBoxShape* box = new btBoxShape(groundHalfExtents);
+		box->initializePolyhedralFeatures();
 
 		btTransform start; start.setIdentity();
-		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.6f);
+		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.25f);
 
 		start.setOrigin(groundOrigin_target);
-		body = createRigidBody(0, start, linkSphere_1);
+		body = createRigidBody(0, start, box);
 
 		body->setFriction(0);
 
+
+
+		btVector3 human_HalfExtents(0.8, 0.0, 0.025);
+		human_HalfExtents[upAxis] = 0.8f;
+		btBoxShape* human_box = new btBoxShape(human_HalfExtents);
+		human_box->initializePolyhedralFeatures();
+
+		btTransform human_start;
+		human_start.setIdentity();
+		groundOrigin_target = btVector3(-0.4f, 2.8f, -1.25f);
+
+		human_start.setOrigin(groundOrigin_target);
+		human_body = createRigidBody(0, human_start, human_box);
+
+		human_body->setFriction(0);
+
+
+
+
 	}
 
-	pos_z_ = linkBody->getCenterOfMassPosition().getZ();
-	pos_y_ = linkBody->getCenterOfMassPosition().getY();
-	target_z_ = body->getCenterOfMassPosition().getZ();
-	target_y_ = body->getCenterOfMassPosition().getY();
-
-	//shader의 각도
-	hinge_shader_Angle = hinge_shader->getHingeAngle() / M_PI * 180;
-	//elbow의 각도
-	hinge_elbow_Angle = hinge_elbow->getHingeAngle() / M_PI * 180;
-
-	distance_ = (Vector2D<double>(pos_y_, pos_z_) - Vector2D<double>(target_y_, target_z_)).getMagnitude();
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
 }
 
-
-void BasicExample::updateSubstep(const bool print)
-{
-	VectorND<float> input;
-	input.initialize(6);
-
-	input[0] = pos_z_;
-	input[1] = pos_y_;
-	input[2] = target_y_;
-	input[3] = target_z_;
-	input[4] = hinge_shader_Angle;
-	input[5] = hinge_elbow_Angle;
-
-
-	nn_.setInputVector(input);
-	nn_.feedForward();
-
-	VectorND<float> output;
-	nn_.copyOutputVectorTo(false, output);
-
-	const int selected_dir = nn_.getOutputIXEpsilonGreedy(0.2f);
-	//std::cout << hinge_shader_Angle << std::endl;
-	switch (selected_dir)
-	{
-
-	case 0:
-	{
-		moveRight(hinge_shader);
-		break;
-
-	}
-	case 1:
-	{
-		moveLeft(hinge_shader);
-		break;
-	}
-	case 2:
-	{
-		moveLeft(hinge_elbow);
-		break;
-
-	}
-	case 3:
-	{
-		moveRight(hinge_elbow);
-		break;
-	}
-	}
-
-	pos_z_ = linkBody->getCenterOfMassPosition().getZ();
-	pos_y_ = linkBody->getCenterOfMassPosition().getY();
-
-	//shader의 각도
-	// hinge_shader_Angle = hinge_shader->getHingeAngle() / M_PI * 180;
-	//elbow의 각도
-	// hinge_elbow_Angle = hinge_elbow->getHingeAngle() / M_PI * 180;
-
-
-	const double new_distance_ = (Vector2D<double>(pos_y_, pos_z_) - Vector2D<double>(target_y_, target_z_)).getMagnitude();
-
-	double reward_value = distance_ - new_distance_;
-
-
-	if (new_distance_ <0.5)
-	{
-		distance_ = new_distance_;
-
-		moveTarget(); // move target when they are too close
-
-		return; // don't reward when they are too close
-	}
-
-	VectorND<float> reward_vector(output); // reward_vector is initialized by output
-
-	for (int d = 0; d < reward_vector.num_dimension_; d++)
-	{
-		if (selected_dir == d)
-		{
-			reward_vector[d] = reward_value > 0 ? 0.999 : 0.001;
-		}
-		else
-		{
-			reward_vector[d] = reward_vector[d] < 0.001 ? 0.001 : reward_vector[d];
-		}
-	}
-
-	const int max_tr = NUM_TRAIN;
-
-	static int counter = 0;
-	const int one_percent = (double)max_tr / 100.0;
-
-	static int itr = 0;
-	if (itr < max_tr) // train
-	{
-		itr++;
-		counter++;
-
-		if (counter == one_percent)
-		{
-			printf("%f percent \n", (double)itr / (double)max_tr * 100.0);
-
-			counter = 0;
-		}
-
-		nn_.propBackward(reward_vector);
-	}
-
-	distance_ = new_distance_;
-
-	// b3Printf("%f, %f, %f, %f, %f \n", distance_, hinge_shader_Angle, hinge_elbow_Angle, pos_y_, pos_z_);
-}
-
-void BasicExample::moveTarget()
-{
-
-	switch (num_data) {
-	case 0:
-	{
-		btVector3 basePosition1 = btVector3(0.0, -1.4, 0.0);
-		body->translate(basePosition1);
-		num_data = 1;
-		break;
-	}
-
-	case 1:
-	{
-		btVector3 basePosition2 = btVector3(0.0, 0.0, 3.08);
-		body->translate(basePosition2);
-		num_data = 2;
-		break;
-	}
-
-	case 2:
-	{
-		btVector3 basePosition3 = btVector3(0.0, 1.4, 0.0);
-		body->translate(basePosition3);
-		num_data = 3;
-		break;
-	}
-
-	case 3:
-	{
-		btVector3 basePosition4 = btVector3(0.0, 0.0, -3.08);
-		body->translate(basePosition4);
-		num_data = 0;
-		break;
-	}
-	}
-
-	target_y_ = body->getCenterOfMassPosition().getY();
-	target_z_ = body->getCenterOfMassPosition().getZ();
-}
 bool BasicExample::keyboardCallback(int key, int state)
 {
 	bool handled = true;
@@ -465,46 +432,45 @@ bool BasicExample::keyboardCallback(int key, int state)
 	{
 		switch (key)
 		{
-
 		case B3G_HOME:
 		{
-
-			moveTarget();
-			//initState(this);
+			// b3Printf("Rest.\n");
+			initState(this);
 			break;
 		}
 		case B3G_LEFT_ARROW:
 		{
-
-
-			moveLeft(hinge_shader);
+			// b3Printf("left.\n");
+			moveIn(hinge_elbow);
 			handled = true;
 			break;
 
 		}
 		case B3G_RIGHT_ARROW:
 		{
-
-			moveRight(hinge_shader);
+			// b3Printf("right.\n");
+			moveOut(hinge_elbow);
 			handled = true;
 			break;
 		}
 		case B3G_UP_ARROW:
 		{
-
-			moveLeft(hinge_elbow);
+			// b3Printf("left.\n");
+			moveUp(hinge_shader);
 			handled = true;
-
+			/*btVector3 basePosition = btVector3(0.0, 0.0f, 1.54f);
+			body->translate(basePosition);*/
 
 			break;
 
 		}
 		case B3G_DOWN_ARROW:
 		{
-
-			moveRight(hinge_elbow);
+			// b3Printf("left.\n");
+			moveDown(hinge_shader);
 			handled = true;
-
+			/*btVector3 basePosition = btVector3(0.0, 0.0f, -1.54f);
+			body->translate(basePosition);*/
 			break;
 		}
 		}
@@ -513,20 +479,17 @@ bool BasicExample::keyboardCallback(int key, int state)
 	{
 		switch (key)
 		{
-
 		case B3G_LEFT_ARROW:
 		case B3G_RIGHT_ARROW:
 		{
-
-			lockLiftHinge(hinge_shader);
+			lockLiftHinge(hinge_elbow);
 			handled = true;
 			break;
 		}
 		case B3G_UP_ARROW:
 		case B3G_DOWN_ARROW:
 		{
-
-			lockLiftHinge(hinge_elbow);
+			lockLiftHinge(hinge_shader);
 			handled = true;
 			break;
 		}
@@ -538,37 +501,11 @@ bool BasicExample::keyboardCallback(int key, int state)
 	return handled;
 }
 
-void BasicExample::lockLiftHinge(btHingeConstraint* hinge)
-{
-	btScalar hingeAngle = hinge->getHingeAngle();
-	btScalar lowLim = hinge->getLowerLimit();
-	btScalar hiLim = hinge->getUpperLimit();
-	hinge->enableAngularMotor(false, 0, 0);
-
-	if (hingeAngle < lowLim)
-	{
-		//		m_liftHinge->setLimit(lowLim, lowLim + LIFT_EPS);
-		hinge->setLimit(lowLim, lowLim);
-	}
-	else if (hingeAngle > hiLim)
-	{
-		//		m_liftHinge->setLimit(hiLim - LIFT_EPS, hiLim);
-		hinge->setLimit(hiLim, hiLim);
-	}
-	else
-	{
-		//		m_liftHinge->setLimit(hingeAngle - LIFT_EPS, hingeAngle + LIFT_EPS);
-		hinge->setLimit(hingeAngle, hingeAngle);
-	}
-	return;
-}
-
-
-CommonExampleInterface*    BasicExampleCreateFunc(CommonExampleOptions& options)
+CommonExampleInterface*    env_000(CommonExampleOptions& options)
 {
 	return new BasicExample(options.m_guiHelper);
 
 }
 
 
-B3_STANDALONE_EXAMPLE(BasicExampleCreateFunc)
+B3_STANDALONE_EXAMPLE(env_000)

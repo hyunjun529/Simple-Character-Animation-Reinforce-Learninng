@@ -5,27 +5,33 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Source\000_HelloWorld">
-      <UniqueIdentifier>{6f2eb4e0-522e-43e2-8779-c57c6695fce8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\010_Arm_Single_Target">
       <UniqueIdentifier>{eda24467-c8bd-4693-b11c-aecdbe2b503a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\011_Arm_4_Target">
       <UniqueIdentifier>{51061ef1-2039-433c-8e4e-cf32238e6f91}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\000_Empty">
+      <UniqueIdentifier>{6f2eb4e0-522e-43e2-8779-c57c6695fce8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="examples\011_Arm_4_Target\BasicExample.cpp">
-      <Filter>Source\011_Arm_4_Target</Filter>
+    <ClCompile Include="examples\000_Empty\000_enviroment.cpp">
+      <Filter>Source\000_Empty</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="examples\011_Arm_4_Target\BasicExample.h">
-      <Filter>Source\011_Arm_4_Target</Filter>
+    <ClInclude Include="ExampleImporter.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\000_Empty\000_enviroment.h">
+      <Filter>Source\000_Empty</Filter>
+    </ClInclude>
+    <ClInclude Include="EnviromentGlobal.h">
+      <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

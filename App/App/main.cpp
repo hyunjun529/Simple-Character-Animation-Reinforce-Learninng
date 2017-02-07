@@ -8,6 +8,8 @@
 #include "OpenGLWindow/SimpleOpenGL3App.h"
 #include "ExampleBrowser/OpenGLGuiHelper.h"
 
+#include "ExampleImporter.h"
+
 CommonExampleInterface* example;
 
 b3MouseMoveCallback prevMouseMoveCallback = 0;
@@ -17,23 +19,28 @@ b3KeyboardCallback prevKeyboardCallback = 0;
 static void OnMouseMove(float x, float y);
 static void OnMouseDown(int button, int state, float x, float y);
 static void OnKeyboard(int key, int state);
-static void SystemAlert(const char* msg);
 
-extern bool switchRendering = true;
+static void SystemAlert(const char* msg);
+bool switchRendering = true;
 
 int main(int argc, char* argv[]) {
+
+	// select Example
+	b3Printf("%s\n", getExamples["000"].m_name);
 
 	SimpleOpenGL3App* app = new SimpleOpenGL3App("000_HelloWorld", 800, 600, true);
 
 	prevMouseButtonCallback = app->m_window->getMouseButtonCallback();
 	prevMouseMoveCallback = app->m_window->getMouseMoveCallback();
+	
 	app->m_window->setMouseButtonCallback((b3MouseButtonCallback)OnMouseDown);
 	app->m_window->setMouseMoveCallback((b3MouseMoveCallback)OnMouseMove);
 	app->m_window->setKeyboardCallback((b3KeyboardCallback)OnKeyboard);
+	
 	OpenGLGuiHelper gui(app, true);
 	CommonExampleOptions options(&gui);
 
-	example = StandaloneExampleCreateFunc(options);
+	example = getExamples["000"].m_createFunc(options);
 	example->initPhysics();
 	example->resetCamera();
 
@@ -90,7 +97,7 @@ static void OnKeyboard(int key, int state) {
 	bool handled = false;
 
 	handled = example->keyboardCallback(key, state);
-	
+
 	if (state) {
 		switch (key) {
 		case B3G_ESCAPE:
