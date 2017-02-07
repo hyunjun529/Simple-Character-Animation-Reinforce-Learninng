@@ -17,8 +17,12 @@ b3KeyboardCallback prevKeyboardCallback = 0;
 static void OnMouseMove(float x, float y);
 static void OnMouseDown(int button, int state, float x, float y);
 static void OnKeyboard(int key, int state);
+static void SystemAlert(const char* msg);
+
+extern bool switchRendering = true;
 
 int main(int argc, char* argv[]) {
+
 	SimpleOpenGL3App* app = new SimpleOpenGL3App("000_HelloWorld", 800, 600, true);
 
 	prevMouseButtonCallback = app->m_window->getMouseButtonCallback();
@@ -37,18 +41,22 @@ int main(int argc, char* argv[]) {
 
 	do
 	{
-		app->m_instancingRenderer->init();
-		app->m_instancingRenderer->updateCamera(app->getUpAxis());
+		if (switchRendering) {
+			app->m_instancingRenderer->init();
+			app->m_instancingRenderer->updateCamera(app->getUpAxis());
+		}
 
 		btScalar dtSec = btScalar(clock.getTimeInSeconds());
 		example->stepSimulation(dtSec);
 		clock.reset();
 
-		example->renderScene();
+		if (switchRendering) {
+			example->renderScene();
 
-		DrawGridData dg;
-		dg.upAxis = app->getUpAxis();
-		app->drawGrid(dg);
+			DrawGridData dg;
+			dg.upAxis = app->getUpAxis();
+			app->drawGrid(dg);
+		}
 
 		app->swapBuffer();
 	} while (!app->m_window->requestedExit());
@@ -82,8 +90,27 @@ static void OnKeyboard(int key, int state) {
 	bool handled = false;
 
 	handled = example->keyboardCallback(key, state);
+	
+	if (state) {
+		switch (key) {
+		case B3G_ESCAPE:
+			switchRendering = switchRendering ? false : true;
+			if (switchRendering) SystemAlert("Graphic On");
+			else SystemAlert("Graphic Off");
+			break;
+		}
+	}
+
 	if (!handled) {
 		if (prevKeyboardCallback)
 			prevKeyboardCallback(key, state);
 	}
+}
+
+static void SystemAlert(const char* msg) {
+	b3Printf("\n");
+	b3Printf("============================================================\n");
+	b3Printf("     SYSTEM ALERT : %s\n", msg);
+	b3Printf("============================================================\n");
+	b3Printf("\n");
 }

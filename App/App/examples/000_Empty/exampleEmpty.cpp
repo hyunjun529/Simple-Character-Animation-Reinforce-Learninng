@@ -400,7 +400,6 @@ void BasicExample::updateSubstep(const bool print)
 	static int itr = 0;
 	if (itr < max_tr) // train
 	{
-		/*
 		itr++;
 		counter++;
 
@@ -412,7 +411,6 @@ void BasicExample::updateSubstep(const bool print)
 		}
 
 		nn_.propBackward(reward_vector);
-		*/
 	}
 
 	distance_ = new_distance_;
