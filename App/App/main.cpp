@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <iostream>
 
 #include "Utils/b3Clock.h"
 
@@ -23,14 +23,33 @@ static void OnKeyboard(int key, int state);
 static void SystemAlert(const char* msg);
 
 bool switchRendering = true;
+bool switchSelecting = true;
+bool chkExistExample = true;
 std::string exampleCode = "000";
 
 int main(int argc, char* argv[]) {
+	
+	chkExistExample = false;
+	while (!chkExistExample) {
+		for(auto item : getExample){
+			std::string key = item.first;
+			ExampleImporter val = item.second;
+			std::cout << " * " <<  key << " : "<< val.m_name << std::endl;
+		}
 
-	// select Example
-	b3Printf("%s\n", getExamples[exampleCode].m_name);
+		std::cout << "choice example : ";
+		std::cin >> exampleCode;
+		if (getExample.count(exampleCode) > 0) {
+			chkExistExample = true;
+		}
+		else {
+			chkExistExample = false;
+			std::cout << "Not exist example." << std::endl << std::endl;
+		}
+	}
+	b3Printf("run : %s\n", getExample[exampleCode].m_name);
 
-	SimpleOpenGL3App* app = new SimpleOpenGL3App(getExamples[exampleCode].m_name, 800, 600, true);
+	SimpleOpenGL3App* app = new SimpleOpenGL3App(getExample[exampleCode].m_name, 800, 600, true);
 
 	prevMouseButtonCallback = app->m_window->getMouseButtonCallback();
 	prevMouseMoveCallback = app->m_window->getMouseMoveCallback();
@@ -42,7 +61,7 @@ int main(int argc, char* argv[]) {
 	OpenGLGuiHelper gui(app, true);
 	CommonExampleOptions options(&gui);
 
-	example = getExamples[exampleCode].m_createFunc(options);
+	example = getExample[exampleCode].m_createFunc(options);
 	example->initPhysics();
 	example->resetCamera();
 
