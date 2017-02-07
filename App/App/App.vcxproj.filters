@@ -19,6 +19,9 @@
     <ClCompile Include="BasicExample.cpp">
       <Filter>Source\BasicExample</Filter>
     </ClCompile>
+    <ClCompile Include="VectorND.cpp">
+      <Filter>Source\BasicNN</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BasicExample.h">
@@ -34,6 +37,21 @@
       <Filter>Source\BasicNN</Filter>
     </ClInclude>
     <ClInclude Include="LinearHypothesis.h">
+      <Filter>Source\BasicNN</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixMN.h">
+      <Filter>Source\BasicNN</Filter>
+    </ClInclude>
+    <ClInclude Include="NeuralNetwork.h">
+      <Filter>Source\BasicNN</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector2D.h">
+      <Filter>Source\BasicNN</Filter>
+    </ClInclude>
+    <ClInclude Include="VectorND.h">
+      <Filter>Source\BasicNN</Filter>
+    </ClInclude>
+    <ClInclude Include="Array1D.h">
       <Filter>Source\BasicNN</Filter>
     </ClInclude>
   </ItemGroup>

@@ -130,13 +130,19 @@
   <ItemGroup>
     <ClCompile Include="BasicExample.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="VectorND.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Action.h" />
     <ClInclude Include="ActionMemory.h" />
     <ClInclude Include="ActionRecorder.h" />
+    <ClInclude Include="Array1D.h" />
     <ClInclude Include="BasicExample.h" />
     <ClInclude Include="LinearHypothesis.h" />
+    <ClInclude Include="MatrixMN.h" />
+    <ClInclude Include="NeuralNetwork.h" />
+    <ClInclude Include="Vector2D.h" />
+    <ClInclude Include="VectorND.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
