@@ -1,9 +1,7 @@
 ﻿#include "000_enviroment.h"
+#include "../CommonEnviroment.h"
 
 #include "btBulletDynamicsCommon.h"
-#define ARRAY_SIZE_Y 5
-#define ARRAY_SIZE_X 5
-#define ARRAY_SIZE_Z 5
 
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btAlignedObjectArray.h"
@@ -13,14 +11,7 @@
 #define M_PI       3.14159265358979323846
 #endif
 
-bool needStuding = true;
-
-int num = 0;
-short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
-short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
-static btScalar radius(0.2);
-
-struct BasicExample : public CommonRigidBodyBase
+struct ExampleEmpty : public CommonRigidBodyBase
 {
 	bool m_once;
 	btScalar distance;
@@ -32,8 +23,8 @@ struct BasicExample : public CommonRigidBodyBase
 	btRigidBody* body;
 	btRigidBody* human_body;
 
-	BasicExample(struct GUIHelperInterface* helper);
-	virtual ~BasicExample();
+	ExampleEmpty(struct GUIHelperInterface* helper);
+	virtual ~ExampleEmpty();
 	virtual void initPhysics();
 
 	virtual void stepSimulation(float deltaTime);
@@ -48,15 +39,45 @@ struct BasicExample : public CommonRigidBodyBase
 		float targetPos[3] = { -1.34,3.4,-0.44 };
 		m_guiHelper->resetCamera(dist, pitch, yaw, targetPos[0], targetPos[1], targetPos[2]);
 	}
+
+	void initState(ExampleEmpty* target) {
+		target->m_guiHelper->removeAllGraphicsInstances();
+		target->initPhysics();
+	}
+
+	void moveIn(btHingeConstraint *target) {
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+		target->enableAngularMotor(true, 15.0, 4000.f);
+
+	}
+
+	void moveOut(btHingeConstraint *target) {
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+		target->enableAngularMotor(true, -15.0, 4000.f);
+	}
+
+	void moveUp(btHingeConstraint *target) {
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+		target->enableAngularMotor(true, 15.0, 4000.f);
+
+	}
+
+	void moveDown(btHingeConstraint *target) {
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+		target->enableAngularMotor(true, -15.0, 4000.f);
+	}
+
+	short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
+	short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
 };
 
-BasicExample::BasicExample(struct GUIHelperInterface* helper)
+ExampleEmpty::ExampleEmpty(struct GUIHelperInterface* helper)
 	:CommonRigidBodyBase(helper),
 	m_once(true)
 {
 }
 
-BasicExample::~BasicExample()
+ExampleEmpty::~ExampleEmpty()
 {
 	for (int i = 0; i<m_jointFeedback.size(); i++)
 	{
@@ -65,38 +86,7 @@ BasicExample::~BasicExample()
 
 }
 
-/********************************************************************************************
-* start custom Functions
-*********************************************************************************************/
-
-void initState(BasicExample* target) {
-	target->m_guiHelper->removeAllGraphicsInstances();
-	target->initPhysics();
-}
-
-void moveIn(btHingeConstraint *target) {
-	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, 15.0, 4000.f);
-
-}
-
-void moveOut(btHingeConstraint *target) {
-	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, -15.0, 4000.f);
-}
-
-void moveUp(btHingeConstraint *target) {
-	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, 15.0, 4000.f);
-
-}
-
-void moveDown(btHingeConstraint *target) {
-	target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-	target->enableAngularMotor(true, -15.0, 4000.f);
-}
-
-void BasicExample::lockLiftHinge(btHingeConstraint* hinge)
+void ExampleEmpty::lockLiftHinge(btHingeConstraint* hinge)
 {
 	btScalar hingeAngle = hinge->getHingeAngle();
 	btScalar lowLim = hinge->getLowerLimit();
@@ -121,11 +111,7 @@ void BasicExample::lockLiftHinge(btHingeConstraint* hinge)
 	return;
 }
 
-/********************************************************************************************
-* end custom Functions
-*********************************************************************************************/
-
-void BasicExample::stepSimulation(float deltaTime)
+void ExampleEmpty::stepSimulation(float deltaTime)
 {
 	if (0)//m_once)
 	{
@@ -175,83 +161,16 @@ void BasicExample::stepSimulation(float deltaTime)
 				{
 					b3Printf("check\n");
 				}
-				/********************************************************************************************
-				* start RL
-				*********************************************************************************************/
-
-				//if (needStuding) {
-				//	float lr = 0.2f;
-
-				//	// LR
-				//	for (int t = 0; t < 1000; t++) {
-				//		for (int i = 0; i < AR.memory.num_elements; i++) {
-
-				//			float x = AR.memory.reward_array[i];
-				//			float y = (float)AR.memory.moved_array[i];
-
-				//			const float error = y - lh.getY(x);
-
-				//			const float da = 2.0 * error * -x;
-				//			const float db = 2.0 * error * -1;
-
-				//			lh.a -= da * lr;
-				//			lh.b -= db * lr;
-				//		}
-				//	}
-
-				//	needStuding = false;
-
-				//	AR.clearHistory();
-
-				/********************************************************************************************
-				* end RL
-				*********************************************************************************************/
 			}
 		}
 	}
-
-
-	/********************************************************************************************
-	* start select Move
-	*********************************************************************************************/
-
-
-	//int thisMoved = -1;
-
-
-	//if (needStuding) {
-	//	// random move
-	//	thisMoved = ((int)rand() % 2 == 0) ? (1) : (0);
-	//}
-	//else {
-	//	// learned move
-	//	thisMoved = (lh.getY(distance) >= 0) ? (1) : (0);
-	//}
-
-	//// moving
-	//if (thisMoved == ACT_MOVE_LEFT) {
-	//	moveLeft(hinge);
-	//}
-	//else {
-	//	moveRight(hinge);
-	//}
-
-	// check current
-	/*b3Printf("moved = %d\tdistance=%f\tlh.get(distance) = %f\n", thisMoved, distance, lh.getY(distance));
-	*/
-	// Memory
-	/*if (needStuding) AR.recordHistory(thisMoved, distance);*/
-
-	/********************************************************************************************
-	* end select RL
-	*********************************************************************************************/
 
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 
 	static int count = 0;
 }
 
-void BasicExample::initPhysics()
+void ExampleEmpty::initPhysics()
 {
 	int upAxis = 1;
 	m_guiHelper->setUpAxis(upAxis);
@@ -425,7 +344,7 @@ void BasicExample::initPhysics()
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
 }
 
-bool BasicExample::keyboardCallback(int key, int state)
+bool ExampleEmpty::keyboardCallback(int key, int state)
 {
 	bool handled = true;
 	if (state)
@@ -503,9 +422,6 @@ bool BasicExample::keyboardCallback(int key, int state)
 
 CommonExampleInterface*    env_000(CommonExampleOptions& options)
 {
-	return new BasicExample(options.m_guiHelper);
+	return new ExampleEmpty(options.m_guiHelper);
 
 }
-
-
-B3_STANDALONE_EXAMPLE(env_000)

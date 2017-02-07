@@ -21,14 +21,16 @@ static void OnMouseDown(int button, int state, float x, float y);
 static void OnKeyboard(int key, int state);
 
 static void SystemAlert(const char* msg);
+
 bool switchRendering = true;
+std::string exampleCode = "000";
 
 int main(int argc, char* argv[]) {
 
 	// select Example
-	b3Printf("%s\n", getExamples["000"].m_name);
+	b3Printf("%s\n", getExamples[exampleCode].m_name);
 
-	SimpleOpenGL3App* app = new SimpleOpenGL3App("000_HelloWorld", 800, 600, true);
+	SimpleOpenGL3App* app = new SimpleOpenGL3App(getExamples[exampleCode].m_name, 800, 600, true);
 
 	prevMouseButtonCallback = app->m_window->getMouseButtonCallback();
 	prevMouseMoveCallback = app->m_window->getMouseMoveCallback();
@@ -40,7 +42,7 @@ int main(int argc, char* argv[]) {
 	OpenGLGuiHelper gui(app, true);
 	CommonExampleOptions options(&gui);
 
-	example = getExamples["000"].m_createFunc(options);
+	example = getExamples[exampleCode].m_createFunc(options);
 	example->initPhysics();
 	example->resetCamera();
 

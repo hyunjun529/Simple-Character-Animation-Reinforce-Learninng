@@ -21,4 +21,5 @@ struct ExampleImporter
 
 static std::map<std::string, ExampleImporter> getExamples = {
 	{ "000", ExampleImporter("000_HelloWorld", env_000) },
+	{ "011", ExampleImporter("011_Arm_4_Target", env_011) },
 };

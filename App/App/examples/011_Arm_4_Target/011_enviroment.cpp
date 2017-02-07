@@ -1,6 +1,5 @@
 #include "011_enviroment.h"
-
-#include "../EnviromentGlobal.h"
+#include "../CommonEnviroment.h"
 
 #include "btBulletDynamicsCommon.h"
 #include "LinearMath/btVector3.h"
@@ -9,6 +8,9 @@
 
 #include "NeuralNetwork.h"
 #include "Vector2D.h"
+
+short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
+short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
 
 struct BasicExample : public CommonRigidBodyBase
 {
@@ -377,7 +379,7 @@ void BasicExample::updateSubstep(const bool print)
 		}
 	}
 
-	const int max_tr = NUM_TRAIN;
+	const int max_tr = 1000;
 
 	static int counter = 0;
 	const int one_percent = (double)max_tr / 100.0;
@@ -555,5 +557,3 @@ CommonExampleInterface*    env_011(CommonExampleOptions& options)
 	return new BasicExample(options.m_guiHelper);
 
 }
-
-B3_STANDALONE_EXAMPLE(env_011)

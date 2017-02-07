@@ -22,6 +22,9 @@
     <ClCompile Include="examples\000_Empty\000_enviroment.cpp">
       <Filter>Source\000_Empty</Filter>
     </ClCompile>
+    <ClCompile Include="examples\011_Arm_4_Target\011_enviroment.cpp">
+      <Filter>Source\011_Arm_4_Target</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ExampleImporter.h">
@@ -30,8 +33,11 @@
     <ClInclude Include="examples\000_Empty\000_enviroment.h">
       <Filter>Source\000_Empty</Filter>
     </ClInclude>
-    <ClInclude Include="EnviromentGlobal.h">
+    <ClInclude Include="CommonEnviroment.h">
       <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\011_Arm_4_Target\011_enviroment.h">
+      <Filter>Source\011_Arm_4_Target</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

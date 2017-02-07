@@ -3,4 +3,4 @@
 
 class CommonExampleInterface*    env_000(struct CommonExampleOptions& options);
 
-#endif
+#endif //EXAMPLE_000
