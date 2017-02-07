@@ -5,33 +5,27 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Source\BasicExample">
-      <UniqueIdentifier>{a712f2ac-e710-4eaf-b038-b2db8a898df7}</UniqueIdentifier>
+    <Filter Include="Source\000_HelloWorld">
+      <UniqueIdentifier>{6f2eb4e0-522e-43e2-8779-c57c6695fce8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\BasicNN">
-      <UniqueIdentifier>{0aa9125b-2841-492c-81fa-bb4fb2189c70}</UniqueIdentifier>
+    <Filter Include="Source\010_Arm_Single_Target">
+      <UniqueIdentifier>{eda24467-c8bd-4693-b11c-aecdbe2b503a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\011_Arm_4_Target">
+      <UniqueIdentifier>{51061ef1-2039-433c-8e4e-cf32238e6f91}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="BasicExample.cpp">
-      <Filter>Source\BasicExample</Filter>
+    <ClCompile Include="examples\011_Arm_4_Target\BasicExample.cpp">
+      <Filter>Source\011_Arm_4_Target</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BasicExample.h">
-      <Filter>Source\BasicExample</Filter>
-    </ClInclude>
-    <ClInclude Include="Action.h">
-      <Filter>Source\BasicNN</Filter>
-    </ClInclude>
-    <ClInclude Include="AnimationMemory.h">
-      <Filter>Source\BasicNN</Filter>
-    </ClInclude>
-    <ClInclude Include="ArmRL.h">
-      <Filter>Source\BasicNN</Filter>
+    <ClInclude Include="examples\011_Arm_4_Target\BasicExample.h">
+      <Filter>Source\011_Arm_4_Target</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -148,14 +148,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BasicExample.cpp" />
+    <ClCompile Include="examples\011_Arm_4_Target\BasicExample.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Action.h" />
-    <ClInclude Include="AnimationMemory.h" />
-    <ClInclude Include="ArmRL.h" />
-    <ClInclude Include="BasicExample.h" />
+    <ClInclude Include="examples\011_Arm_4_Target\BasicExample.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

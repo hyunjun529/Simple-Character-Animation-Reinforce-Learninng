@@ -1,83 +1,32 @@
-#include "CommonInterfaces/CommonExampleInterface.h"
-#include "CommonInterfaces/CommonGUIHelperInterface.h"
+#include <stdio.h>
+
 #include "Utils/b3Clock.h"
 
+#include "CommonInterfaces/CommonExampleInterface.h"
+#include "CommonInterfaces/CommonGUIHelperInterface.h"
+
 #include "OpenGLWindow/SimpleOpenGL3App.h"
-#include <stdio.h>
 #include "ExampleBrowser/OpenGLGuiHelper.h"
 
 CommonExampleInterface* example;
-int gSharedMemoryKey = -1;
 
 b3MouseMoveCallback prevMouseMoveCallback = 0;
-static void OnMouseMove(float x, float y)
-{
-	bool handled = false;
-	handled = example->mouseMoveCallback(x, y);
-	if (!handled)
-	{
-		if (prevMouseMoveCallback)
-			prevMouseMoveCallback(x, y);
-	}
-}
-
 b3MouseButtonCallback prevMouseButtonCallback = 0;
-static void OnMouseDown(int button, int state, float x, float y) {
-	bool handled = false;
-
-	handled = example->mouseButtonCallback(button, state, x, y);
-	if (!handled)
-	{
-		if (prevMouseButtonCallback)
-			prevMouseButtonCallback(button, state, x, y);
-	}
-}
-
-/* keyboard */
 b3KeyboardCallback prevKeyboardCallback = 0;
-static void OnKeyboard(int key, int state) {
-	bool handled = false;
 
-	handled = example->keyboardCallback(key, state);
-	if (!handled)
-	{
-		if (prevKeyboardCallback)
-			prevKeyboardCallback(key, state);
-	}
-}
+static void OnMouseMove(float x, float y);
+static void OnMouseDown(int button, int state, float x, float y);
+static void OnKeyboard(int key, int state);
 
-class LessDummyGuiHelper : public DummyGUIHelper
-{
-	CommonGraphicsApp* m_app;
-public:
-	virtual CommonGraphicsApp* getAppInterface()
-	{
-		return m_app;
-	}
-
-	LessDummyGuiHelper(CommonGraphicsApp* app)
-		:m_app(app)
-	{
-	}
-};
-int main(int argc, char* argv[])
-{
-
-	SimpleOpenGL3App* app = new SimpleOpenGL3App("Bullet Standalone Example", 800, 600, true);
+int main(int argc, char* argv[]) {
+	SimpleOpenGL3App* app = new SimpleOpenGL3App("000_HelloWorld", 800, 600, true);
 
 	prevMouseButtonCallback = app->m_window->getMouseButtonCallback();
 	prevMouseMoveCallback = app->m_window->getMouseMoveCallback();
-
 	app->m_window->setMouseButtonCallback((b3MouseButtonCallback)OnMouseDown);
 	app->m_window->setMouseMoveCallback((b3MouseMoveCallback)OnMouseMove);
-
-	/* keyboard */
 	app->m_window->setKeyboardCallback((b3KeyboardCallback)OnKeyboard);
-
-	OpenGLGuiHelper gui(app, false);
-	//LessDummyGuiHelper gui(app);
-	//DummyGUIHelper gui;
-
+	OpenGLGuiHelper gui(app, true);
 	CommonExampleOptions options(&gui);
 
 	example = StandaloneExampleCreateFunc(options);
@@ -110,3 +59,31 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+static void OnMouseMove(float x, float y) {
+	bool handled = false;
+	handled = example->mouseMoveCallback(x, y);
+	if (!handled) {
+		if (prevMouseMoveCallback)
+			prevMouseMoveCallback(x, y);
+	}
+}
+
+static void OnMouseDown(int button, int state, float x, float y) {
+	bool handled = false;
+
+	handled = example->mouseButtonCallback(button, state, x, y);
+	if (!handled) {
+		if (prevMouseButtonCallback)
+			prevMouseButtonCallback(button, state, x, y);
+	}
+}
+
+static void OnKeyboard(int key, int state) {
+	bool handled = false;
+
+	handled = example->keyboardCallback(key, state);
+	if (!handled) {
+		if (prevKeyboardCallback)
+			prevKeyboardCallback(key, state);
+	}
+}
