@@ -149,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="examples\000_Empty\000_enviroment.cpp" />
+    <ClCompile Include="examples\010_Arm_Test\010_enviroment.cpp" />
     <ClCompile Include="examples\011_Arm_4_Target\011_enviroment.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -156,6 +157,7 @@
     <ClInclude Include="CommonEnviroment.h" />
     <ClInclude Include="ExampleImporter.h" />
     <ClInclude Include="examples\000_Empty\000_enviroment.h" />
+    <ClInclude Include="examples\010_Arm_Test\010_enviroment.h" />
     <ClInclude Include="examples\011_Arm_4_Target\011_enviroment.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
