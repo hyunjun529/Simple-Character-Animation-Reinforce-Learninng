@@ -7,14 +7,13 @@
 #include "LinearMath/btAlignedObjectArray.h"
 
 #include "CommonInterfaces/CommonRigidBodyBase.h"
-#ifndef M_PI
-#define M_PI       3.14159265358979323846
-#endif
+
+#include <iostream>
+#include "Actions.h"
 
 struct EnviromentTest : public CommonRigidBodyBase
 {
 	bool m_once;
-	btScalar distance;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
 	btHingeConstraint* hinge_shader;
 	btHingeConstraint* hinge_elbow;
@@ -22,6 +21,15 @@ struct EnviromentTest : public CommonRigidBodyBase
 	btVector3 groundOrigin_target;
 	btRigidBody* body;
 	btRigidBody* human_body;
+
+	short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
+	short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
+
+	btScalar F2T_distance_;
+	float F2T_angle_;
+	float eb_angle_;
+	float sd_angle_;
+
 
 	EnviromentTest(struct GUIHelperInterface* helper);
 	virtual ~EnviromentTest();
@@ -31,8 +39,7 @@ struct EnviromentTest : public CommonRigidBodyBase
 	void lockLiftHinge(btHingeConstraint* hinge);
 	virtual bool keyboardCallback(int key, int state);
 
-	virtual void resetCamera()
-	{
+	virtual void resetCamera() {
 		float dist = 5;
 		float pitch = 270;
 		float yaw = 21;
@@ -45,30 +52,39 @@ struct EnviromentTest : public CommonRigidBodyBase
 		target->initPhysics();
 	}
 
-	void moveIn(btHingeConstraint *target) {
+	void moveUpEb(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, 15.0, 4000.f);
+		target->enableAngularMotor(true, 6.0, 4000.f);
 
 	}
 
-	void moveOut(btHingeConstraint *target) {
+	void moveDownEb(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, -15.0, 4000.f);
+		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
 
-	void moveUp(btHingeConstraint *target) {
+	void moveUpSd(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, 15.0, 4000.f);
+		target->enableAngularMotor(true, 6.0, 4000.f);
 
 	}
 
-	void moveDown(btHingeConstraint *target) {
+	void moveDownSd(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, -15.0, 4000.f);
+		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
 
-	short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
-	short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
+	float getAngleF2T() {
+		return (atan((linkBody->getCenterOfMassPosition().getZ() - body->getCenterOfMassPosition().getZ()) / (linkBody->getCenterOfMassPosition().getY() - body->getCenterOfMassPosition().getY()))) * 180 / M_PI;
+	}
+
+	float getAngleEb() {
+		return hinge_shader->getHingeAngle() / M_PI * 180;;
+	}
+
+	float getAngleSd() {
+		return hinge_elbow->getHingeAngle() / M_PI * 180;
+	}
 };
 
 EnviromentTest::EnviromentTest(struct GUIHelperInterface* helper)
@@ -94,17 +110,14 @@ void EnviromentTest::lockLiftHinge(btHingeConstraint* hinge)
 
 	if (hingeAngle < lowLim)
 	{
-		//		m_liftHinge->setLimit(lowLim, lowLim + LIFT_EPS);
 		hinge->setLimit(lowLim, lowLim);
 	}
 	else if (hingeAngle > hiLim)
 	{
-		//		m_liftHinge->setLimit(hiLim - LIFT_EPS, hiLim);
 		hinge->setLimit(hiLim, hiLim);
 	}
 	else
 	{
-		//		m_liftHinge->setLimit(hingeAngle - LIFT_EPS, hingeAngle + LIFT_EPS);
 		hinge->setLimit(hingeAngle, hingeAngle);
 	}
 	return;
@@ -112,26 +125,11 @@ void EnviromentTest::lockLiftHinge(btHingeConstraint* hinge)
 
 void EnviromentTest::stepSimulation(float deltaTime)
 {
-	if (0)//m_once)
-	{
-		m_once = false;
-		btHingeConstraint* hinge = (btHingeConstraint*)m_dynamicsWorld->getConstraint(0);
-
-		btRigidBody& bodyA = hinge->getRigidBodyA();
-		btTransform trA = bodyA.getWorldTransform();
-		btVector3 hingeAxisInWorld = trA.getBasis()*hinge->getFrameOffsetA().getBasis().getColumn(2);
-		hinge->getRigidBodyA().applyTorque(-hingeAxisInWorld * 10);
-		hinge->getRigidBodyB().applyTorque(hingeAxisInWorld * 10);
-
-	}
-
 	//get distance
-	//check distance
-	distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
-	b3Printf("distance = %f\n", distance);
-
+	F2T_distance_ = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
 
 	//collison check
+	int collisionTarget = -1;
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
 	for (int i = 0; i < numManifolds; i++)
 	{
@@ -149,19 +147,35 @@ void EnviromentTest::stepSimulation(float deltaTime)
 				const btVector3& ptA = pt.getPositionWorldOnA();
 				const btVector3& ptB = pt.getPositionWorldOnB();
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
-				//initState(this);
 
 				//check the head or body
-				if (distance <= sqrt(0.08))
-				{
-					b3Printf("goal:10\n");
+				if (F2T_distance_ <= sqrt(0.08f)) {
+					collisionTarget = 0;
 				}
-				else
-				{
-					b3Printf("check\n");
+				else {
+					collisionTarget = 1;
 				}
 			}
 		}
+	}
+
+	// elbow angle
+	eb_angle_ = getAngleEb();
+
+	// shoulder angle
+	sd_angle_ = getAngleSd();
+
+	// Fist to Target angle
+	F2T_angle_ = getAngleF2T();
+	
+	std::cout << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
+	std::cout << "eb_ang : " << eb_angle_ << "\t" << "sd_ang : " << sd_angle_ << "\t" << std::endl;
+
+	if (collisionTarget == 0) {
+		std::cout << "Collision Head" << std::endl;
+	}
+	if (collisionTarget == 1) {
+		std::cout << "Collision Body" << std::endl;
 	}
 
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
@@ -185,11 +199,9 @@ void EnviromentTest::initPhysics()
 		+ btIDebugDraw::DBG_DrawConstraintLimits;
 	m_dynamicsWorld->getDebugDrawer()->setDebugMode(mode);
 
-
 	{ // create a door using hinge constraint attached to the world
-
 		int numLinks = 3;
-		bool spherical = false;					//set it ot false -to use 1DoF hinges instead of 3DoF sphericals
+		bool spherical = false;
 		bool canSleep = false;
 		bool selfCollide = false;
 
@@ -202,7 +214,6 @@ void EnviromentTest::initPhysics()
 		baseWorldTrans.setIdentity();
 		baseWorldTrans.setOrigin(basePosition);
 
-		//mbC->forceMultiDof();							//if !spherical, you can comment this line to check the 1DoF algorithm
 		//init the base
 		btVector3 baseInertiaDiag(0.f, 0.f, 0.f);
 		float baseMass = 0.f;
@@ -239,6 +250,7 @@ void EnviromentTest::initPhysics()
 			{
 				colOb = linkSphere;
 			}
+
 			linkBody = createRigidBody(linkMass, linkTrans, colOb);
 			m_dynamicsWorld->removeRigidBody(linkBody);
 			m_dynamicsWorld->addRigidBody(linkBody, collisionFilterGroup, collisionFilterMask);
@@ -299,9 +311,7 @@ void EnviromentTest::initPhysics()
 				m_dynamicsWorld->addConstraint(con, true);
 			}
 			prevBody = linkBody;
-
 		}
-
 	}
 
 	if (1)
@@ -319,8 +329,6 @@ void EnviromentTest::initPhysics()
 
 		body->setFriction(0);
 
-
-
 		btVector3 human_HalfExtents(0.8, 0.0, 0.025);
 		human_HalfExtents[upAxis] = 0.8f;
 		btBoxShape* human_box = new btBoxShape(human_HalfExtents);
@@ -334,10 +342,6 @@ void EnviromentTest::initPhysics()
 		human_body = createRigidBody(0, human_start, human_box);
 
 		human_body->setFriction(0);
-
-
-
-
 	}
 
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
@@ -352,43 +356,31 @@ bool EnviromentTest::keyboardCallback(int key, int state)
 		{
 		case B3G_HOME:
 		{
-			// b3Printf("Rest.\n");
 			initState(this);
 			break;
 		}
 		case B3G_LEFT_ARROW:
 		{
-			// b3Printf("left.\n");
-			moveIn(hinge_elbow);
+			moveUpEb(hinge_elbow);
 			handled = true;
 			break;
-
 		}
 		case B3G_RIGHT_ARROW:
 		{
-			// b3Printf("right.\n");
-			moveOut(hinge_elbow);
+			moveDownEb(hinge_elbow);
 			handled = true;
 			break;
 		}
 		case B3G_UP_ARROW:
 		{
-			// b3Printf("left.\n");
-			moveUp(hinge_shader);
+			moveUpSd(hinge_shader);
 			handled = true;
-			/*btVector3 basePosition = btVector3(0.0, 0.0f, 1.54f);
-			body->translate(basePosition);*/
-
 			break;
-
 		}
 		case B3G_DOWN_ARROW:
 		{
-			// b3Printf("left.\n");
-			moveDown(hinge_shader);
+			moveDownSd(hinge_shader);
 			handled = true;
-			/*btVector3 basePosition = btVector3(0.0, 0.0f, -1.54f);
-			body->translate(basePosition);*/
 			break;
 		}
 		}
@@ -412,7 +404,6 @@ bool EnviromentTest::keyboardCallback(int key, int state)
 			break;
 		}
 		default:
-
 			break;
 		}
 	}
@@ -422,5 +413,4 @@ bool EnviromentTest::keyboardCallback(int key, int state)
 CommonExampleInterface*    env_002(CommonExampleOptions& options)
 {
 	return new EnviromentTest(options.m_guiHelper);
-
 }

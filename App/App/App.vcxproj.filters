@@ -93,5 +93,8 @@
     <ClInclude Include="examples\002_Two_Joint_Enviroment_Test\002_enviroment.h">
       <Filter>Source\002_Two_Joint_Enviroment_Test</Filter>
     </ClInclude>
+    <ClInclude Include="examples\002_Two_Joint_Enviroment_Test\Actions.h">
+      <Filter>Source\002_Two_Joint_Enviroment_Test</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

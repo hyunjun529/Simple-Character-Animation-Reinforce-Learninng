@@ -166,6 +166,7 @@
     <ClInclude Include="examples\001_Single_Joint\ActionRecorder.h" />
     <ClInclude Include="examples\001_Single_Joint\LinearHypothesis.h" />
     <ClInclude Include="examples\002_Two_Joint_Enviroment_Test\002_enviroment.h" />
+    <ClInclude Include="examples\002_Two_Joint_Enviroment_Test\Actions.h" />
     <ClInclude Include="examples\010_Arm_Test\010_enviroment.h" />
     <ClInclude Include="examples\010_Arm_Test\Action.h" />
     <ClInclude Include="examples\010_Arm_Test\AnimationMemory.h" />
