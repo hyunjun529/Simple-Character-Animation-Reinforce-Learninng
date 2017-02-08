@@ -17,6 +17,9 @@
     <Filter Include="Source\001_Single_Joint">
       <UniqueIdentifier>{5d6e4b5e-410b-47e0-a7e6-89fb29199e9b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\012_Arm_NN_Test">
+      <UniqueIdentifier>{40b38c56-ca40-45d3-880f-c532fcdc1290}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -33,6 +36,9 @@
     </ClCompile>
     <ClCompile Include="examples\001_Single_Joint\001_enviroment.cpp">
       <Filter>Source\001_Single_Joint</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\012_Arm_NN_Test\012_enviroment.cpp">
+      <Filter>Source\012_Arm_NN_Test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -65,6 +71,27 @@
     </ClInclude>
     <ClInclude Include="examples\001_Single_Joint\LinearHypothesis.h">
       <Filter>Source\001_Single_Joint</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\010_Arm_Test\Action.h">
+      <Filter>Source\010_Arm_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\010_Arm_Test\AnimationMemory.h">
+      <Filter>Source\010_Arm_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\010_Arm_Test\ArmRL.h">
+      <Filter>Source\010_Arm_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\012_Arm_NN_Test\012_enviroment.h">
+      <Filter>Source\012_Arm_NN_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\012_Arm_NN_Test\Action.h">
+      <Filter>Source\012_Arm_NN_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\012_Arm_NN_Test\AnimationMemory.h">
+      <Filter>Source\012_Arm_NN_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\012_Arm_NN_Test\ArmRL.h">
+      <Filter>Source\012_Arm_NN_Test</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

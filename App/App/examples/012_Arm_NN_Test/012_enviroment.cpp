@@ -1,4 +1,4 @@
-﻿#include "010_enviroment.h"
+﻿#include "012_enviroment.h"
 #include "../CommonEnviroment.h"
 
 #include "btBulletDynamicsCommon.h"
@@ -11,14 +11,15 @@
 #define M_PI       3.14159265358979323846
 #endif
 
+
 #include <cstdlib>
 #include "ArmRL.h"
 
 
-struct ArmTest : public CommonRigidBodyBase
+struct ArmNNTest : public CommonRigidBodyBase
 {
 	bool m_once;
-	btScalar distance;
+	btScalar distance_;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
 	btHingeConstraint* hinge_shader;
 	btHingeConstraint* hinge_elbow;
@@ -27,8 +28,8 @@ struct ArmTest : public CommonRigidBodyBase
 	btRigidBody* body;
 	btRigidBody* human_body;
 
-	ArmTest(struct GUIHelperInterface* helper);
-	virtual ~ArmTest();
+	ArmNNTest(struct GUIHelperInterface* helper);
+	virtual ~ArmNNTest();
 	virtual void initPhysics();
 
 	virtual void stepSimulation(float deltaTime);
@@ -44,41 +45,46 @@ struct ArmTest : public CommonRigidBodyBase
 		m_guiHelper->resetCamera(dist, pitch, yaw, targetPos[0], targetPos[1], targetPos[2]);
 	}
 
-	ArmRL rl_;
-
-	short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
-	short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
-
 	/********************************************************************************************
 	* start custom Functions
 	*********************************************************************************************/
 
-	void initState(ArmTest* target) {
+	ArmRL *rl_;
+	ArmRL *rl_sd_;
+
+	VectorND<float> state_buffer_;
+
+	bool chkModeStudying = true;
+
+	void initState(ArmNNTest* target) {
 		target->m_guiHelper->removeAllGraphicsInstances();
 		target->initPhysics();
 	}
 
 	void moveIn(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, 15.0, 4000.f);
+		target->enableAngularMotor(true, 6.0, 4000.f);
 
 	}
 
 	void moveOut(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, -15.0, 4000.f);
+		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
 
 	void moveUp(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, 15.0, 4000.f);
+		target->enableAngularMotor(true, 6.0, 4000.f);
 
 	}
 
 	void moveDown(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, -15.0, 4000.f);
+		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
+
+	short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
+	short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
 
 	/********************************************************************************************
 	* end custom Functions
@@ -86,13 +92,32 @@ struct ArmTest : public CommonRigidBodyBase
 
 };
 
-ArmTest::ArmTest(struct GUIHelperInterface* helper)
+ArmNNTest::ArmNNTest(struct GUIHelperInterface* helper)
 	:CommonRigidBodyBase(helper),
 	m_once(true)
 {
+	rl_ = new ArmRL();
+	rl_sd_ = new ArmRL();
+	rl_->init();
+	rl_sd_->init();
+
+	state_buffer_.initialize(1, true); // 1 = num of state
+	state_buffer_.assignAllValues(2.0f);
+
+	state_buffer_[0] = 2.0f; // 2.0f = max length of fist to head distance
+
+	for (int h = 0; h < rl_->num_input_histories_; h++)
+	{
+		rl_->recordHistory(state_buffer_, 0.0f, 2, VectorND<float>(3)); // 3 = num of action
+	}
+
+	for (int h = 0; h < rl_sd_->num_input_histories_; h++)
+	{
+		rl_sd_->recordHistory(state_buffer_, 0.0f, 2, VectorND<float>(3)); // 3 = num of action
+	}
 }
 
-ArmTest::~ArmTest()
+ArmNNTest::~ArmNNTest()
 {
 	for (int i = 0; i<m_jointFeedback.size(); i++)
 	{
@@ -101,7 +126,7 @@ ArmTest::~ArmTest()
 
 }
 
-void ArmTest::lockLiftHinge(btHingeConstraint* hinge)
+void ArmNNTest::lockLiftHinge(btHingeConstraint* hinge)
 {
 	btScalar hingeAngle = hinge->getHingeAngle();
 	btScalar lowLim = hinge->getLowerLimit();
@@ -126,13 +151,20 @@ void ArmTest::lockLiftHinge(btHingeConstraint* hinge)
 	return;
 }
 
-void ArmTest::stepSimulation(float deltaTime)
+void ArmNNTest::stepSimulation(float deltaTime)
 {
 	// get distance
-	distance = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	distance_ = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+
+	// make VectorND state
+	state_buffer_[0] = distance_;
 
 	// set reward
-	float reward = 0.1f;
+	// h529 : 거리가 가까울수록 칭찬
+	float reward_ = (1 - (distance_ / 2.5f));
+	if (reward_ < 0.2f) {
+		reward_ = -0.1f;
+	}
 
 	// set checkEndLearningCycle
 	bool checkEndLearningCycle = false;
@@ -141,13 +173,26 @@ void ArmTest::stepSimulation(float deltaTime)
 	* start Action
 	*********************************************************************************************/
 
-	// set random action
-	int probability_shoulder = ((int)rand() % 6);
-	int probability_elbow = ((int)rand() % 5);
-	int action_shoulder = -1;
-	int action_elbow = -1;
+	// forward
+	rl_->forward();
+	VectorND<float> output_vector_temp;
+	rl_->nn_.copyOutputVectorTo(false, output_vector_temp);
+	VectorND<float> output_target_temp;
 
-	// decide the action
+	// forward_sd
+
+	rl_sd_->forward();
+	VectorND<float> output_vector_temp_sd_;
+	rl_->nn_.copyOutputVectorTo(false, output_vector_temp_sd_);
+	VectorND<float> output_target_temp_sd_;
+
+	// set Random percent
+	float dice = chkModeStudying ? 0.1f : 0.0f;
+
+	// decide the shoulder action
+	int probability_shoulder = rl_sd_->nn_.getOutputIXEpsilonGreedy(dice); // fix only up
+	int action_shoulder = -1;
+
 	if (probability_shoulder == ACTION_SHOULDER_UP) {
 		moveUp(hinge_shader);
 		action_shoulder = ACTION_SHOULDER_UP;
@@ -159,6 +204,10 @@ void ArmTest::stepSimulation(float deltaTime)
 	else {
 		action_shoulder = ACTION_SHOULDER_STAY;
 	}
+
+	// decide the elbow action
+	int probability_elbow = rl_->nn_.getOutputIXEpsilonGreedy(dice);
+	int action_elbow = -1;
 
 	if (probability_elbow == ACTION_ELBOW_IN) {
 		moveIn(hinge_elbow);
@@ -189,30 +238,38 @@ void ArmTest::stepSimulation(float deltaTime)
 		for (int j = 0; j < numContacts; j++)
 		{
 			btManifoldPoint& pt = contactManifold->getContactPoint(j);
-			if (pt.getDistance() < 0.f)
+			if (pt.getDistance() < 0.1f)
 			{
 				const btVector3& ptA = pt.getPositionWorldOnA();
 				const btVector3& ptB = pt.getPositionWorldOnB();
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
 				//check the head or body
-				if (distance <= sqrt(0.08))
+				if (distance_ <= sqrt(0.08))
 				{
-					reward = 0.5f;
+					// h529 : 새 보상값에 의해 강제 값은 필요없음
+					// reward_ = 0.5f;
 					checkEndLearningCycle = true;
 				}
 				else
 				{
-					reward = 0.0f;
+					reward_ = 0.0f;
+					checkEndLearningCycle = true;
 				}
 			}
 		}
 	}
 
 	// Memory current state
-	rl_.recordHistory(action_shoulder, action_elbow, distance, reward);
+	rl_->recordHistory(state_buffer_, reward_, action_elbow, output_vector_temp);
+	rl_sd_->recordHistory(state_buffer_, reward_, action_shoulder, output_vector_temp);
+
+	// force reset
+	if (rl_->memory_->num_elements_ > 300) {
+		checkEndLearningCycle = true;
+	}
 
 	// print current state
-	b3Printf("act_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", action_shoulder, action_elbow, distance, reward);
+	b3Printf("md(%s)\tact_sh: %d\tact_eb: %d\tdst: %f\trwd: %f\n", chkModeStudying ? "st" : "rn", action_shoulder, action_elbow, distance_, reward_);
 
 	// if end LearningCycle, then it's time to tranning!
 	if (checkEndLearningCycle) {
@@ -221,12 +278,114 @@ void ArmTest::stepSimulation(float deltaTime)
 		*********************************************************************************************/
 
 		// print this cycle's info
-		b3Printf("=====================================================\n");
-		b3Printf("steps(num_reserve) : %d\n", rl_.memory_.num_elements);
-		b3Printf("=====================================================\n");
+		b3Printf("=======================================================================\n");
+		b3Printf("steps(num_reserve) : %d\n", rl_->memory_->num_elements_);
+		b3Printf("=======================================================================\n");
+
+		// start trainning
+		int tr_num = 10;
+
+		// h529 : 인위적인 강화		
+		if (distance_ < 0.7f) {
+			tr_num += 50;
+		}
+		if (distance_ < 0.5f) {
+			tr_num += 50;
+		}
+		if (distance_ < 0.3f) {
+			tr_num += 50;
+		}
+		if (distance_ < 0.2f) {
+			tr_num += 50;
+		}
+
+		// elbow
+		if (chkModeStudying == true)
+			for (int tr = 0; tr < tr_num; tr++)
+				for (int m_tr = rl_->memory_->num_elements_ - 2; m_tr >= rl_->num_input_histories_; m_tr--)
+				{
+					// stochastic training
+					// h529 : 전체를 요약한 부분을 확률적으로 선택해서 학습하는 방법론
+					// h529 : http://sanghyukchun.github.io/74/
+					int m = rand() % (rl_->memory_->num_elements_ - 1 - rl_->num_input_histories_) + rl_->num_input_histories_;
+
+					// memory index from end
+					const int inv_m = m - (rl_->memory_->num_elements_ - 1);
+
+					float Q_next = 0.0f;
+					if (m != rl_->memory_->num_elements_ - 2) // if next is not the terminal state
+					{
+						// Q_next = ...;
+						Q_next = rl_->memory_->q_values_array_[m + 1].getMaxValue();
+					}
+
+					float Q_target;
+					// Q_target = ...;
+					Q_target = Q_next + rl_->memory_->reward_array_[m];
+
+					// forward propagation from previous inputs
+					rl_->makeInputVectorFromHistory(inv_m - 1, rl_->old_input_vector_);
+					rl_->nn_.setInputVector(rl_->old_input_vector_);
+					for (int i = 0; i < 100; i++)
+					{
+						rl_->nn_.feedForward();
+						rl_->nn_.copyOutputVectorTo(false, output_target_temp);
+
+						// output_target_temp[...] = ...;
+						// h529 : Q_next와 Q_target으로 강화한 값을 새로 역전파시킬 준비
+						output_target_temp[rl_->memory_->selected_array_[m]] = Q_target;
+
+						rl_->nn_.propBackward(output_target_temp);
+					}
+
+					rl_->nn_.check();
+				}
+
+		// shoulder
+		if (chkModeStudying == true)
+			for (int tr = 0; tr < tr_num; tr++)
+				for (int m_tr = rl_sd_->memory_->num_elements_ - 2; m_tr >= rl_sd_->num_input_histories_; m_tr--)
+				{
+					// stochastic training
+					// h529 : 전체를 요약한 부분을 확률적으로 선택해서 학습하는 방법론
+					// h529 : http://sanghyukchun.github.io/74/
+					int m = rand() % (rl_sd_->memory_->num_elements_ - 1 - rl_sd_->num_input_histories_) + rl_sd_->num_input_histories_;
+
+					// memory index from end
+					const int inv_m = m - (rl_sd_->memory_->num_elements_ - 1);
+
+					float Q_next = 0.0f;
+					if (m != rl_sd_->memory_->num_elements_ - 2) // if next is not the terminal state
+					{
+						// Q_next = ...;
+						Q_next = rl_sd_->memory_->q_values_array_[m + 1].getMaxValue();
+					}
+
+					float Q_target;
+					// Q_target = ...;
+					Q_target = Q_next + rl_sd_->memory_->reward_array_[m];
+
+					// forward propagation from previous inputs
+					rl_sd_->makeInputVectorFromHistory(inv_m - 1, rl_sd_->old_input_vector_);
+					rl_sd_->nn_.setInputVector(rl_sd_->old_input_vector_);
+					for (int i = 0; i < 100; i++)
+					{
+						rl_sd_->nn_.feedForward();
+						rl_sd_->nn_.copyOutputVectorTo(false, output_target_temp);
+
+						// output_target_temp[...] = ...;
+						// h529 : Q_next와 Q_target으로 강화한 값을 새로 역전파시킬 준비
+						output_target_temp[rl_sd_->memory_->selected_array_[m]] = Q_target;
+
+						rl_sd_->nn_.propBackward(output_target_temp);
+					}
+
+					rl_sd_->nn_.check();
+				}
 
 		// reset & restart
-		rl_.clearHistory();
+		rl_->memory_->reset();
+		rl_sd_->memory_->reset();
 		initState(this);
 
 		/********************************************************************************************
@@ -239,7 +398,7 @@ void ArmTest::stepSimulation(float deltaTime)
 	static int count = 0;
 }
 
-void ArmTest::initPhysics()
+void ArmNNTest::initPhysics()
 {
 	int upAxis = 1;
 	m_guiHelper->setUpAxis(upAxis);
@@ -254,7 +413,6 @@ void ArmTest::initPhysics()
 		+ btIDebugDraw::DBG_DrawConstraints
 		+ btIDebugDraw::DBG_DrawConstraintLimits;
 	m_dynamicsWorld->getDebugDrawer()->setDebugMode(mode);
-
 
 	{ // create a door using hinge constraint attached to the world
 
@@ -372,6 +530,7 @@ void ArmTest::initPhysics()
 
 		}
 
+
 	}
 
 	if (1)
@@ -382,7 +541,7 @@ void ArmTest::initPhysics()
 		box->initializePolyhedralFeatures();
 
 		btTransform start; start.setIdentity();
-		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.25f);
+		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.45f);
 
 		start.setOrigin(groundOrigin_target);
 		body = createRigidBody(0, start, box);
@@ -398,22 +557,30 @@ void ArmTest::initPhysics()
 
 		btTransform human_start;
 		human_start.setIdentity();
-		groundOrigin_target = btVector3(-0.4f, 2.8f, -1.25f);
+		groundOrigin_target = btVector3(-0.4f, 2.8f, -1.45f);
 
 		human_start.setOrigin(groundOrigin_target);
 		human_body = createRigidBody(0, human_start, human_box);
 
 		human_body->setFriction(0);
 
-
-
-
 	}
 
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
+
+
+	/********************************************************************************************
+	* start init RL
+	*********************************************************************************************/
+
+	// initializeAI
+
+	/********************************************************************************************
+	* end init RL
+	*********************************************************************************************/
 }
 
-bool ArmTest::keyboardCallback(int key, int state)
+bool ArmNNTest::keyboardCallback(int key, int state)
 {
 	bool handled = true;
 	if (state)
@@ -424,6 +591,11 @@ bool ArmTest::keyboardCallback(int key, int state)
 		{
 			// b3Printf("Rest.\n");
 			initState(this);
+			break;
+		}
+		case B3G_END:
+		{
+			chkModeStudying = chkModeStudying ? false : true;
 			break;
 		}
 		case B3G_LEFT_ARROW:
@@ -489,8 +661,9 @@ bool ArmTest::keyboardCallback(int key, int state)
 	return handled;
 }
 
-CommonExampleInterface*    env_010(CommonExampleOptions& options)
+
+CommonExampleInterface*    env_012(CommonExampleOptions& options)
 {
-	return new ArmTest(options.m_guiHelper);
+	return new ArmNNTest(options.m_guiHelper);
 
 }

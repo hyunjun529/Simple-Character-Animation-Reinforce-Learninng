@@ -152,6 +152,7 @@
     <ClCompile Include="examples\001_Single_Joint\001_enviroment.cpp" />
     <ClCompile Include="examples\010_Arm_Test\010_enviroment.cpp" />
     <ClCompile Include="examples\011_Arm_4_Target\011_enviroment.cpp" />
+    <ClCompile Include="examples\012_Arm_NN_Test\012_enviroment.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -164,7 +165,14 @@
     <ClInclude Include="examples\001_Single_Joint\ActionRecorder.h" />
     <ClInclude Include="examples\001_Single_Joint\LinearHypothesis.h" />
     <ClInclude Include="examples\010_Arm_Test\010_enviroment.h" />
+    <ClInclude Include="examples\010_Arm_Test\Action.h" />
+    <ClInclude Include="examples\010_Arm_Test\AnimationMemory.h" />
+    <ClInclude Include="examples\010_Arm_Test\ArmRL.h" />
     <ClInclude Include="examples\011_Arm_4_Target\011_enviroment.h" />
+    <ClInclude Include="examples\012_Arm_NN_Test\012_enviroment.h" />
+    <ClInclude Include="examples\012_Arm_NN_Test\Action.h" />
+    <ClInclude Include="examples\012_Arm_NN_Test\AnimationMemory.h" />
+    <ClInclude Include="examples\012_Arm_NN_Test\ArmRL.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
