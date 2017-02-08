@@ -14,6 +14,9 @@
     <Filter Include="Source\011_Arm_4_Target">
       <UniqueIdentifier>{51061ef1-2039-433c-8e4e-cf32238e6f91}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\001_Single_Joint">
+      <UniqueIdentifier>{5d6e4b5e-410b-47e0-a7e6-89fb29199e9b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -27,6 +30,9 @@
     </ClCompile>
     <ClCompile Include="examples\010_Arm_Test\010_enviroment.cpp">
       <Filter>Source\010_Arm_Test</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\001_Single_Joint\001_enviroment.cpp">
+      <Filter>Source\001_Single_Joint</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -44,6 +50,21 @@
     </ClInclude>
     <ClInclude Include="examples\010_Arm_Test\010_enviroment.h">
       <Filter>Source\010_Arm_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\001_Single_Joint\001_enviroment.h">
+      <Filter>Source\001_Single_Joint</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\001_Single_Joint\Action.h">
+      <Filter>Source\001_Single_Joint</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\001_Single_Joint\ActionMemory.h">
+      <Filter>Source\001_Single_Joint</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\001_Single_Joint\ActionRecorder.h">
+      <Filter>Source\001_Single_Joint</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\001_Single_Joint\LinearHypothesis.h">
+      <Filter>Source\001_Single_Joint</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

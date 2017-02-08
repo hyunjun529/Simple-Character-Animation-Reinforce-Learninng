@@ -149,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="examples\000_Empty\000_enviroment.cpp" />
+    <ClCompile Include="examples\001_Single_Joint\001_enviroment.cpp" />
     <ClCompile Include="examples\010_Arm_Test\010_enviroment.cpp" />
     <ClCompile Include="examples\011_Arm_4_Target\011_enviroment.cpp" />
     <ClCompile Include="main.cpp" />
@@ -157,6 +158,11 @@
     <ClInclude Include="CommonEnviroment.h" />
     <ClInclude Include="ExampleImporter.h" />
     <ClInclude Include="examples\000_Empty\000_enviroment.h" />
+    <ClInclude Include="examples\001_Single_Joint\001_enviroment.h" />
+    <ClInclude Include="examples\001_Single_Joint\Action.h" />
+    <ClInclude Include="examples\001_Single_Joint\ActionMemory.h" />
+    <ClInclude Include="examples\001_Single_Joint\ActionRecorder.h" />
+    <ClInclude Include="examples\001_Single_Joint\LinearHypothesis.h" />
     <ClInclude Include="examples\010_Arm_Test\010_enviroment.h" />
     <ClInclude Include="examples\011_Arm_4_Target\011_enviroment.h" />
   </ItemGroup>
