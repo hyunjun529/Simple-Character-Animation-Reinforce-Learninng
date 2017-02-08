@@ -20,6 +20,9 @@
     <Filter Include="Source\012_Angle_Distance_Reward">
       <UniqueIdentifier>{0c92fee4-1bb0-4e14-aa38-4b395c8ca98f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\002_Two_Joint_Enviroment_Test">
+      <UniqueIdentifier>{b4a0168e-8b50-4c05-b33d-82926cd7f198}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -39,6 +42,9 @@
     </ClCompile>
     <ClCompile Include="examples\012_Angle_Distance_Reward\012_enviroment.cpp">
       <Filter>Source\012_Angle_Distance_Reward</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\002_Two_Joint_Enviroment_Test\002_enviroment.cpp">
+      <Filter>Source\002_Two_Joint_Enviroment_Test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -83,6 +89,9 @@
     </ClInclude>
     <ClInclude Include="examples\012_Angle_Distance_Reward\012_enviroment.h">
       <Filter>Source\012_Angle_Distance_Reward</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\002_Two_Joint_Enviroment_Test\002_enviroment.h">
+      <Filter>Source\002_Two_Joint_Enviroment_Test</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
