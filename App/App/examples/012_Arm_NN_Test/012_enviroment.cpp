@@ -11,10 +11,8 @@
 #define M_PI       3.14159265358979323846
 #endif
 
-
 #include <cstdlib>
 #include "ArmRL.h"
-
 
 struct ArmNNTest : public CommonRigidBodyBase
 {
@@ -100,21 +98,6 @@ ArmNNTest::ArmNNTest(struct GUIHelperInterface* helper)
 	rl_sd_ = new ArmRL();
 	rl_->init();
 	rl_sd_->init();
-
-	state_buffer_.initialize(1, true); // 1 = num of state
-	state_buffer_.assignAllValues(2.0f);
-
-	state_buffer_[0] = 2.0f; // 2.0f = max length of fist to head distance
-
-	for (int h = 0; h < rl_->num_input_histories_; h++)
-	{
-		rl_->recordHistory(state_buffer_, 0.0f, 2, VectorND<float>(3)); // 3 = num of action
-	}
-
-	for (int h = 0; h < rl_sd_->num_input_histories_; h++)
-	{
-		rl_sd_->recordHistory(state_buffer_, 0.0f, 2, VectorND<float>(3)); // 3 = num of action
-	}
 }
 
 ArmNNTest::~ArmNNTest()
@@ -573,7 +556,26 @@ void ArmNNTest::initPhysics()
 	* start init RL
 	*********************************************************************************************/
 
-	// initializeAI
+	if (m_once) {
+
+		// initializeAI
+		state_buffer_.initialize(1, true); // 1 = num of state
+		state_buffer_.assignAllValues(2.0f);
+
+		state_buffer_[0] = 2.0f; // 2.0f = max length of fist to head distance
+
+		for (int h = 0; h < rl_->num_input_histories_; h++)
+		{
+			rl_->recordHistory(state_buffer_, 0.0f, 2, VectorND<float>(3)); // 3 = num of action
+		}
+
+		for (int h = 0; h < rl_sd_->num_input_histories_; h++)
+		{
+			rl_sd_->recordHistory(state_buffer_, 0.0f, 2, VectorND<float>(3)); // 3 = num of action
+		}
+
+		m_once = false;
+	}
 
 	/********************************************************************************************
 	* end init RL
