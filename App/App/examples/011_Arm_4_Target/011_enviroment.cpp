@@ -9,9 +9,6 @@
 #include "NeuralNetwork.h"
 #include "Vector2D.h"
 
-short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
-short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
-
 struct BasicExample : public CommonRigidBodyBase
 {
 	int j;
@@ -52,6 +49,9 @@ struct BasicExample : public CommonRigidBodyBase
 		float targetPos[3] = { -1.34,3.4,-0.44 };
 		m_guiHelper->resetCamera(dist, pitch, yaw, targetPos[0], targetPos[1], targetPos[2]);
 	}
+
+	short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
+	short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
 };
 
 BasicExample::BasicExample(struct GUIHelperInterface* helper)
