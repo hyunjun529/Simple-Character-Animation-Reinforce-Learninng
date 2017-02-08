@@ -61,13 +61,13 @@ struct AngleDistanceReward : public CommonRigidBodyBase
 	}
 
 	void moveLeft(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360, M_PI / 1.5f);
+		target->setLimit(M_PI / 360, M_PI / 2.0f);
 		target->enableAngularMotor(true, -15.0, 4000.f);
 
 	}
 
 	void moveRight(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360, M_PI / 1.5f);
+		target->setLimit(M_PI / 360, M_PI / 2.0f);
 		target->enableAngularMotor(true, 15.0, 4000.f);
 	}
 
@@ -124,7 +124,12 @@ void AngleDistanceReward::stepSimulation(float deltaTime)
 			}
 		}
 	}
-
+	////shader의 각도
+	//hinge_shader_Angle = hinge_shader->getHingeAngle() / M_PI * 180;
+	////elbow의 각도
+	//hinge_elbow_Angle = hinge_elbow->getHingeAngle() / M_PI * 180;
+	//
+	//std::cout << hinge_shader_Angle - hinge_elbow_Angle - 90 << std::endl;
 	updateSubstep(false);
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 
@@ -355,7 +360,7 @@ void AngleDistanceReward::updateSubstep(const bool print)
 
 	const float new_distance_ = (Vector2D<float>(pos_y_, pos_z_) - Vector2D<float>(target_y_, target_z_)).getMagnitude();
 
-	float reward_value = new_distance_;
+	float reward_value = distance_-new_distance_;
 
 
 	if (new_distance_ <0.5)
