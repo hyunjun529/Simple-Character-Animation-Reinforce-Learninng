@@ -108,13 +108,11 @@
     <ClInclude Include="examples\002_Two_Joint_Enviroment_Test\Actions.h">
       <Filter>Source\002_Two_Joint_Enviroment_Test</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="examples\020_lab0_Enviroment\020_enviroment.h">
       <Filter>Source\020_lab0_Enviroment</Filter>
     </ClInclude>
     <ClInclude Include="examples\020_lab0_Enviroment\Actions.h">
       <Filter>Source\020_lab0_Enviroment</Filter>
-=======
     <ClInclude Include="examples\003_Recorder\003_enviroment.h">
       <Filter>Source\003_Recorder</Filter>
     </ClInclude>
@@ -123,7 +121,6 @@
     </ClInclude>
     <ClInclude Include="examples\003_Recorder\ActionMemory.h">
       <Filter>Source\003_Recorder</Filter>
->>>>>>> 7501652e141f2093cca13043dfb152fbebc9f12b
     </ClInclude>
     <ClInclude Include="resource.h" />
   </ItemGroup>
