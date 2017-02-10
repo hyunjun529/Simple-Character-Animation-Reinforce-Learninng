@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include "Actions.h"
+#include "ActionMemory.h"
 
 struct Recorder : public CommonRigidBodyBase
 {
@@ -30,6 +31,7 @@ struct Recorder : public CommonRigidBodyBase
 	float eb_angle_;
 	float sd_angle_;
 
+	ActionMemory memory_;
 
 	Recorder(struct GUIHelperInterface* helper);
 	virtual ~Recorder();
@@ -177,6 +179,7 @@ void Recorder::stepSimulation(float deltaTime)
 	if (collisionTarget == 1) {
 		std::cout << "Collision Body" << std::endl;
 	}
+
 
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 

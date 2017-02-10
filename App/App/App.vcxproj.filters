@@ -108,7 +108,7 @@
     <ClInclude Include="examples\003_Recorder\Actions.h">
       <Filter>Source\003_Recorder</Filter>
     </ClInclude>
-    <ClInclude Include="examples\003_Recorder\Recorder.h">
+    <ClInclude Include="examples\003_Recorder\ActionMemory.h">
       <Filter>Source\003_Recorder</Filter>
     </ClInclude>
   </ItemGroup>
