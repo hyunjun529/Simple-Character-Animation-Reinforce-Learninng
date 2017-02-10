@@ -9,7 +9,11 @@
 #include "CommonInterfaces/CommonRigidBodyBase.h"
 
 #include <iostream>
+#include <fstream>
 #include "Actions.h"
+#include "ActionMemory.h"
+
+ActionMemory memory_;
 
 struct Recorder : public CommonRigidBodyBase
 {
@@ -30,6 +34,7 @@ struct Recorder : public CommonRigidBodyBase
 	float eb_angle_;
 	float sd_angle_;
 
+	std::ofstream fout;
 
 	Recorder(struct GUIHelperInterface* helper);
 	virtual ~Recorder();
@@ -91,6 +96,8 @@ Recorder::Recorder(struct GUIHelperInterface* helper)
 	:CommonRigidBodyBase(helper),
 	m_once(true)
 {
+	memory_.reserve();
+	fout.open("003_log.csv", std::ofstream::out);
 }
 
 Recorder::~Recorder()
@@ -99,6 +106,7 @@ Recorder::~Recorder()
 	{
 		delete m_jointFeedback[i];
 	}
+	fout.close();
 }
 
 void Recorder::lockLiftHinge(btHingeConstraint* hinge)
@@ -167,15 +175,33 @@ void Recorder::stepSimulation(float deltaTime)
 
 	// Fist to Target angle
 	F2T_angle_ = getAngleF2T();
-	
-	std::cout << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
-	std::cout << "eb_ang : " << eb_angle_ << "\t" << "sd_ang : " << sd_angle_ << "\t" << std::endl;
 
-	if (collisionTarget == 0) {
-		std::cout << "Collision Head" << std::endl;
-	}
-	if (collisionTarget == 1) {
-		std::cout << "Collision Body" << std::endl;
+	float reward_ = (1 - (F2T_distance_ / 2.5f)) * (1 - (abs(F2T_angle_) / 90.0f));
+
+	VectorND<float> state_;
+	state_.initialize(5, true);
+	state_[0] = sd_angle_;
+	state_[1] = eb_angle_;
+	state_[2] = F2T_angle_;
+	state_[3] = F2T_distance_;
+	state_[4] = reward_;
+
+	memory_.append(ACTION_SHOULDER_STAY, ACTION_ELBOW_STAY, state_, reward_);
+
+	if (memory_.num_elements > 10) {
+		
+		fout << eb_angle_ << ", " << sd_angle_ << ", " << F2T_angle_ << ", " << F2T_distance_ << ", " << reward_ << std::endl;
+
+		/*
+		if (collisionTarget == 0) {
+			std::cout << "Collision Head" << std::endl;
+		}
+		if (collisionTarget == 1) {
+			std::cout << "Collision Body" << std::endl;
+		}
+		*/
+
+		memory_.reset();
 	}
 
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
