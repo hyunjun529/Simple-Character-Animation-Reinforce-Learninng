@@ -177,6 +177,13 @@
     <ClInclude Include="examples\010_Arm_Test\ArmRL.h" />
     <ClInclude Include="examples\011_Arm_4_Target\011_enviroment.h" />
     <ClInclude Include="examples\012_Angle_Distance_Reward\012_enviroment.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="App.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="003_log.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

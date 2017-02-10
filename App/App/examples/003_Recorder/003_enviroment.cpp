@@ -13,6 +13,8 @@
 #include "Actions.h"
 #include "ActionMemory.h"
 
+ActionMemory memory_;
+
 struct Recorder : public CommonRigidBodyBase
 {
 	bool m_once;
@@ -32,7 +34,7 @@ struct Recorder : public CommonRigidBodyBase
 	float eb_angle_;
 	float sd_angle_;
 
-	ActionMemory memory_;
+	std::ofstream fout;
 
 	Recorder(struct GUIHelperInterface* helper);
 	virtual ~Recorder();
@@ -95,6 +97,7 @@ Recorder::Recorder(struct GUIHelperInterface* helper)
 	m_once(true)
 {
 	memory_.reserve();
+	fout.open("003_log.csv", std::ofstream::out);
 }
 
 Recorder::~Recorder()
@@ -103,6 +106,7 @@ Recorder::~Recorder()
 	{
 		delete m_jointFeedback[i];
 	}
+	fout.close();
 }
 
 void Recorder::lockLiftHinge(btHingeConstraint* hinge)
@@ -186,11 +190,7 @@ void Recorder::stepSimulation(float deltaTime)
 
 	if (memory_.num_elements > 10) {
 		
-		std::cout << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
-		std::cout << "eb_ang : " << eb_angle_ << "\t" << "sd_ang : " << sd_angle_ << "\t" << std::endl;
-
-		std::ofstream fout("003_log.csv", std::ofstream::out);
-		fout << F2T_angle_ << ", " << F2T_distance_ << ", " << reward_ << std::endl;
+		fout << eb_angle_ << ", " << sd_angle_ << ", " << F2T_angle_ << ", " << F2T_distance_ << ", " << reward_ << std::endl;
 
 		/*
 		if (collisionTarget == 0) {

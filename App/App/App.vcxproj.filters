@@ -111,5 +111,14 @@
     <ClInclude Include="examples\003_Recorder\ActionMemory.h">
       <Filter>Source\003_Recorder</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="App.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="003_log.csv">
+      <Filter>Source\003_Recorder</Filter>
+    </None>
   </ItemGroup>
 </Project>
