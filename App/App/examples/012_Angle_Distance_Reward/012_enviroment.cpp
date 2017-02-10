@@ -390,7 +390,6 @@ void AngleDistanceReward::updateSubstep(const bool print)
 
 	float reward_value = 1.3 -new_distance_ + h_value_two - h_value_one;
 
-	//std::cout << reward_value << std::endl;
 	VectorND<float> reward_vector(output); // reward_vector is initialized by output
 
 	for (int d = 0; d < reward_vector.num_dimension_; d++)
