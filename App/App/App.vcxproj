@@ -154,6 +154,7 @@
     <ClCompile Include="examples\010_Arm_Test\010_enviroment.cpp" />
     <ClCompile Include="examples\011_Arm_4_Target\011_enviroment.cpp" />
     <ClCompile Include="examples\012_Angle_Distance_Reward\012_enviroment.cpp" />
+    <ClCompile Include="examples\020_lab0_Enviroment\020_enviroment.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -173,6 +174,8 @@
     <ClInclude Include="examples\010_Arm_Test\ArmRL.h" />
     <ClInclude Include="examples\011_Arm_4_Target\011_enviroment.h" />
     <ClInclude Include="examples\012_Angle_Distance_Reward\012_enviroment.h" />
+    <ClInclude Include="examples\020_lab0_Enviroment\020_enviroment.h" />
+    <ClInclude Include="examples\020_lab0_Enviroment\Actions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

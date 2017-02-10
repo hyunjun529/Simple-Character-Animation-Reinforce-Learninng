@@ -9,6 +9,7 @@
 #include "010_Arm_Test/010_enviroment.h"
 #include "011_Arm_4_Target/011_enviroment.h"
 #include "012_Angle_Distance_Reward/012_enviroment.h"
+#include "020_lab0_Enviroment/020_enviroment.h"
 
 struct ExampleImporter
 {
@@ -30,4 +31,5 @@ static std::map<std::string, ExampleImporter> getExample = {
 	{ "010", ExampleImporter("010_Arm_Test", env_010) },
 	{ "011", ExampleImporter("011_Arm_4_Target", env_011) },
 	{ "012", ExampleImporter("012_Angle_Distance_Reward", env_012) },
+	{ "020", ExampleImporter("020_lab0_Enviroment", env_020) },
 };

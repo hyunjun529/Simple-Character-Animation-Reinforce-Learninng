@@ -23,6 +23,9 @@
     <Filter Include="Source\002_Two_Joint_Enviroment_Test">
       <UniqueIdentifier>{b4a0168e-8b50-4c05-b33d-82926cd7f198}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\020_lab0_Enviroment">
+      <UniqueIdentifier>{3f78a132-8ae7-4a81-8fe7-d2142665306a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -45,6 +48,9 @@
     </ClCompile>
     <ClCompile Include="examples\002_Two_Joint_Enviroment_Test\002_enviroment.cpp">
       <Filter>Source\002_Two_Joint_Enviroment_Test</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\020_lab0_Enviroment\020_enviroment.cpp">
+      <Filter>Source\020_lab0_Enviroment</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +101,12 @@
     </ClInclude>
     <ClInclude Include="examples\002_Two_Joint_Enviroment_Test\Actions.h">
       <Filter>Source\002_Two_Joint_Enviroment_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\020_lab0_Enviroment\020_enviroment.h">
+      <Filter>Source\020_lab0_Enviroment</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\020_lab0_Enviroment\Actions.h">
+      <Filter>Source\020_lab0_Enviroment</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
