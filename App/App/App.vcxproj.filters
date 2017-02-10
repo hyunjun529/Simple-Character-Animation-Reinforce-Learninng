@@ -1,135 +1,142 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Source\000_Empty">
-      <UniqueIdentifier>{6f2eb4e0-522e-43e2-8779-c57c6695fce8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\010_Arm_Test">
-      <UniqueIdentifier>{f8563b97-2d49-48c5-8cb4-aad12ede49bb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\011_Arm_4_Target">
-      <UniqueIdentifier>{51061ef1-2039-433c-8e4e-cf32238e6f91}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\001_Single_Joint">
-      <UniqueIdentifier>{5d6e4b5e-410b-47e0-a7e6-89fb29199e9b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\012_Angle_Distance_Reward">
-      <UniqueIdentifier>{0c92fee4-1bb0-4e14-aa38-4b395c8ca98f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\002_Two_Joint_Enviroment_Test">
-      <UniqueIdentifier>{b4a0168e-8b50-4c05-b33d-82926cd7f198}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\020_lab0_Enviroment">
-      <UniqueIdentifier>{3f78a132-8ae7-4a81-8fe7-d2142665306a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\003_Recorder">
-      <UniqueIdentifier>{bc1bfc54-e11a-4e3e-8136-5ad0b9abf8e9}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>Source</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="examples\000_Empty\000_enviroment.cpp">
-      <Filter>Source\000_Empty</Filter>
-    </ClCompile>
-    <ClCompile Include="examples\011_Arm_4_Target\011_enviroment.cpp">
-      <Filter>Source\011_Arm_4_Target</Filter>
-    </ClCompile>
-    <ClCompile Include="examples\010_Arm_Test\010_enviroment.cpp">
-      <Filter>Source\010_Arm_Test</Filter>
+      <Filter>source\000</Filter>
     </ClCompile>
     <ClCompile Include="examples\001_Single_Joint\001_enviroment.cpp">
-      <Filter>Source\001_Single_Joint</Filter>
-    </ClCompile>
-    <ClCompile Include="examples\012_Angle_Distance_Reward\012_enviroment.cpp">
-      <Filter>Source\012_Angle_Distance_Reward</Filter>
+      <Filter>source\001</Filter>
     </ClCompile>
     <ClCompile Include="examples\002_Two_Joint_Enviroment_Test\002_enviroment.cpp">
-      <Filter>Source\002_Two_Joint_Enviroment_Test</Filter>
+      <Filter>source\002</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\003_Recorder\003_enviroment.cpp">
+      <Filter>source\003</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\010_Arm_Test\010_enviroment.cpp">
+      <Filter>source\010</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\011_Arm_4_Target\011_enviroment.cpp">
+      <Filter>source\011</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\012_Angle_Distance_Reward\012_enviroment.cpp">
+      <Filter>source\012</Filter>
     </ClCompile>
     <ClCompile Include="examples\020_lab0_Enviroment\020_enviroment.cpp">
-      <Filter>Source\020_lab0_Enviroment</Filter>
-    </Filter>
-    <ClCompile Include="examples\003_Recorder\003_enviroment.cpp">
-      <Filter>Source\003_Recorder</Filter>
+      <Filter>source\020</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CommonEnviroment.h">
+      <Filter>source</Filter>
+    </ClInclude>
     <ClInclude Include="ExampleImporter.h">
-      <Filter>Source</Filter>
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>resource</Filter>
     </ClInclude>
     <ClInclude Include="examples\000_Empty\000_enviroment.h">
-      <Filter>Source\000_Empty</Filter>
-    </ClInclude>
-    <ClInclude Include="CommonEnviroment.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="examples\011_Arm_4_Target\011_enviroment.h">
-      <Filter>Source\011_Arm_4_Target</Filter>
-    </ClInclude>
-    <ClInclude Include="examples\010_Arm_Test\010_enviroment.h">
-      <Filter>Source\010_Arm_Test</Filter>
+      <Filter>source\000</Filter>
     </ClInclude>
     <ClInclude Include="examples\001_Single_Joint\001_enviroment.h">
-      <Filter>Source\001_Single_Joint</Filter>
-    </ClInclude>
-    <ClInclude Include="examples\001_Single_Joint\Action.h">
-      <Filter>Source\001_Single_Joint</Filter>
-    </ClInclude>
-    <ClInclude Include="examples\001_Single_Joint\ActionMemory.h">
-      <Filter>Source\001_Single_Joint</Filter>
-    </ClInclude>
-    <ClInclude Include="examples\001_Single_Joint\ActionRecorder.h">
-      <Filter>Source\001_Single_Joint</Filter>
-    </ClInclude>
-    <ClInclude Include="examples\001_Single_Joint\LinearHypothesis.h">
-      <Filter>Source\001_Single_Joint</Filter>
-    </ClInclude>
-    <ClInclude Include="examples\010_Arm_Test\Action.h">
-      <Filter>Source\010_Arm_Test</Filter>
-    </ClInclude>
-    <ClInclude Include="examples\010_Arm_Test\AnimationMemory.h">
-      <Filter>Source\010_Arm_Test</Filter>
-    </ClInclude>
-    <ClInclude Include="examples\010_Arm_Test\ArmRL.h">
-      <Filter>Source\010_Arm_Test</Filter>
-    </ClInclude>
-    <ClInclude Include="examples\012_Angle_Distance_Reward\012_enviroment.h">
-      <Filter>Source\012_Angle_Distance_Reward</Filter>
+      <Filter>source\001</Filter>
     </ClInclude>
     <ClInclude Include="examples\002_Two_Joint_Enviroment_Test\002_enviroment.h">
-      <Filter>Source\002_Two_Joint_Enviroment_Test</Filter>
+      <Filter>source\002</Filter>
     </ClInclude>
-    <ClInclude Include="examples\002_Two_Joint_Enviroment_Test\Actions.h">
-      <Filter>Source\002_Two_Joint_Enviroment_Test</Filter>
+    <ClInclude Include="examples\003_Recorder\003_enviroment.h">
+      <Filter>source\003</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\010_Arm_Test\010_enviroment.h">
+      <Filter>source\010</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\011_Arm_4_Target\011_enviroment.h">
+      <Filter>source\011</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\012_Angle_Distance_Reward\012_enviroment.h">
+      <Filter>source\012</Filter>
     </ClInclude>
     <ClInclude Include="examples\020_lab0_Enviroment\020_enviroment.h">
-      <Filter>Source\020_lab0_Enviroment</Filter>
+      <Filter>source\020</Filter>
     </ClInclude>
-    <ClInclude Include="examples\020_lab0_Enviroment\Actions.h">
-      <Filter>Source\020_lab0_Enviroment</Filter>
-    <ClInclude Include="examples\003_Recorder\003_enviroment.h">
-      <Filter>Source\003_Recorder</Filter>
+    <ClInclude Include="examples\001_Single_Joint\Action.h">
+      <Filter>source\001</Filter>
     </ClInclude>
-    <ClInclude Include="examples\003_Recorder\Actions.h">
-      <Filter>Source\003_Recorder</Filter>
+    <ClInclude Include="examples\010_Arm_Test\Action.h">
+      <Filter>source\010</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\001_Single_Joint\ActionMemory.h">
+      <Filter>source\001</Filter>
     </ClInclude>
     <ClInclude Include="examples\003_Recorder\ActionMemory.h">
-      <Filter>Source\003_Recorder</Filter>
+      <Filter>source\003</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h" />
+    <ClInclude Include="examples\001_Single_Joint\ActionRecorder.h">
+      <Filter>source\001</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\020_lab0_Enviroment\Actions.h">
+      <Filter>source\020</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\003_Recorder\Actions.h">
+      <Filter>source\003</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\002_Two_Joint_Enviroment_Test\Actions.h">
+      <Filter>source\002</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\010_Arm_Test\AnimationMemory.h">
+      <Filter>source\010</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\010_Arm_Test\ArmRL.h">
+      <Filter>source\010</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\001_Single_Joint\LinearHypothesis.h">
+      <Filter>source\001</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="App.rc" />
+    <Filter Include="source">
+      <UniqueIdentifier>{dd658889-3250-4a9f-9e63-9857837222c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resource">
+      <UniqueIdentifier>{647aedb0-096b-419e-9237-121b8bb27126}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\000">
+      <UniqueIdentifier>{219b2a88-3351-4c69-ae4e-9c3dbbae21e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\001">
+      <UniqueIdentifier>{9569e1c4-bec5-4a75-939e-9a6338e2fcca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\002">
+      <UniqueIdentifier>{925b6fe0-8e4c-4698-b681-dd8b6a98208d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\003">
+      <UniqueIdentifier>{fbacf429-5754-4ef3-b062-6dd6d73e3d35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\010">
+      <UniqueIdentifier>{22400e9e-c5d9-4e73-b01e-abf26ce630b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\011">
+      <UniqueIdentifier>{9fd0525c-b99a-459a-b24b-7310fa6b4153}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\012">
+      <UniqueIdentifier>{5d3d6b16-c61c-4606-adc1-4ffeb1ab37e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\020">
+      <UniqueIdentifier>{7fc89eeb-f9d7-45a2-81b4-d4331381e9bb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="003_log.csv">
-      <Filter>Source\003_Recorder</Filter>
+      <Filter>resource</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="App.rc">
+      <Filter>resource</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
