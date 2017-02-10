@@ -11,7 +11,7 @@ public:
 
 	std::vector<int> action_shoulder_array;
 	std::vector<int> action_elbow_array;
-	std::vector<VectorND<float>> state_vector_array_;
+	std::vector<VectorND<float> > state_vector_array_;
 	std::vector<float> reward_array_;
 
 	ActionMemory() {}
@@ -23,6 +23,13 @@ public:
 		action_elbow_array.clear();
 		state_vector_array_.clear();
 		reward_array_.clear();
+	}
+
+	void reserve() {
+		action_shoulder_array.reserve(num_reserve);
+		action_elbow_array.reserve(num_reserve);
+		state_vector_array_.reserve(num_reserve);
+		reward_array_.reserve(num_reserve);
 	}
 
 	void append(const int& _action_shoulder, const int& _action_elbow, const VectorND<float>& _state, const float& _reward) {
