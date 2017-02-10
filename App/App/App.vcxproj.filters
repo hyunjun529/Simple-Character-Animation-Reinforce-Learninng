@@ -26,6 +26,9 @@
     <Filter Include="Source\020_lab0_Enviroment">
       <UniqueIdentifier>{3f78a132-8ae7-4a81-8fe7-d2142665306a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\003_Recorder">
+      <UniqueIdentifier>{bc1bfc54-e11a-4e3e-8136-5ad0b9abf8e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -51,6 +54,9 @@
     </ClCompile>
     <ClCompile Include="examples\020_lab0_Enviroment\020_enviroment.cpp">
       <Filter>Source\020_lab0_Enviroment</Filter>
+    </Filter>
+    <ClCompile Include="examples\003_Recorder\003_enviroment.cpp">
+      <Filter>Source\003_Recorder</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -102,11 +108,22 @@
     <ClInclude Include="examples\002_Two_Joint_Enviroment_Test\Actions.h">
       <Filter>Source\002_Two_Joint_Enviroment_Test</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="examples\020_lab0_Enviroment\020_enviroment.h">
       <Filter>Source\020_lab0_Enviroment</Filter>
     </ClInclude>
     <ClInclude Include="examples\020_lab0_Enviroment\Actions.h">
       <Filter>Source\020_lab0_Enviroment</Filter>
+=======
+    <ClInclude Include="examples\003_Recorder\003_enviroment.h">
+      <Filter>Source\003_Recorder</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\003_Recorder\Actions.h">
+      <Filter>Source\003_Recorder</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\003_Recorder\Recorder.h">
+      <Filter>Source\003_Recorder</Filter>
+>>>>>>> 7501652e141f2093cca13043dfb152fbebc9f12b
     </ClInclude>
   </ItemGroup>
 </Project>
