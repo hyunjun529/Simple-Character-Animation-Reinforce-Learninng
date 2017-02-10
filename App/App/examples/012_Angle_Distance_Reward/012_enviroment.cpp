@@ -20,6 +20,7 @@ struct AngleDistanceReward : public CommonRigidBodyBase
 	int handled = 1;
 	float hinge_shader_Angle;
 	float hinge_elbow_Angle;
+	float hinge_Angle;
 	NeuralNetwork nn_;
 	btScalar distance_;
 	bool m_once;
@@ -61,20 +62,20 @@ struct AngleDistanceReward : public CommonRigidBodyBase
 	}
 
 	void moveLeft(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360, M_PI / 2.0f);
-		target->enableAngularMotor(true, -15.0, 4000.f);
+		target->setLimit(M_PI / 360, M_PI / 1.2f);
+		target->enableAngularMotor(true, -10.0, 4000.f);
 
 	}
 
 	void moveRight(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360, M_PI / 2.0f);
-		target->enableAngularMotor(true, 15.0, 4000.f);
+		target->setLimit(M_PI / 360, M_PI / 1.2f);
+		target->enableAngularMotor(true, 10.0, 4000.f);
 	}
 
 };
 
 AngleDistanceReward::AngleDistanceReward(struct GUIHelperInterface* helper)
-	:CommonRigidBodyBase(helper), nn_(2 + 2 + 2, 4, 1),
+	:CommonRigidBodyBase(helper), nn_(2 + 1 + 0, 4, 1),
 	m_once(true)
 {
 }
@@ -90,6 +91,9 @@ AngleDistanceReward::~AngleDistanceReward()
 
 void AngleDistanceReward::stepSimulation(float deltaTime)
 {
+
+
+	bool checkEndLearningCycle = false;
 	if (0)//m_once)
 	{
 		m_once = false;
@@ -121,16 +125,26 @@ void AngleDistanceReward::stepSimulation(float deltaTime)
 				const btVector3& ptB = pt.getPositionWorldOnB();
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
 				b3Printf("check\n");
+				checkEndLearningCycle = true;
 			}
 		}
 	}
-	////shader의 각도
-	//hinge_shader_Angle = hinge_shader->getHingeAngle() / M_PI * 180;
-	////elbow의 각도
-	//hinge_elbow_Angle = hinge_elbow->getHingeAngle() / M_PI * 180;
-	//
-	//std::cout << hinge_shader_Angle - hinge_elbow_Angle - 90 << std::endl;
+	
 	updateSubstep(false);
+	if (checkEndLearningCycle) {
+		/********************************************************************************************
+		* start Trainning
+		*********************************************************************************************/
+
+		// print this cycle's info
+		initState(this);
+
+		/********************************************************************************************
+		* end Tranning
+		*********************************************************************************************/
+	}
+	
+
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 
 	static int count = 0;
@@ -293,9 +307,13 @@ void AngleDistanceReward::initPhysics()
 	target_y_ = body->getCenterOfMassPosition().getY();
 
 	//shader의 각도
-	hinge_shader_Angle = hinge_shader->getHingeAngle() / M_PI * 180;
+	hinge_shader_Angle = hinge_shader->getHingeAngle() / M_PI;
 	//elbow의 각도
-	hinge_elbow_Angle = hinge_elbow->getHingeAngle() / M_PI * 180;
+	hinge_elbow_Angle = hinge_elbow->getHingeAngle() / M_PI;
+
+	float x = atan((linkBody->getCenterOfMassPosition().getZ() - body->getCenterOfMassPosition().getZ()) / (linkBody->getCenterOfMassPosition().getY() - body->getCenterOfMassPosition().getY()));
+	/*std::cout << x * 180 / M_PI << std::endl;*/
+	hinge_Angle = x * 180 / M_PI;
 
 	distance_ = (Vector2D<float>(pos_y_, pos_z_) - Vector2D<float>(target_y_, target_z_)).getMagnitude();
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
@@ -304,15 +322,13 @@ void AngleDistanceReward::initPhysics()
 void AngleDistanceReward::updateSubstep(const bool print)
 {
 	VectorND<float> input;
-	input.initialize(6);
+	input.initialize(3);
 
-	input[0] = pos_z_;
-	input[1] = pos_y_;
-	input[2] = target_y_;
-	input[3] = target_z_;
-	input[4] = hinge_shader_Angle;
-	input[5] = hinge_elbow_Angle;
-
+	input[0] = distance_;
+	input[1] = hinge_shader_Angle;
+	input[2] = hinge_elbow_Angle;
+	
+	
 
 	nn_.setInputVector(input);
 	nn_.feedForward();
@@ -352,61 +368,46 @@ void AngleDistanceReward::updateSubstep(const bool print)
 	pos_z_ = linkBody->getCenterOfMassPosition().getZ();
 	pos_y_ = linkBody->getCenterOfMassPosition().getY();
 
-	////shader의 각도
-	//hinge_shader_Angle = hinge_shader->getHingeAngle() / M_PI * 180;
-	////elbow의 각도
-	//hinge_elbow_Angle = hinge_elbow->getHingeAngle() / M_PI * 180;
+	//shader의 각도
+	hinge_shader_Angle = hinge_shader->getHingeAngle() / M_PI;
+	//elbow의 각도
+	hinge_elbow_Angle = hinge_elbow->getHingeAngle() / M_PI;
 
 
+	float h_value_one;
+	float h_value_two;
+	if (hinge_elbow_Angle > 0.4&& hinge_elbow_Angle < 0.8)
+		h_value_one = hinge_elbow_Angle;
+	else
+		h_value_one = -1.0;
+
+	if (hinge_shader_Angle > 0.33&&hinge_shader_Angle < 0.39)
+		h_value_two = hinge_shader_Angle;
+	else
+		h_value_two = -1.0;
+		
 	const float new_distance_ = (Vector2D<float>(pos_y_, pos_z_) - Vector2D<float>(target_y_, target_z_)).getMagnitude();
 
-	float reward_value = distance_-new_distance_;
+	float reward_value = 1.3 -new_distance_ + h_value_two - h_value_one;
 
-
-	if (new_distance_ <0.5)
-	{
-		distance_ = new_distance_;
-
-		moveTarget(); // move target when they are too close
-
-		return; // don't reward when they are too close
-	}
-
+	//std::cout << reward_value << std::endl;
 	VectorND<float> reward_vector(output); // reward_vector is initialized by output
 
 	for (int d = 0; d < reward_vector.num_dimension_; d++)
 	{
 		if (selected_dir == d)
 		{
-			reward_vector[d] = reward_value > 0 ? 0.999 : 0.001;
+			reward_vector[d] = reward_value> 0 ? 0.999 : 0.001; // reward_value is distance_ - new_distance_
 		}
 		else
 		{
 			reward_vector[d] = reward_vector[d] < 0.001 ? 0.001 : reward_vector[d];
 		}
+		
 	}
-
-	const int max_tr = NUM_TRAIN;
-
-	static int counter = 0;
-	const int one_percent = (float)max_tr / 100.0;
-
-	static int itr = 0;
-	if (itr < max_tr) // train
-	{
-		itr++;
-		counter++;
-
-		if (counter == one_percent)
-		{
-			printf("%f percent \n", (float)itr / (float)max_tr * 100.0);
-
-			counter = 0;
-		}
-
-		nn_.propBackward(reward_vector);
-	}
-
+	nn_.setInputVector(input);
+	nn_.feedForward();
+	nn_.propBackward(reward_vector);
 	distance_ = new_distance_;
 }
 
@@ -429,22 +430,6 @@ void AngleDistanceReward::moveTarget()
 		num_data = 0;
 		break;
 	}
-
-	/*case 2:
-	{
-	btVector3 basePosition3 = btVector3(0.0, 1.4, 0.0);
-	body->translate(basePosition3);
-	num_data = 3;
-	break;
-	}
-
-	case 3:
-	{
-	btVector3 basePosition4 = btVector3(0.0, 0.0, -3.08);
-	body->translate(basePosition4);
-	num_data = 0;
-	break;
-	}*/
 	}
 
 	target_y_ = body->getCenterOfMassPosition().getY();
