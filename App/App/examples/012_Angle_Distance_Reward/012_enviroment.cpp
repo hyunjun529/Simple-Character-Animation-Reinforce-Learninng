@@ -68,14 +68,14 @@ struct AngleDistanceReward : public CommonRigidBodyBase
 	}
 
 	void moveRight(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360, M_PI / 1.2f);
+		target->setLimit(M_PI /360, M_PI / 1.2f);
 		target->enableAngularMotor(true, 10.0, 4000.f);
 	}
 
 };
 
 AngleDistanceReward::AngleDistanceReward(struct GUIHelperInterface* helper)
-	:CommonRigidBodyBase(helper), nn_(2 + 1 + 0, 4, 1),
+	:CommonRigidBodyBase(helper), nn_(2 + 2 + 0, 4, 1),
 	m_once(true)
 {
 }
@@ -107,6 +107,90 @@ void AngleDistanceReward::stepSimulation(float deltaTime)
 
 	}
 
+
+	VectorND<float> input;
+	input.initialize(4);
+
+	input[0] = distance_;
+	input[1] = hinge_shader_Angle;
+	input[2] = hinge_elbow_Angle;
+	input[3] = hinge_Angle;
+
+
+	nn_.setInputVector(input);
+	nn_.feedForward();
+
+	VectorND<float> output;
+	nn_.copyOutputVectorTo(false, output);
+
+	const int selected_dir = nn_.getOutputIXEpsilonGreedy(0.2f);
+	//std::cout << hinge_shader_Angle << std::endl;
+	switch (selected_dir)
+	{
+
+	case 0:
+	{
+		moveRight(hinge_shader);
+		break;
+
+	}
+	case 1:
+	{
+		moveLeft(hinge_shader);
+		break;
+	}
+	case 2:
+	{
+		moveLeft(hinge_elbow);
+		break;
+
+	}
+	case 3:
+	{
+		moveRight(hinge_elbow);
+		break;
+	}
+	}
+
+	pos_z_ = linkBody->getCenterOfMassPosition().getZ();
+	pos_y_ = linkBody->getCenterOfMassPosition().getY();
+
+	//shader의 각도
+	hinge_shader_Angle = hinge_shader->getHingeAngle() / M_PI;
+	//elbow의 각도
+	hinge_elbow_Angle = hinge_elbow->getHingeAngle() / M_PI;
+
+	float x = atan((linkBody->getCenterOfMassPosition().getZ() - body->getCenterOfMassPosition().getZ()) / (linkBody->getCenterOfMassPosition().getY() - body->getCenterOfMassPosition().getY()));
+	/*std::cout << x * 180 / M_PI << std::endl;*/
+	hinge_Angle = x / M_PI;
+
+
+	float h_value_one;
+	float h_value_two;
+	float h_value_three;
+	float reward_value;
+
+
+	if (hinge_elbow_Angle > 0.4&& hinge_elbow_Angle < 0.8)
+		h_value_one = hinge_elbow_Angle;
+	else
+		h_value_one = -1.0;
+
+	if (hinge_shader_Angle > 0.33&&hinge_shader_Angle < 0.39)
+		h_value_two = hinge_shader_Angle;
+	else
+		h_value_two = -1.0;
+
+	h_value_three = 0.05 - (1 - abs(hinge_Angle*2));
+	const float new_distance_ = (Vector2D<float>(pos_y_, pos_z_) - Vector2D<float>(target_y_, target_z_)).getMagnitude();
+
+	/*if ((1.0 - new_distance_) < 0)
+		reward_value = -1;
+	else*/
+		reward_value = 1.0 - new_distance_ + h_value_two + h_value_one+h_value_three;
+
+	std::cout << reward_value << std::endl;
+
 	//collison check
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
 	for (int i = 0; i < numManifolds; i++)
@@ -126,11 +210,31 @@ void AngleDistanceReward::stepSimulation(float deltaTime)
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
 				b3Printf("check\n");
 				checkEndLearningCycle = true;
+				reward_value = 1.0;
 			}
 		}
 	}
-	
-	updateSubstep(false);
+
+
+
+	VectorND<float> reward_vector(output); // reward_vector is initialized by output
+
+	for (int d = 0; d < reward_vector.num_dimension_; d++)
+	{
+		if (selected_dir == d)
+		{
+			reward_vector[d] = reward_value> 0 ? 0.999 : 0.001; // reward_value is distance_ - new_distance_
+		}
+		else
+		{
+			reward_vector[d] = reward_vector[d] < 0.001 ? 0.001 : reward_vector[d];
+		}
+
+	}
+
+	nn_.propBackward(reward_vector);
+	distance_ = new_distance_;
+	//updateSubstep(false);
 	if (checkEndLearningCycle) {
 		/********************************************************************************************
 		* start Trainning
@@ -313,7 +417,7 @@ void AngleDistanceReward::initPhysics()
 
 	float x = atan((linkBody->getCenterOfMassPosition().getZ() - body->getCenterOfMassPosition().getZ()) / (linkBody->getCenterOfMassPosition().getY() - body->getCenterOfMassPosition().getY()));
 	/*std::cout << x * 180 / M_PI << std::endl;*/
-	hinge_Angle = x * 180 / M_PI;
+	hinge_Angle = x / M_PI;
 
 	distance_ = (Vector2D<float>(pos_y_, pos_z_) - Vector2D<float>(target_y_, target_z_)).getMagnitude();
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
@@ -404,8 +508,7 @@ void AngleDistanceReward::updateSubstep(const bool print)
 		}
 		
 	}
-	nn_.setInputVector(input);
-	nn_.feedForward();
+	
 	nn_.propBackward(reward_vector);
 	distance_ = new_distance_;
 }
