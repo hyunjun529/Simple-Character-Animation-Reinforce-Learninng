@@ -35,5 +35,5 @@ static std::map<std::string, ExampleImporter> getExample = {
 	{ "011", ExampleImporter("011_Arm_4_Target", env_011) },
 	{ "012", ExampleImporter("012_Angle_Distance_Reward", env_012) },
 	{ "020", ExampleImporter("020_lab0_Enviroment", env_020) },
-	{ "021", ExampleImporter("020_lab0_Add_Angle", env_021) },
+	{ "021", ExampleImporter("021_lab0_Add_Angle", env_021) },
 };

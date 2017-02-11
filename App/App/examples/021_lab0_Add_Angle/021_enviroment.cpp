@@ -292,7 +292,7 @@ void lab0AddAngle::stepSimulation(float deltaTime)
 	float weightStepEarly = (1 - ((float)cntStep / ((float)maxStep * 1.25f)));
 	float weightDistance = (1 - (F2T_distance_ / 2.5f));
 	float weightAngle = (1 - (abs(F2T_angle_) / 90.0f));
-	float reward_ = weightDistance;
+	float reward_ = weightDistance * weightAngle;
 
 	// set state VectorND
 	VectorND<float> state_;
@@ -423,6 +423,26 @@ void lab0AddAngle::stepSimulation(float deltaTime)
 				rl_eb_021_.nn_.check();
 			}
 
+		// reset
+		rl_sd_021_.memory_.reset();
+		rl_eb_021_.memory_.reset();
+
+		// is really need?
+		for (int h = 0; h < rl_sd_021_.num_input_histories_; h++)
+		{
+			rl_sd_021_.recordHistory(VectorND<float>(4), 0.0f, 2, VectorND<float>(3)); // choice 2 is stay
+		}
+		for (int h = 0; h < rl_eb_021_.num_input_histories_; h++)
+		{
+			rl_eb_021_.recordHistory(VectorND<float>(4), 0.0f, 2, VectorND<float>(3)); // choice 2 is stay
+		}
+
+		cntStep = 0;
+
+		initState(this);
+	}
+
+	if (chkCollision && chkStudying) {
 		// reset
 		rl_sd_021_.memory_.reset();
 		rl_eb_021_.memory_.reset();
