@@ -156,6 +156,7 @@
     <ClCompile Include="examples\011_Arm_4_Target\011_enviroment.cpp" />
     <ClCompile Include="examples\012_Angle_Distance_Reward\012_enviroment.cpp" />
     <ClCompile Include="examples\020_lab0_Enviroment\020_enviroment.cpp" />
+    <ClCompile Include="examples\021_lab0_Add_Angle\021_enviroment.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +185,11 @@
     <ClInclude Include="examples\020_lab0_Enviroment\Actions.h" />
     <ClInclude Include="examples\020_lab0_Enviroment\Logger.h" />
     <ClInclude Include="examples\020_lab0_Enviroment\ArmReinforcementLearning.h" />
+    <ClInclude Include="examples\021_lab0_Add_Angle\021_enviroment.h" />
+    <ClInclude Include="examples\021_lab0_Add_Angle\ActionMemory.h" />
+    <ClInclude Include="examples\021_lab0_Add_Angle\Actions.h" />
+    <ClInclude Include="examples\021_lab0_Add_Angle\ArmReinforcementLearning.h" />
+    <ClInclude Include="examples\021_lab0_Add_Angle\Logger.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

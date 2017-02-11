@@ -28,6 +28,9 @@
     <ClCompile Include="examples\020_lab0_Enviroment\020_enviroment.cpp">
       <Filter>source\020</Filter>
     </ClCompile>
+    <ClCompile Include="examples\021_lab0_Add_Angle\021_enviroment.cpp">
+      <Filter>source\021</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonEnviroment.h">
@@ -108,6 +111,21 @@
     <ClInclude Include="examples\020_lab0_Enviroment\ArmReinforcementLearning.h">
       <Filter>source\020</Filter>
     </ClInclude>
+    <ClInclude Include="examples\021_lab0_Add_Angle\021_enviroment.h">
+      <Filter>source\021</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\021_lab0_Add_Angle\ActionMemory.h">
+      <Filter>source\021</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\021_lab0_Add_Angle\Actions.h">
+      <Filter>source\021</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\021_lab0_Add_Angle\ArmReinforcementLearning.h">
+      <Filter>source\021</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\021_lab0_Add_Angle\Logger.h">
+      <Filter>source\021</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
@@ -139,6 +157,9 @@
     </Filter>
     <Filter Include="source\020">
       <UniqueIdentifier>{7fc89eeb-f9d7-45a2-81b4-d4331381e9bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\021">
+      <UniqueIdentifier>{a7a91898-71fe-4986-9437-60d0d6fbbacf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
