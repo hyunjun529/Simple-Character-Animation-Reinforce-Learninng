@@ -99,6 +99,15 @@
     <ClInclude Include="examples\003_Recorder\Logger.h">
       <Filter>source\003</Filter>
     </ClInclude>
+    <ClInclude Include="examples\020_lab0_Enviroment\ActionMemory.h">
+      <Filter>source\020</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\020_lab0_Enviroment\Logger.h">
+      <Filter>source\020</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\020_lab0_Enviroment\ArmReinforcementLearning.h">
+      <Filter>source\020</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">

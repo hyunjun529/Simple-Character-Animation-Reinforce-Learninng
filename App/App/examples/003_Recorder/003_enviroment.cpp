@@ -14,7 +14,7 @@
 #include "ActionMemory.h"
 #include "Logger.h"
 
-ActionMemory memory_;
+ActionMemory memory_003_;
 
 struct Recorder : public CommonRigidBodyBase
 {
@@ -97,7 +97,7 @@ Recorder::Recorder(struct GUIHelperInterface* helper)
 	:CommonRigidBodyBase(helper),
 	m_once(true)
 {
-	memory_.reserve();
+	memory_003_.reserve();
 	lg_.fs_open("003_log.csv");
 }
 
@@ -187,9 +187,9 @@ void Recorder::stepSimulation(float deltaTime)
 	state_[3] = F2T_distance_;
 	state_[4] = reward_;
 
-	memory_.append(ACTION_SHOULDER_STAY, ACTION_ELBOW_STAY, state_, reward_);
+	memory_003_.append(ACTION_SHOULDER_STAY, ACTION_ELBOW_STAY, state_, reward_);
 
-	if (memory_.num_elements > 10) {
+	if (memory_003_.num_elements > 10) {
 		
 		lg_.fout << eb_angle_ << ", " << sd_angle_ << ", " << F2T_angle_ << ", " << F2T_distance_ << ", " << reward_ << std::endl;
 
@@ -202,7 +202,7 @@ void Recorder::stepSimulation(float deltaTime)
 		}
 		*/
 
-		memory_.reset();
+		memory_003_.reset();
 	}
 
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);

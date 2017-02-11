@@ -10,12 +10,17 @@
 
 #include <iostream>
 #include "Actions.h"
+#include "Logger.h"
+#include "ArmReinforcementLearning.h"
+
+ArmReinforcementLearning rl_sd_020_;
+ArmReinforcementLearning rl_eb_020_;
 
 struct lab0Env : public CommonRigidBodyBase
 {
 	bool m_once;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
-	btHingeConstraint* hinge_shader;
+	btHingeConstraint* hinge_shoulder;
 	btHingeConstraint* hinge_elbow;
 	btRigidBody* linkBody;
 	btVector3 groundOrigin_target;
@@ -30,6 +35,10 @@ struct lab0Env : public CommonRigidBodyBase
 	float eb_angle_;
 	float sd_angle_;
 
+	int cntStep;
+	bool chkStudying;
+	bool chkPrinting;
+	Logger lg_;
 
 	lab0Env(struct GUIHelperInterface* helper);
 	virtual ~lab0Env();
@@ -79,7 +88,7 @@ struct lab0Env : public CommonRigidBodyBase
 	}
 
 	float getAngleEb() {
-		return hinge_shader->getHingeAngle() / M_PI * 180;;
+		return hinge_shoulder->getHingeAngle() / M_PI * 180;;
 	}
 
 	float getAngleSd() {
@@ -91,6 +100,52 @@ lab0Env::lab0Env(struct GUIHelperInterface* helper)
 	:CommonRigidBodyBase(helper),
 	m_once(true)
 {
+	cntStep = 0;
+	chkStudying = true;
+	chkPrinting = true;
+	lg_.fs_open("020_log.csv");
+
+	std::cout.precision(5);
+
+	/********************************************************************************************
+	* start init rl_
+	*********************************************************************************************/
+
+	// h529 : 이전 게임의 기억을 가져감
+	rl_sd_020_.num_input_histories_ = 1;
+	// h529 : 기억을 재생함, pool로 사용 중
+	rl_sd_020_.num_exp_replay_ = 0;
+	// h529 : eb_angle, sd_angle, F2T_distance, F2T_angle
+	rl_sd_020_.num_state_variables_ = 4;
+	// h529 : 행동할 수 있는 Action의 개수 현재 좌, 우 2개
+	rl_sd_020_.num_game_actions_ = 3;
+
+	rl_sd_020_.initialize();
+
+	for (int h = 0; h < rl_sd_020_.num_input_histories_; h++)
+	{
+		rl_sd_020_.recordHistory(VectorND<float>(4), 0.0f, 2, VectorND<float>(3)); // choice 2 is stay
+	}
+
+	// h529 : 이전 게임의 기억을 가져감
+	rl_eb_020_.num_input_histories_ = 1;
+	// h529 : 기억을 재생함, pool로 사용 중
+	rl_eb_020_.num_exp_replay_ = 0;
+	// h529 : eb_angle, sd_angle, F2T_distance, F2T_angle
+	rl_eb_020_.num_state_variables_ = 4;
+	// h529 : 행동할 수 있는 Action의 개수 현재 좌, 우 2개
+	rl_eb_020_.num_game_actions_ = 3;
+
+	rl_eb_020_.initialize();
+
+	for (int h = 0; h < rl_eb_020_.num_input_histories_; h++)
+	{
+		rl_eb_020_.recordHistory(VectorND<float>(4), 0.0f, 2, VectorND<float>(3)); // choice 2 is stay
+	}
+
+	/********************************************************************************************
+	* end init rl_
+	*********************************************************************************************/
 }
 
 lab0Env::~lab0Env()
@@ -125,6 +180,76 @@ void lab0Env::lockLiftHinge(btHingeConstraint* hinge)
 
 void lab0Env::stepSimulation(float deltaTime)
 {
+	bool chkCollision = false;
+
+
+	/********************************************************************************************
+	* start set Action
+	*********************************************************************************************/
+
+	// set Vector
+	rl_sd_020_.forward();
+	VectorND<float> output_vector_temp;
+	rl_sd_020_.nn_.copyOutputVectorTo(false, output_vector_temp);
+	VectorND<float> output_target_temp;
+
+	rl_eb_020_.forward();
+	VectorND<float> output_vector_temp_eb;
+	rl_eb_020_.nn_.copyOutputVectorTo(false, output_vector_temp_eb);
+	VectorND<float> output_target_temp_eb;
+
+	// set Action
+	float dice = (chkStudying) ? (0.8f) : (0.0f);
+	int action_sd = rl_sd_020_.nn_.getOutputIXEpsilonGreedy(dice);
+	int action_eb = rl_eb_020_.nn_.getOutputIXEpsilonGreedy(dice);
+
+	switch (action_sd) {
+	case ACTION_SHOULDER_UP:
+	{
+		moveUpSd(hinge_shoulder);
+		break;
+	}
+	case ACTION_SHOULDER_DOWN:
+	{
+		moveDownSd(hinge_shoulder);
+		break;
+	}
+	case ACTION_SHOULDER_STAY:
+	{
+		lockLiftHinge(hinge_shoulder);
+		break;
+	}
+	default: {}
+	}
+
+	switch (action_eb) {
+	case ACTION_ELBOW_UP:
+	{
+		moveUpEb(hinge_elbow);
+		break;
+	}
+	case ACTION_ELBOW_DOWN:
+	{
+		moveDownEb(hinge_elbow);
+		break;
+	}
+	case ACTION_ELBOW_STAY:
+	{
+		lockLiftHinge(hinge_elbow);
+		break;
+	}
+	default: {}
+	}
+
+	/********************************************************************************************
+	* end set Action
+	*********************************************************************************************/
+
+
+	/********************************************************************************************
+	* start get States
+	*********************************************************************************************/
+
 	//get distance
 	F2T_distance_ = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
 
@@ -148,13 +273,7 @@ void lab0Env::stepSimulation(float deltaTime)
 				const btVector3& ptB = pt.getPositionWorldOnB();
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
 
-				//check the head or body
-				if (F2T_distance_ <= sqrt(0.08f)) {
-					collisionTarget = 0;
-				}
-				else {
-					collisionTarget = 1;
-				}
+				chkCollision = true;
 			}
 		}
 	}
@@ -168,15 +287,71 @@ void lab0Env::stepSimulation(float deltaTime)
 	// Fist to Target angle
 	F2T_angle_ = getAngleF2T();
 	
-	std::cout << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
-	std::cout << "eb_ang : " << eb_angle_ << "\t" << "sd_ang : " << sd_angle_ << "\t" << std::endl;
+	// calc Reward
+	float reward_ = (1 - (F2T_distance_ / 2.5f)) * (1 - (abs(F2T_angle_) / 90.0f)); // need add step
 
-	if (collisionTarget == 0) {
-		std::cout << "Collision Head" << std::endl;
+	// set state VectorND
+	VectorND<float> state_;
+	state_.initialize(5, true);
+	state_[0] = sd_angle_;
+	state_[1] = eb_angle_;
+	state_[2] = F2T_angle_;
+	state_[3] = F2T_distance_;
+	state_[4] = reward_;
+
+	rl_sd_020_.recordHistory(state_, reward_, action_sd, output_target_temp);
+	rl_eb_020_.recordHistory(state_, reward_, action_eb, output_target_temp_eb);
+
+	if (chkPrinting) {
+		std::cout << std::fixed << "Action_sd : " << action_sd << "\t" << "Action_eb : " << action_eb << "\t";
+		std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
+		std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "sd_ang : " << sd_angle_ << "\t";
+		std::cout << std::fixed << "reward : " << reward_ << std::endl;
 	}
-	if (collisionTarget == 1) {
-		std::cout << "Collision Body" << std::endl;
+
+	/********************************************************************************************
+	* end get States
+	*********************************************************************************************/
+
+
+	/********************************************************************************************
+	* start Training
+	*********************************************************************************************/
+
+	if (chkCollision || cntStep > 500) {
+		lg_.fout << F2T_angle_ << ", " << F2T_distance_ << ", " << reward_ << ", " << rl_sd_020_.memory_.num_elements_ << std::endl;
+
+		
+		// sd
+
+
+		// eb
+
+
+		// reset
+		rl_sd_020_.memory_.reset();
+		rl_eb_020_.memory_.reset();
+
+		// is really need?
+		for (int h = 0; h < rl_sd_020_.num_input_histories_; h++)
+		{
+			rl_sd_020_.recordHistory(VectorND<float>(4), 0.0f, 2, VectorND<float>(3)); // choice 2 is stay
+		}
+		for (int h = 0; h < rl_eb_020_.num_input_histories_; h++)
+		{
+			rl_eb_020_.recordHistory(VectorND<float>(4), 0.0f, 2, VectorND<float>(3)); // choice 2 is stay
+		}
+
+		cntStep = 0;
+
+		initState(this);
 	}
+
+	/********************************************************************************************
+	* end Training
+	*********************************************************************************************/
+
+	cntStep++;
 
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 
@@ -199,9 +374,11 @@ void lab0Env::initPhysics()
 		+ btIDebugDraw::DBG_DrawConstraintLimits;
 	m_dynamicsWorld->getDebugDrawer()->setDebugMode(mode);
 
+
 	{ // create a door using hinge constraint attached to the world
+
 		int numLinks = 3;
-		bool spherical = false;
+		bool spherical = false;					//set it ot false -to use 1DoF hinges instead of 3DoF sphericals
 		bool canSleep = false;
 		bool selfCollide = false;
 
@@ -214,6 +391,7 @@ void lab0Env::initPhysics()
 		baseWorldTrans.setIdentity();
 		baseWorldTrans.setOrigin(basePosition);
 
+		//mbC->forceMultiDof();							//if !spherical, you can comment this line to check the 1DoF algorithm
 		//init the base
 		btVector3 baseInertiaDiag(0.f, 0.f, 0.f);
 		float baseMass = 0.f;
@@ -250,7 +428,6 @@ void lab0Env::initPhysics()
 			{
 				colOb = linkSphere;
 			}
-
 			linkBody = createRigidBody(linkMass, linkTrans, colOb);
 			m_dynamicsWorld->removeRigidBody(linkBody);
 			m_dynamicsWorld->addRigidBody(linkBody, collisionFilterGroup, collisionFilterMask);
@@ -265,12 +442,12 @@ void lab0Env::initPhysics()
 				btVector3 axisInA(1, 0, 0);
 				btVector3 axisInB(1, 0, 0);
 				bool useReferenceA = true;
-				hinge_shader = new btHingeConstraint(*prevBody, *linkBody,
+				hinge_shoulder = new btHingeConstraint(*prevBody, *linkBody,
 					pivotInA, pivotInB,
 					axisInA, axisInB, useReferenceA);
-				hinge_shader->setLimit(0.0f, 0.0f);
-				m_dynamicsWorld->addConstraint(hinge_shader, true);
-				con = hinge_shader;
+				hinge_shoulder->setLimit(0.0f, 0.0f);
+				m_dynamicsWorld->addConstraint(hinge_shoulder, true);
+				con = hinge_shoulder;
 			}
 			else if (i == 1)
 			{
@@ -311,37 +488,24 @@ void lab0Env::initPhysics()
 				m_dynamicsWorld->addConstraint(con, true);
 			}
 			prevBody = linkBody;
+
 		}
+
 	}
 
 	if (1)
 	{
-		btVector3 groundHalfExtents(0.4, 0.0, 0.025);
-		groundHalfExtents[upAxis] = 0.4f;
-		btBoxShape* box = new btBoxShape(groundHalfExtents);
-		box->initializePolyhedralFeatures();
+
+		btSphereShape* linkSphere_1 = new btSphereShape(radius);
 
 		btTransform start; start.setIdentity();
-		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.25f);
+		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.6f);
 
 		start.setOrigin(groundOrigin_target);
-		body = createRigidBody(0, start, box);
+		body = createRigidBody(0, start, linkSphere_1);
 
 		body->setFriction(0);
 
-		btVector3 human_HalfExtents(0.8, 0.0, 0.025);
-		human_HalfExtents[upAxis] = 0.8f;
-		btBoxShape* human_box = new btBoxShape(human_HalfExtents);
-		human_box->initializePolyhedralFeatures();
-
-		btTransform human_start;
-		human_start.setIdentity();
-		groundOrigin_target = btVector3(-0.4f, 2.8f, -1.25f);
-
-		human_start.setOrigin(groundOrigin_target);
-		human_body = createRigidBody(0, human_start, human_box);
-
-		human_body->setFriction(0);
 	}
 
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
@@ -354,6 +518,16 @@ bool lab0Env::keyboardCallback(int key, int state)
 	{
 		switch (key)
 		{
+		case B3G_INSERT:
+		{
+			chkPrinting = (chkPrinting) ? (false) : (true);
+			break;
+		}
+		case B3G_END:
+		{
+			chkStudying = (chkStudying) ? (false) : (true);
+			break;
+		}
 		case B3G_HOME:
 		{
 			initState(this);
@@ -373,13 +547,13 @@ bool lab0Env::keyboardCallback(int key, int state)
 		}
 		case B3G_UP_ARROW:
 		{
-			moveUpSd(hinge_shader);
+			moveUpSd(hinge_shoulder);
 			handled = true;
 			break;
 		}
 		case B3G_DOWN_ARROW:
 		{
-			moveDownSd(hinge_shader);
+			moveDownSd(hinge_shoulder);
 			handled = true;
 			break;
 		}
@@ -399,7 +573,7 @@ bool lab0Env::keyboardCallback(int key, int state)
 		case B3G_UP_ARROW:
 		case B3G_DOWN_ARROW:
 		{
-			lockLiftHinge(hinge_shader);
+			lockLiftHinge(hinge_shoulder);
 			handled = true;
 			break;
 		}

@@ -180,7 +180,10 @@
     <ClInclude Include="examples\011_Arm_4_Target\011_enviroment.h" />
     <ClInclude Include="examples\012_Angle_Distance_Reward\012_enviroment.h" />
     <ClInclude Include="examples\020_lab0_Enviroment\020_enviroment.h" />
+    <ClInclude Include="examples\020_lab0_Enviroment\ActionMemory.h" />
     <ClInclude Include="examples\020_lab0_Enviroment\Actions.h" />
+    <ClInclude Include="examples\020_lab0_Enviroment\Logger.h" />
+    <ClInclude Include="examples\020_lab0_Enviroment\ArmReinforcementLearning.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
