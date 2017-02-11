@@ -12,6 +12,7 @@
 #include <fstream>
 #include "Actions.h"
 #include "ActionMemory.h"
+#include "Logger.h"
 
 ActionMemory memory_;
 
@@ -34,7 +35,7 @@ struct Recorder : public CommonRigidBodyBase
 	float eb_angle_;
 	float sd_angle_;
 
-	std::ofstream fout;
+	Logger lg_;
 
 	Recorder(struct GUIHelperInterface* helper);
 	virtual ~Recorder();
@@ -97,7 +98,7 @@ Recorder::Recorder(struct GUIHelperInterface* helper)
 	m_once(true)
 {
 	memory_.reserve();
-	fout.open("003_log.csv", std::ofstream::out);
+	lg_.fs_open("003_log.csv");
 }
 
 Recorder::~Recorder()
@@ -106,7 +107,7 @@ Recorder::~Recorder()
 	{
 		delete m_jointFeedback[i];
 	}
-	fout.close();
+	lg_.fs_close();
 }
 
 void Recorder::lockLiftHinge(btHingeConstraint* hinge)
@@ -190,7 +191,7 @@ void Recorder::stepSimulation(float deltaTime)
 
 	if (memory_.num_elements > 10) {
 		
-		fout << eb_angle_ << ", " << sd_angle_ << ", " << F2T_angle_ << ", " << F2T_distance_ << ", " << reward_ << std::endl;
+		lg_.fout << eb_angle_ << ", " << sd_angle_ << ", " << F2T_angle_ << ", " << F2T_distance_ << ", " << reward_ << std::endl;
 
 		/*
 		if (collisionTarget == 0) {

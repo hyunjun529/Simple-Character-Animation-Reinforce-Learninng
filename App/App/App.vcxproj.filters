@@ -96,6 +96,9 @@
     <ClInclude Include="examples\001_Single_Joint\LinearHypothesis.h">
       <Filter>source\001</Filter>
     </ClInclude>
+    <ClInclude Include="examples\003_Recorder\Logger.h">
+      <Filter>source\003</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
