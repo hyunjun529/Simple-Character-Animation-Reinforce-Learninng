@@ -34,10 +34,10 @@ public:
 		// h529 : Learning rate
 		nn_.eta_ = 1e-5;
 		// h529 : Momentum, 일종의 수치해석 기법
-		nn_.alpha_ = 0.9;
+		nn_.alpha_ = 0.9f;
 
 		// h529 : Q-Learning 방정식에서 Gamma, 0~1사이로 학습 비율
-		gamma_ = 0.9f;
+		gamma_ = 0.5f;
 
 		// initialize replay memory
 		memory_.reserve(1e5);

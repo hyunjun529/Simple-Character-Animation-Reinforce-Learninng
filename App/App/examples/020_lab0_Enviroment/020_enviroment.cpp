@@ -35,6 +35,7 @@ struct lab0Env : public CommonRigidBodyBase
 	float eb_angle_;
 	float sd_angle_;
 
+	const int maxStep = 500;
 	int cntStep;
 	bool chkStudying;
 	bool chkPrinting;
@@ -199,7 +200,7 @@ void lab0Env::stepSimulation(float deltaTime)
 	VectorND<float> output_target_temp_eb;
 
 	// set Action
-	float dice = (chkStudying) ? (0.8f) : (0.0f);
+	float dice = (chkStudying) ? (0.3f) : (0.0f);
 	int action_sd = rl_sd_020_.nn_.getOutputIXEpsilonGreedy(dice);
 	int action_eb = rl_eb_020_.nn_.getOutputIXEpsilonGreedy(dice);
 
@@ -288,19 +289,21 @@ void lab0Env::stepSimulation(float deltaTime)
 	F2T_angle_ = getAngleF2T();
 	
 	// calc Reward
-	float reward_ = (1 - (F2T_distance_ / 2.5f)) * (1 - (abs(F2T_angle_) / 90.0f)); // need add step
+	float weightStepEarly = (1 - ((float)cntStep / ((float)maxStep * 1.25f)));
+	float weightDistance = (1 - (F2T_distance_ / 2.5f));
+	float weightAngle = (1 - (abs(F2T_angle_) / 90.0f));
+	float reward_ = weightDistance;
 
 	// set state VectorND
 	VectorND<float> state_;
-	state_.initialize(5, true);
+	state_.initialize(4, true);
 	state_[0] = sd_angle_;
 	state_[1] = eb_angle_;
 	state_[2] = F2T_angle_;
 	state_[3] = F2T_distance_;
-	state_[4] = reward_;
 
-	rl_sd_020_.recordHistory(state_, reward_, action_sd, output_target_temp);
-	rl_eb_020_.recordHistory(state_, reward_, action_eb, output_target_temp_eb);
+	rl_sd_020_.recordHistory(state_, reward_, action_sd, output_vector_temp);
+	rl_eb_020_.recordHistory(state_, reward_, action_eb, output_vector_temp_eb);
 
 	if (chkPrinting) {
 		std::cout << std::fixed << "Action_sd : " << action_sd << "\t" << "Action_eb : " << action_eb << "\t";
@@ -318,15 +321,107 @@ void lab0Env::stepSimulation(float deltaTime)
 	* start Training
 	*********************************************************************************************/
 
-	if (chkCollision || cntStep > 500) {
-		lg_.fout << F2T_angle_ << ", " << F2T_distance_ << ", " << reward_ << ", " << rl_sd_020_.memory_.num_elements_ << std::endl;
-
+	if ((chkCollision || cntStep > maxStep) && chkStudying) {
 		
-		// sd
+		// compensation
+		for (float &val : rl_sd_020_.memory_.reward_array_) {
+			val *= weightStepEarly;
+		}
+		for (float &val : rl_eb_020_.memory_.reward_array_) {
+			val *= weightStepEarly;
+		}
 
+		// logging
+		lg_.fout << weightStepEarly << ", " << F2T_angle_ << ", " << F2T_distance_ << ", " << reward_ << ", " << cntStep << std::endl;
+
+		// number of training 
+		int tr_num = (chkCollision)?(100):(10);
+
+		// sd
+		for (int tr = 0; tr < tr_num; tr++)
+			for (int m_tr = rl_sd_020_.memory_.num_elements_ - 2; m_tr >= rl_sd_020_.num_input_histories_; m_tr--)
+			{
+				// h529 : 방학숙제에서 발췌
+
+				// stochastic training
+				// h529 : 전체를 요약한 부분을 확률적으로 선택해서 학습하는 방법론
+				// h529 : http://sanghyukchun.github.io/74/
+				int m = rand() % (rl_sd_020_.memory_.num_elements_ - 1 - rl_sd_020_.num_input_histories_) + rl_sd_020_.num_input_histories_;
+
+				// memory index from end
+				const int inv_m = m - (rl_sd_020_.memory_.num_elements_ - 1);
+
+				float Q_next = 0.0f;
+
+				if (m != rl_sd_020_.memory_.num_elements_ - 2) // if next is not the terminal state
+				{
+					// Q_next = ...;
+					Q_next = rl_sd_020_.memory_.q_values_array_[m + 1].getMaxValue();
+				}
+
+				float Q_target;
+				// Q_target = ...;
+				Q_target = Q_next + rl_sd_020_.memory_.reward_array_[m];
+
+				// forward propagation from previous inputs
+				rl_sd_020_.makeInputVectorFromHistory(inv_m - 1, rl_sd_020_.old_input_vector_);
+				rl_sd_020_.nn_.setInputVector(rl_sd_020_.old_input_vector_);
+				for (int i = 0; i < 100; i++)
+				{
+					rl_sd_020_.nn_.feedForward();
+					rl_sd_020_.nn_.copyOutputVectorTo(false, output_target_temp);
+
+					// output_target_temp[...] = ...;
+					output_target_temp[rl_sd_020_.memory_.selected_array_[m]] = Q_target;
+
+					rl_sd_020_.nn_.propBackward(output_target_temp);
+				}
+
+				rl_sd_020_.nn_.check();
+			}
 
 		// eb
+		for (int tr = 0; tr < tr_num; tr++)
+			for (int m_tr = rl_eb_020_.memory_.num_elements_ - 2; m_tr >= rl_eb_020_.num_input_histories_; m_tr--)
+			{
+				// h529 : 방학숙제에서 발췌
 
+				// stochastic training
+				// h529 : 전체를 요약한 부분을 확률적으로 선택해서 학습하는 방법론
+				// h529 : http://sanghyukchun.github.io/74/
+				int m = rand() % (rl_eb_020_.memory_.num_elements_ - 1 - rl_eb_020_.num_input_histories_) + rl_eb_020_.num_input_histories_;
+
+				// memory index from end
+				const int inv_m = m - (rl_eb_020_.memory_.num_elements_ - 1);
+
+				float Q_next = 0.0f;
+
+				if (m != rl_eb_020_.memory_.num_elements_ - 2) // if next is not the terminal state
+				{
+					// Q_next = ...;
+					Q_next = rl_eb_020_.memory_.q_values_array_[m + 1].getMaxValue();
+				}
+
+				float Q_target;
+				// Q_target = ...;
+				Q_target = Q_next + rl_eb_020_.memory_.reward_array_[m];
+
+				// forward propagation from previous inputs
+				rl_eb_020_.makeInputVectorFromHistory(inv_m - 1, rl_eb_020_.old_input_vector_);
+				rl_eb_020_.nn_.setInputVector(rl_eb_020_.old_input_vector_);
+				for (int i = 0; i < 100; i++)
+				{
+					rl_eb_020_.nn_.feedForward();
+					rl_eb_020_.nn_.copyOutputVectorTo(false, output_target_temp_eb);
+
+					// output_target_temp[...] = ...;
+					output_target_temp_eb[rl_eb_020_.memory_.selected_array_[m]] = Q_target;
+
+					rl_eb_020_.nn_.propBackward(output_target_temp_eb);
+				}
+
+				rl_eb_020_.nn_.check();
+			}
 
 		// reset
 		rl_sd_020_.memory_.reset();
