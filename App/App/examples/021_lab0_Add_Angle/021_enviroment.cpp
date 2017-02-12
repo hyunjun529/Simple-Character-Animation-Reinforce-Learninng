@@ -280,19 +280,21 @@ void lab0AddAngle::stepSimulation(float deltaTime)
 	}
 
 	// elbow angle
-	eb_angle_ = getAngleEb();
+	eb_angle_ = getAngleEb() / 180;
 
 	// shoulder angle
-	sd_angle_ = getAngleSd();
+	sd_angle_ = getAngleSd() / 180;
 
 	// Fist to Target angle
-	F2T_angle_ = getAngleF2T();
+	F2T_angle_ = getAngleF2T() / 180;
 	
 	// calc Reward
 	float weightStepEarly = (1 - ((float)cntStep / ((float)maxStep * 1.25f)));
 	float weightDistance = (1 - (F2T_distance_ / 2.5f));
-	float weightAngle = (1 - (abs(F2T_angle_) / 90.0f));
-	float reward_ = weightDistance * weightAngle;
+	float weightAngle = (1 - (abs(F2T_angle_) * 2.0f));
+	float weight_sd_Angle = (1 - ((abs(sd_angle_ * 180 - 90))) / 150);
+	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 150);
+	float reward_ = weightDistance * weightAngle*weight_sd_Angle*weight_eb_Angle;
 
 	// set state VectorND
 	VectorND<float> state_;
@@ -332,7 +334,7 @@ void lab0AddAngle::stepSimulation(float deltaTime)
 		}
 
 		// logging
-		lg_.fout << weightStepEarly << ", " << F2T_angle_ << ", " << F2T_distance_ << ", " << reward_ << ", " << cntStep << std::endl;
+		lg_.fout << weightStepEarly << ", "<< sd_angle_<<", "<< eb_angle_<<", " << F2T_angle_ << ", " << F2T_distance_ << ", " << reward_ << ", " << cntStep << std::endl;
 
 		// number of training 
 		int tr_num = (chkCollision)?(100):(10);
