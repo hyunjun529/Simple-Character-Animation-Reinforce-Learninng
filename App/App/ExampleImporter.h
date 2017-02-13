@@ -12,6 +12,7 @@
 #include "012_Angle_Distance_Reward/012_enviroment.h"
 #include "020_lab0_Enviroment/020_enviroment.h"
 #include "021_lab0_Add_Angle/021_enviroment.h"
+#include "030_Body_NN_Test/030_enviroment.h"
 #include "040_Body_Enviroment_Test/040_enviroment.h"
 
 struct ExampleImporter
@@ -37,5 +38,6 @@ static std::map<std::string, ExampleImporter> getExample = {
 	{ "012", ExampleImporter("012_Angle_Distance_Reward", env_012) },
 	{ "020", ExampleImporter("020_lab0_Enviroment", env_020) },
 	{ "021", ExampleImporter("021_lab0_Add_Angle", env_021) },
+	{ "030", ExampleImporter("030_Body_NN_Test", env_030) },
 	{ "040", ExampleImporter("040_Body_Enviroment_Test", env_040) },
 };
