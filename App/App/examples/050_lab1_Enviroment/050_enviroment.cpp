@@ -73,12 +73,12 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 	}
 
 	void moveEbAngleUp(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
-		target->enableAngularMotor(true, 8.0, 4000.f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.285f);
+		target->enableAngularMotor(true, 6.0, 4000.f);
 	}
 	void moveEbAngleDown(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
-		target->enableAngularMotor(true, -8.0, 4000.f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.285f);
+		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
 	void moveEbAngleStay(btHingeConstraint *target) {
 		lockLiftHinge(target);
@@ -86,11 +86,11 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 
 	void moveSdAngleUp(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
-		target->enableAngularMotor(true, 8.0, 4000.f);
+		target->enableAngularMotor(true, 6.0, 4000.f);
 	}
 	void moveSdAngleDown(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
-		target->enableAngularMotor(true, -8.0, 4000.f);
+		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
 	void moveSdAngleStay(btHingeConstraint *target) {
 		lockLiftHinge(target);
@@ -359,7 +359,7 @@ void Lab1Enviroment::initPhysics()
 	// Target Position
 	btSphereShape* linkSphere_1 = new btSphereShape(radius);
 	btTransform start; start.setIdentity();
-	groundOrigin_target = btVector3(-0.4f, target_height[selected_target], -1.55f);
+	groundOrigin_target = btVector3(-0.4f, target_height[selected_target], -1.6f);
 	start.setOrigin(groundOrigin_target);
 	body = createRigidBody(0, start, linkSphere_1);
 	body->setFriction(0);
