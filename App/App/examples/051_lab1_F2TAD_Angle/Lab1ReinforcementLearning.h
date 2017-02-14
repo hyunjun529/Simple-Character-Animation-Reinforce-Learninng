@@ -3,7 +3,7 @@
 #include "NeuralNetwork.h"
 #include "ActionMemory.h"
 
-class ArmReinforcementLearning
+class Lab1ReinforcementLearning
 {
 public:
 	int num_exp_replay_;		// histories for experience replay training

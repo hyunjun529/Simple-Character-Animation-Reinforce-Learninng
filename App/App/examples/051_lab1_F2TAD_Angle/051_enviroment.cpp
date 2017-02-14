@@ -40,7 +40,7 @@ struct lab1Example1 : public CommonRigidBodyBase
 		TARGET_5_HEIGHT,
 	};
 
-	float fist_velocity;
+	float Fist_velocity;
 	float F2T_distance_;
 	float F2T_angle_;
 
@@ -49,6 +49,15 @@ struct lab1Example1 : public CommonRigidBodyBase
 
 	float eb_angle_;
 	float eb_angular_velocity;
+
+	Lab1ReinforcementLearning rl_;
+
+	Logger lg_;
+
+	const int maxStep = 1000;
+	int cntStep;
+	bool chkStudying;
+	bool chkPrinting;
 
 
 	lab1Example1(struct GUIHelperInterface* helper);
@@ -70,6 +79,7 @@ struct lab1Example1 : public CommonRigidBodyBase
 
 	// Controller evnets
 	void initState(lab1Example1* target) {
+		selected_target = (int)rand() % 6;
 		target->m_guiHelper->removeAllGraphicsInstances();
 		target->initPhysics();
 	}
@@ -130,6 +140,35 @@ lab1Example1::lab1Example1(struct GUIHelperInterface* helper)
 	m_once(true)
 {
 	std::cout.precision(5);
+
+	cntStep = 0;
+	chkStudying = true;
+	chkPrinting = true;
+	lg_.fs_open("051_log.csv");
+
+	/********************************************************************************************
+	* start init rl_
+	*********************************************************************************************/
+
+	// h529 : 이전 게임의 기억을 가져감
+	rl_.num_input_histories_ = 1;
+	// h529 : 기억을 재생함, pool로 사용 중
+	rl_.num_exp_replay_ = 0;
+	// h529 : 현재 총 7개
+	rl_.num_state_variables_ = 7;
+	// h529 : 행동할 수 있는 Action의 개수, 현재 총 6개
+	rl_.num_game_actions_ = 6;
+
+	rl_.initialize();
+
+	for (int h = 0; h < rl_.num_input_histories_; h++)
+	{
+		rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 2, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
+	}
+
+	/********************************************************************************************
+	* end init rl_
+	*********************************************************************************************/
 }
 
 lab1Example1::~lab1Example1()
@@ -164,24 +203,81 @@ void lab1Example1::lockLiftHinge(btHingeConstraint* hinge)
 
 void lab1Example1::stepSimulation(float deltaTime)
 {
+	/********************************************************************************************
+	* start set Action
+	*********************************************************************************************/
+
+	// set Vector
+	rl_.forward();
+	VectorND<float> output_vector_temp;
+	rl_.nn_.copyOutputVectorTo(false, output_vector_temp);
+	VectorND<float> output_target_temp;
+
+	// set Action
+	float dice = (chkStudying) ? (0.3f) : (0.0f);
+	int action_ = rl_.nn_.getOutputIXEpsilonGreedy(dice);
+
+	switch (action_) {
+	case ACTION_SHOULDER_UP:
+	{
+		moveSdAngleUp(hinge_shoulder);
+		break;
+	}
+	case ACTION_SHOULDER_DOWN:
+	{
+		moveSdAngleDown(hinge_shoulder);
+		break;
+	}
+	case ACTION_SHOULDER_STAY:
+	{
+		moveSdAngleStay(hinge_shoulder);
+		break;
+	}
+	case ACTION_ELBOW_UP:
+	{
+		moveEbAngleUp(hinge_elbow);
+		break;
+	}
+	case ACTION_ELBOW_DOWN:
+	{
+		moveEbAngleDown(hinge_elbow);
+		break;
+	}
+	case ACTION_ELBOW_STAY:
+	{
+		moveEbAngleStay(hinge_elbow);
+		break;
+	}
+	default: {}
+	}
+
+	/********************************************************************************************
+	* end set Action
+	*********************************************************************************************/
+
+
+	/********************************************************************************************
+	* start get State
+	*********************************************************************************************/
+
 	// get about Fist to Target
 	F2T_distance_ = getF2TDistance();
 	F2T_angle_ = getF2TAngle();
 
 	// get Fist Velocity
-	fist_velocity = getFistVelocity();
+	Fist_velocity = getFistVelocity();
 
 	// get Shoulder states
-	sd_angle_ = getSdAngle();
+	sd_angle_ = getSdAngle() / 180;
 	sd_angular_velocity = getSdAngularVelocity();
 
 	// get Elbow states
-	eb_angle_ = getEbAngle();
+	eb_angle_ = getEbAngle() / 180;
 	eb_angular_velocity = getEbAngularVelocity();
 
 	
 	//collison check
-	bool collisionTarget = false;
+	bool chkCollision = false;
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
 	for (int i = 0; i < numManifolds; i++)
 	{
@@ -201,26 +297,140 @@ void lab1Example1::stepSimulation(float deltaTime)
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
 
 				//check the head or body
-				collisionTarget = true;
+				chkCollision = true;
 			}
 		}
 	}
 
+	// calc Reward
+	float weightStepEarly = (1 - ((float)cntStep / ((float)maxStep * 1.25f)));
+	float weightDistance = (1 - (F2T_distance_ / 2.5f));
+	float weightAngle = (abs(F2T_angle_ / 180) * 2.0f);
+	float weight_sd_Angle = (1 - ((abs(sd_angle_ * 180 - 90))) / 140);
+	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 120);
+	float weight_fist_vel = (1 - (Fist_velocity / 40));
+	float reward_ = weightDistance + weightAngle + (weight_fist_vel / 2.0f);
+
+	// set state VectorND
+	VectorND<float> state_;
+	state_.initialize(rl_.num_state_variables_, true);
+	state_[0] = sd_angle_;
+	state_[1] = sd_angular_velocity;
+	state_[2] = eb_angle_;
+	state_[3] = eb_angular_velocity;
+	state_[4] = F2T_distance_;
+	state_[5] = F2T_angle_;
+	state_[6] = Fist_velocity;
 
 	// Print current state
-	std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
-	std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
-	std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
-	std::cout << std::fixed << "fist_vel : " << fist_velocity;
-	if (collisionTarget) std::cout << "\tCollision !!!!!!!!!!!!";
-	std::cout << std::endl;
+	if (chkPrinting) {
+		std::cout << std::fixed << "selcted_action : " << action_ << "\t";
+		//std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
+		//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
+		//std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
+		//std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
+		std::cout << std::fixed << "weight_Fist_vel : " << weight_fist_vel << "\t";
+		std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
+		std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
+		std::cout << std::fixed << "reward : " << reward_ << "\t";
+		std::cout << std::fixed << "current_step : " << cntStep << "\t";
+		if (chkCollision) std::cout << "\tCollision !!!!!!!!!!!!";
+		std::cout << std::endl;
+	}
 
-	// Reset Target Position
-	if (collisionTarget) {
-		selected_target = (int)rand() % 6;
+	/********************************************************************************************
+	* end get State
+	*********************************************************************************************/
+
+
+	/********************************************************************************************
+	* start Training
+	*********************************************************************************************/
+
+	if ((chkCollision || cntStep > maxStep) && chkStudying) {
+
+		// logging
+		lg_.fout << sd_angle_ << ", " << eb_angle_ << ", " << F2T_angle_ << ", " << F2T_distance_ << ", " << selected_target << ", " << reward_ << ", " << cntStep << std::endl;
+
+		// number of training 
+		int tr_num = (chkCollision) ? (100) : (10);
+
+		// sd
+		for (int tr = 0; tr < tr_num; tr++)
+			for (int m_tr = rl_.memory_.num_elements_ - 2; m_tr >= rl_.num_input_histories_; m_tr--)
+			{
+				// h529 : 방학숙제에서 발췌
+
+				// stochastic training
+				// h529 : 전체를 요약한 부분을 확률적으로 선택해서 학습하는 방법론
+				// h529 : http://sanghyukchun.github.io/74/
+				int m = rand() % (rl_.memory_.num_elements_ - 1 - rl_.num_input_histories_) + rl_.num_input_histories_;
+
+				// memory index from end
+				const int inv_m = m - (rl_.memory_.num_elements_ - 1);
+
+				float Q_next = 0.0f;
+
+				if (m != rl_.memory_.num_elements_ - 2) // if next is not the terminal state
+				{
+					// Q_next = ...;
+					Q_next = rl_.memory_.q_values_array_[m + 1].getMaxValue();
+				}
+
+				float Q_target;
+				// Q_target = ...;
+				Q_target = Q_next + rl_.memory_.reward_array_[m];
+
+				// forward propagation from previous inputs
+				rl_.makeInputVectorFromHistory(inv_m - 1, rl_.old_input_vector_);
+				rl_.nn_.setInputVector(rl_.old_input_vector_);
+				for (int i = 0; i < 100; i++)
+				{
+					rl_.nn_.feedForward();
+					rl_.nn_.copyOutputVectorTo(false, output_target_temp);
+
+					// output_target_temp[...] = ...;
+					output_target_temp[rl_.memory_.selected_array_[m]] = Q_target;
+
+					rl_.nn_.propBackward(output_target_temp);
+				}
+
+				rl_.nn_.check();
+			}
+
+		// reset
+		rl_.memory_.reset();
+
+		// is really need?
+		for (int h = 0; h < rl_.num_input_histories_; h++)
+		{
+			rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 2, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
+		}
+		cntStep = 0;
 
 		initState(this);
 	}
+
+	if (chkCollision && chkStudying) {
+		// reset
+		rl_.memory_.reset();
+
+		// is really need?
+		for (int h = 0; h < rl_.num_input_histories_; h++)
+		{
+			rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 2, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
+		}
+
+		cntStep = 0;
+
+		initState(this);
+	}
+
+	/********************************************************************************************
+	* end Training
+	*********************************************************************************************/
+
+	cntStep++;
 
 	// step by step
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
@@ -376,6 +586,16 @@ bool lab1Example1::keyboardCallback(int key, int state)
 	{
 		switch (key)
 		{
+		case B3G_INSERT:
+		{
+			chkPrinting = (chkPrinting) ? (false) : (true);
+			break;
+		}
+		case B3G_END:
+		{
+			chkStudying = (chkStudying) ? (false) : (true);
+			break;
+		}
 		case B3G_HOME:
 		{
 			initState(this);
