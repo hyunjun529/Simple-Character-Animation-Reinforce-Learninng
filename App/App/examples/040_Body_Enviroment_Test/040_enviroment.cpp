@@ -205,11 +205,11 @@ void BodyEnviromentTest::initPhysics()
 		bool canSleep = false;
 		bool selfCollide = false;
 
-		btVector3 baseHalfExtents(0.05, 0.37, 0.1);
+		btVector3 baseHalfExtents(0.4, 0.7, 0.1);
 		btVector3 linkHalfExtents(0.05, 0.37, 0.1);
 
 		btBoxShape* baseBox = new btBoxShape(baseHalfExtents);
-		btVector3 basePosition = btVector3(-0.4f, 4.f, 0.f);
+		btVector3 basePosition = btVector3(-0.9f, 3.0f, 0.f);
 		btTransform baseWorldTrans;
 		baseWorldTrans.setIdentity();
 		baseWorldTrans.setOrigin(basePosition);
@@ -260,7 +260,7 @@ void BodyEnviromentTest::initPhysics()
 			if (i == 0)
 			{
 				//create a hinge constraint
-				btVector3 pivotInA(0, -linkHalfExtents[1], 0);
+				btVector3 pivotInA(0.5, -linkHalfExtents[1]+1.0, 0);
 				btVector3 pivotInB(0, linkHalfExtents[1], 0);
 				btVector3 axisInA(1, 0, 0);
 				btVector3 axisInB(1, 0, 0);
