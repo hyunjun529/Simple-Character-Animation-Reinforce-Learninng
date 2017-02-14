@@ -25,11 +25,11 @@ static void SystemAlert(const char* msg);
 bool switchRendering = true;
 bool switchSelecting = true;
 bool chkExistExample = true;
-std::string exampleCode = "050";
+std::string exampleCode = "000";
 
 int main(int argc, char* argv[]) {
 	
-	chkExistExample = true;
+	chkExistExample = false;
 	while (!chkExistExample) {
 		for(auto item : getExample){
 			std::string key = item.first;

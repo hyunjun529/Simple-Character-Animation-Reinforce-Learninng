@@ -40,6 +40,9 @@
     <ClCompile Include="examples\050_lab1_Enviroment\050_enviroment.cpp">
       <Filter>source\050</Filter>
     </ClCompile>
+    <ClCompile Include="examples\051_lab1_F2TAD_Angle\051_enviroment.cpp">
+      <Filter>source\051</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonEnviroment.h">
@@ -174,6 +177,24 @@
     <ClInclude Include="examples\050_lab1_Enviroment\Targets.h">
       <Filter>source\050</Filter>
     </ClInclude>
+    <ClInclude Include="examples\051_lab1_F2TAD_Angle\051_enviroment.h">
+      <Filter>source\051</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\051_lab1_F2TAD_Angle\ActionMemory.h">
+      <Filter>source\051</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\051_lab1_F2TAD_Angle\Actions.h">
+      <Filter>source\051</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\051_lab1_F2TAD_Angle\Lab1ReinforcementLearning.h">
+      <Filter>source\051</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\051_lab1_F2TAD_Angle\Logger.h">
+      <Filter>source\051</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\051_lab1_F2TAD_Angle\Targets.h">
+      <Filter>source\051</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
@@ -217,6 +238,9 @@
     </Filter>
     <Filter Include="source\050">
       <UniqueIdentifier>{370f71ea-4f76-4dd5-93db-b683931412d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\051">
+      <UniqueIdentifier>{4e4d7597-1341-45bf-8e1a-8b23ecf2016b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
