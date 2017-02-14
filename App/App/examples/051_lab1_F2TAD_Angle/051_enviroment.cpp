@@ -54,7 +54,7 @@ struct lab1Example1 : public CommonRigidBodyBase
 
 	Logger lg_;
 
-	const int maxStep = 1000;
+	const int maxStep = 500;
 	int cntStep;
 	bool chkStudying;
 	bool chkPrinting;
@@ -155,7 +155,7 @@ lab1Example1::lab1Example1(struct GUIHelperInterface* helper)
 	// h529 : 기억을 재생함, pool로 사용 중
 	rl_.num_exp_replay_ = 0;
 	// h529 : 현재 총 7개
-	rl_.num_state_variables_ = 7;
+	rl_.num_state_variables_ = 5;
 	// h529 : 행동할 수 있는 Action의 개수, 현재 총 6개
 	rl_.num_game_actions_ = 6;
 
@@ -309,11 +309,17 @@ void lab1Example1::stepSimulation(float deltaTime)
 	float weight_sd_Angle = (1 - ((abs(sd_angle_ * 180 - 90))) / 140);
 	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 120);
 	float weight_fist_vel = (1 - (Fist_velocity / 40));
-	float reward_ = weightDistance + weightAngle + (weight_fist_vel / 2.0f);
+	float reward_ = (weightDistance + weightAngle) * weight_fist_vel;
 
 	// set state VectorND
 	VectorND<float> state_;
 	state_.initialize(rl_.num_state_variables_, true);
+	state_[0] = sd_angle_;
+	state_[1] = eb_angle_;
+	state_[2] = F2T_distance_;
+	state_[3] = F2T_angle_;
+	state_[4] = Fist_velocity;
+	/*
 	state_[0] = sd_angle_;
 	state_[1] = sd_angular_velocity;
 	state_[2] = eb_angle_;
@@ -321,6 +327,7 @@ void lab1Example1::stepSimulation(float deltaTime)
 	state_[4] = F2T_distance_;
 	state_[5] = F2T_angle_;
 	state_[6] = Fist_velocity;
+	*/
 
 	// Print current state
 	if (chkPrinting) {
@@ -337,6 +344,9 @@ void lab1Example1::stepSimulation(float deltaTime)
 		if (chkCollision) std::cout << "\tCollision !!!!!!!!!!!!";
 		std::cout << std::endl;
 	}
+
+	// record history
+	rl_.recordHistory(state_, reward_, action_, output_vector_temp);
 
 	/********************************************************************************************
 	* end get State
@@ -432,7 +442,6 @@ void lab1Example1::stepSimulation(float deltaTime)
 
 	cntStep++;
 
-	// step by step
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 
 	static int count = 0;
