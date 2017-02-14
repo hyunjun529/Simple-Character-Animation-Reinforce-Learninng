@@ -30,9 +30,12 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 
 	int selected_target = 0;
 	float target_height[TARGET_SIZE] = {
-		TARGET_H_HEIGHT,
-		TARGET_M_HEIGHT,
-		TARGET_L_HEIGHT
+		TARGET_0_HEIGHT,
+		TARGET_1_HEIGHT,
+		TARGET_2_HEIGHT,
+		TARGET_3_HEIGHT,
+		TARGET_4_HEIGHT,
+		TARGET_5_HEIGHT,
 	};
 
 	float fist_velocity;
@@ -70,11 +73,11 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 	}
 
 	void moveEbAngleUp(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
 		target->enableAngularMotor(true, 8.0, 4000.f);
 	}
 	void moveEbAngleDown(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
 		target->enableAngularMotor(true, -8.0, 4000.f);
 	}
 	void moveEbAngleStay(btHingeConstraint *target) {
@@ -82,11 +85,11 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 	}
 
 	void moveSdAngleUp(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
 		target->enableAngularMotor(true, 8.0, 4000.f);
 	}
 	void moveSdAngleDown(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
 		target->enableAngularMotor(true, -8.0, 4000.f);
 	}
 	void moveSdAngleStay(btHingeConstraint *target) {
@@ -212,7 +215,7 @@ void Lab1Enviroment::stepSimulation(float deltaTime)
 
 	// Reset Target Position
 	if (collisionTarget) {
-		selected_target = (int)rand() % 3;
+		selected_target = (int)rand() % 6;
 
 		initState(this);
 	}
