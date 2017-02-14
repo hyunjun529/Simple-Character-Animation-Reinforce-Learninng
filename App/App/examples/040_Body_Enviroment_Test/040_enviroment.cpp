@@ -179,8 +179,9 @@ void BodyEnviromentTest::stepSimulation(float deltaTime)
 	//Joint Angular Speed 
 	btVector3 sd_angular_speed = linkBody[0]->getAngularVelocity();
 	btVector3 eb_angular_speed = linkBody[1]->getAngularVelocity();
+	btVector3 hand_speed = linkBody[2]->getVelocityInLocalPoint(linkBody[2]->getCenterOfMassPosition());
 
-	std::cout <<"SD_Angular Speed: "<< sd_angular_speed.getX() << "\t" << "EB_Angular Speed: " << eb_angular_speed.getX() << std::endl;
+	std::cout <<"SD_Angular Speed: "<< sd_angular_speed.getX() << "\t" << "EB_Angular Speed: " << eb_angular_speed.getX()<< "\t" << "hand Speed: " << hand_speed.getZ() << std::endl;
 
 	if (collisionTarget == 0) {
 		std::cout << "Collision Head" << std::endl;
