@@ -13,11 +13,15 @@
 
 struct BodyEnviromentTest : public CommonRigidBodyBase
 {
+	
+	float	Capsule_Width = 0.5f;
+	float	Capsule_Radius = 0.12f;
+
 	bool m_once;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
 	btHingeConstraint* hinge_shader;
 	btHingeConstraint* hinge_elbow;
-	btRigidBody* linkBody;
+	btRigidBody* linkBody[3];
 	btVector3 groundOrigin_target;
 	btRigidBody* body;
 	btRigidBody* human_body;
@@ -75,14 +79,14 @@ struct BodyEnviromentTest : public CommonRigidBodyBase
 	}
 
 	float getAngleF2T() {
-		return (atan((linkBody->getCenterOfMassPosition().getZ() - body->getCenterOfMassPosition().getZ()) / (linkBody->getCenterOfMassPosition().getY() - body->getCenterOfMassPosition().getY()))) * 180 / M_PI;
-	}
-
-	float getAngleEb() {
-		return hinge_shader->getHingeAngle() / M_PI * 180;;
+		return (atan((linkBody[2]->getCenterOfMassPosition().getZ() - body->getCenterOfMassPosition().getZ()) / (linkBody[2]->getCenterOfMassPosition().getY() - body->getCenterOfMassPosition().getY()))) * 180 / M_PI;
 	}
 
 	float getAngleSd() {
+		return hinge_shader->getHingeAngle() / M_PI * 180;
+	}
+
+	float getAngleEb() {
 		return hinge_elbow->getHingeAngle() / M_PI * 180;
 	}
 };
@@ -126,8 +130,9 @@ void BodyEnviromentTest::lockLiftHinge(btHingeConstraint* hinge)
 void BodyEnviromentTest::stepSimulation(float deltaTime)
 {
 	//get distance
-	F2T_distance_ = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	F2T_distance_ = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody[2]->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody[2]->getCenterOfMassPosition().getY()), 2)) - 0.225;
 
+	
 	//collison check
 	int collisionTarget = -1;
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
@@ -168,8 +173,14 @@ void BodyEnviromentTest::stepSimulation(float deltaTime)
 	// Fist to Target angle
 	F2T_angle_ = getAngleF2T();
 	
-	std::cout << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
-	std::cout << "eb_ang : " << eb_angle_ << "\t" << "sd_ang : " << sd_angle_ << "\t" << std::endl;
+	//std::cout << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
+	//std::cout << "eb_ang : " << eb_angle_ << "\t" << "sd_ang : " << sd_angle_ << "\t" << std::endl;
+
+	//Joint Angular Speed 
+	btVector3 sd_angular_speed = linkBody[0]->getAngularVelocity();
+	btVector3 eb_angular_speed = linkBody[1]->getAngularVelocity();
+
+	std::cout <<"SD_Angular Speed: "<< sd_angular_speed.getX() << "\t" << "EB_Angular Speed: " << eb_angular_speed.getX() << std::endl;
 
 	if (collisionTarget == 0) {
 		std::cout << "Collision Head" << std::endl;
@@ -223,8 +234,12 @@ void BodyEnviromentTest::initPhysics()
 		m_dynamicsWorld->removeRigidBody(base);
 		base->setDamping(0, 0);
 		m_dynamicsWorld->addRigidBody(base, collisionFilterGroup, collisionFilterMask);
-		btBoxShape* linkBox1 = new btBoxShape(linkHalfExtents);
-		btBoxShape* linkBox2 = new btBoxShape(linkHalfExtents);
+
+	/*	btBoxShape* linkBox1 = new btBoxShape(linkHalfExtents);
+		btBoxShape* linkBox2 = new btBoxShape(linkHalfExtents);*/
+		
+		btCollisionShape* linkBox1 = new btCapsuleShape(Capsule_Radius, Capsule_Width);
+		btCollisionShape* linkBox2 = new btCapsuleShape(Capsule_Radius, Capsule_Width);
 		btSphereShape* linkSphere = new btSphereShape(radius);
 
 		btRigidBody* prevBody = base;
@@ -251,24 +266,24 @@ void BodyEnviromentTest::initPhysics()
 				colOb = linkSphere;
 			}
 
-			linkBody = createRigidBody(linkMass, linkTrans, colOb);
-			m_dynamicsWorld->removeRigidBody(linkBody);
-			m_dynamicsWorld->addRigidBody(linkBody, collisionFilterGroup, collisionFilterMask);
-			linkBody->setDamping(0, 0);
+			linkBody[i] = createRigidBody(linkMass, linkTrans, colOb);
+			m_dynamicsWorld->removeRigidBody(linkBody[i]);
+			m_dynamicsWorld->addRigidBody(linkBody[i], collisionFilterGroup, collisionFilterMask);
+			linkBody[i]->setDamping(0, 0);
 			btTypedConstraint* con = 0;
 
 			if (i == 0)
 			{
 				//create a hinge constraint
-				btVector3 pivotInA(0.5, -linkHalfExtents[1]+1.0, 0);
+				btVector3 pivotInA(0.5, -linkHalfExtents[1] + 1.0, 0);
 				btVector3 pivotInB(0, linkHalfExtents[1], 0);
 				btVector3 axisInA(1, 0, 0);
 				btVector3 axisInB(1, 0, 0);
 				bool useReferenceA = true;
-				hinge_shader = new btHingeConstraint(*prevBody, *linkBody,
+				hinge_shader = new btHingeConstraint(*prevBody, *linkBody[i],
 					pivotInA, pivotInB,
 					axisInA, axisInB, useReferenceA);
-				hinge_shader->setLimit(0.0f, 0.0f);
+				hinge_shader->setLimit(M_PI / 0.24f, M_PI / 0.24f);
 				m_dynamicsWorld->addConstraint(hinge_shader, true);
 				con = hinge_shader;
 			}
@@ -280,10 +295,10 @@ void BodyEnviromentTest::initPhysics()
 				btVector3 axisInA(1, 0, 0);
 				btVector3 axisInB(1, 0, 0);
 				bool useReferenceA = true;
-				hinge_elbow = new btHingeConstraint(*prevBody, *linkBody,
+				hinge_elbow = new btHingeConstraint(*prevBody, *linkBody[i],
 					pivotInA, pivotInB,
 					axisInA, axisInB, useReferenceA);
-				hinge_elbow->setLimit(0.0f, 0.0f);
+				hinge_elbow->setLimit(M_PI / 1.92f, M_PI / 1.92f);
 				m_dynamicsWorld->addConstraint(hinge_elbow, true);
 				con = hinge_elbow;
 			}
@@ -291,7 +306,7 @@ void BodyEnviromentTest::initPhysics()
 			{
 				btTransform pivotInA(btQuaternion::getIdentity(), btVector3(0, -radius, 0));						//par body's COM to cur body's COM offset
 				btTransform pivotInB(btQuaternion::getIdentity(), btVector3(0, radius, 0));							//cur body's COM to cur body's PIV offset
-				btGeneric6DofSpring2Constraint* fixed = new btGeneric6DofSpring2Constraint(*prevBody, *linkBody,
+				btGeneric6DofSpring2Constraint* fixed = new btGeneric6DofSpring2Constraint(*prevBody, *linkBody[i],
 					pivotInA, pivotInB);
 				fixed->setLinearLowerLimit(btVector3(0, 0, 0));
 				fixed->setLinearUpperLimit(btVector3(0, 0, 0));
@@ -310,9 +325,10 @@ void BodyEnviromentTest::initPhysics()
 
 				m_dynamicsWorld->addConstraint(con, true);
 			}
-			prevBody = linkBody;
+			prevBody = linkBody[i];
 		}
 	}
+
 
 	if (1)
 	{
@@ -329,7 +345,7 @@ void BodyEnviromentTest::initPhysics()
 
 		body->setFriction(0);
 
-		btVector3 human_HalfExtents(0.8, 0.0, 0.025);
+		/*btVector3 human_HalfExtents(0.8, 0.0, 0.025);
 		human_HalfExtents[upAxis] = 0.8f;
 		btBoxShape* human_box = new btBoxShape(human_HalfExtents);
 		human_box->initializePolyhedralFeatures();
@@ -341,7 +357,7 @@ void BodyEnviromentTest::initPhysics()
 		human_start.setOrigin(groundOrigin_target);
 		human_body = createRigidBody(0, human_start, human_box);
 
-		human_body->setFriction(0);
+		human_body->setFriction(0);*/
 	}
 
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
