@@ -205,6 +205,7 @@
     <ClInclude Include="examples\050_lab1_Enviroment\Actions.h" />
     <ClInclude Include="examples\050_lab1_Enviroment\Lab1ReinforcementLearning.h" />
     <ClInclude Include="examples\050_lab1_Enviroment\Logger.h" />
+    <ClInclude Include="examples\050_lab1_Enviroment\Targets.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

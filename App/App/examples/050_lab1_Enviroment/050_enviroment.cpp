@@ -10,12 +10,12 @@
 
 #include <iostream>
 #include "Actions.h"
+#include "Targets.h"
 
 struct Lab1Enviroment : public CommonRigidBodyBase
 {
-	
-	float	Capsule_Width = 0.5f;
-	float	Capsule_Radius = 0.12f;
+	float Capsule_Width = 0.5f;
+	float Capsule_Radius = 0.12f;
 
 	bool m_once;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
@@ -27,6 +27,13 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 
 	short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
 	short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
+
+	int selected_target = 0;
+	float target_height[TARGET_SIZE] = {
+		TARGET_H_HEIGHT,
+		TARGET_M_HEIGHT,
+		TARGET_L_HEIGHT
+	};
 
 	float fist_velocity;
 	float F2T_distance_;
@@ -64,11 +71,11 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 
 	void moveEbAngleUp(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, 6.0, 4000.f);
+		target->enableAngularMotor(true, 8.0, 4000.f);
 	}
 	void moveEbAngleDown(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, -6.0, 4000.f);
+		target->enableAngularMotor(true, -8.0, 4000.f);
 	}
 	void moveEbAngleStay(btHingeConstraint *target) {
 		lockLiftHinge(target);
@@ -76,11 +83,11 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 
 	void moveSdAngleUp(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, 6.0, 4000.f);
+		target->enableAngularMotor(true, 8.0, 4000.f);
 	}
 	void moveSdAngleDown(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, -6.0, 4000.f);
+		target->enableAngularMotor(true, -8.0, 4000.f);
 	}
 	void moveSdAngleStay(btHingeConstraint *target) {
 		lockLiftHinge(target);
@@ -91,11 +98,9 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 	float getF2TDistance() {
 		return sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody[2]->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody[2]->getCenterOfMassPosition().getY()), 2)) - 0.225;
 	}
-
 	float getF2TAngle() {
 		return (atan((linkBody[2]->getCenterOfMassPosition().getZ() - body->getCenterOfMassPosition().getZ()) / (linkBody[2]->getCenterOfMassPosition().getY() - body->getCenterOfMassPosition().getY()))) * 180 / M_PI;
 	}
-
 	float getFistVelocity() {
 		return linkBody[2]->getVelocityInLocalPoint(linkBody[2]->getCenterOfMassPosition()).getZ();
 	}
@@ -103,7 +108,6 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 	float getSdAngle() {
 		return hinge_shoulder->getHingeAngle() / M_PI * 180;
 	}
-
 	float getSdAngularVelocity() {
 		return linkBody[0]->getAngularVelocity().getX();
 	}
@@ -111,7 +115,6 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 	float getEbAngle() {
 		return hinge_elbow->getHingeAngle() / M_PI * 180;
 	}
-
 	float getEbAngularVelocity() {
 		return linkBody[1]->getAngularVelocity().getX();
 	}
@@ -207,6 +210,13 @@ void Lab1Enviroment::stepSimulation(float deltaTime)
 	if (collisionTarget) std::cout << "\tCollision !!!!!!!!!!!!";
 	std::cout << std::endl;
 
+	// Reset Target Position
+	if (collisionTarget) {
+		selected_target = (int)rand() % 3;
+
+		initState(this);
+	}
+
 	// step by step
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 
@@ -235,8 +245,8 @@ void Lab1Enviroment::initPhysics()
 		bool canSleep = false;
 		bool selfCollide = false;
 
-		btVector3 baseHalfExtents(0.4, 0.7, 0.1);
-		btVector3 linkHalfExtents(0.05, 0.37, 0.1);
+		btVector3 baseHalfExtents(0.4f, 0.7f, 0.1f);
+		btVector3 linkHalfExtents(0.05f, 0.37f, 0.1f);
 
 		btBoxShape* baseBox = new btBoxShape(baseHalfExtents);
 		btVector3 basePosition = btVector3(-0.9f, 3.0f, 0.f);
@@ -253,9 +263,6 @@ void Lab1Enviroment::initPhysics()
 		m_dynamicsWorld->removeRigidBody(base);
 		base->setDamping(0, 0);
 		m_dynamicsWorld->addRigidBody(base, collisionFilterGroup, collisionFilterMask);
-
-	/*	btBoxShape* linkBox1 = new btBoxShape(linkHalfExtents);
-		btBoxShape* linkBox2 = new btBoxShape(linkHalfExtents);*/
 		
 		btCollisionShape* linkBox1 = new btCapsuleShape(Capsule_Radius, Capsule_Width);
 		btCollisionShape* linkBox2 = new btCapsuleShape(Capsule_Radius, Capsule_Width);
@@ -349,21 +356,16 @@ void Lab1Enviroment::initPhysics()
 	}
 
 
-	if (1)
-	{
-		btVector3 groundHalfExtents(0.4, 0.0, 0.025);
-		groundHalfExtents[upAxis] = 0.4f;
-		btBoxShape* box = new btBoxShape(groundHalfExtents);
-		box->initializePolyhedralFeatures();
+	btSphereShape* linkSphere_1 = new btSphereShape(radius);
 
-		btTransform start; start.setIdentity();
-		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.25f);
+	// Target Position
+	btTransform start; start.setIdentity();
+	groundOrigin_target = btVector3(-0.4f, target_height[selected_target], -1.55f);
 
-		start.setOrigin(groundOrigin_target);
-		body = createRigidBody(0, start, box);
+	start.setOrigin(groundOrigin_target);
+	body = createRigidBody(0, start, linkSphere_1);
 
-		body->setFriction(0);
-	}
+	body->setFriction(0);
 
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
 }

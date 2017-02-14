@@ -171,6 +171,9 @@
     <ClInclude Include="examples\050_lab1_Enviroment\Logger.h">
       <Filter>source\050</Filter>
     </ClInclude>
+    <ClInclude Include="examples\050_lab1_Enviroment\Targets.h">
+      <Filter>source\050</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
