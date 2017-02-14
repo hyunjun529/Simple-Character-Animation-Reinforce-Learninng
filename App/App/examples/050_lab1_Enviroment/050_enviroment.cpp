@@ -105,21 +105,21 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 		return (atan((linkBody[2]->getCenterOfMassPosition().getZ() - body->getCenterOfMassPosition().getZ()) / (linkBody[2]->getCenterOfMassPosition().getY() - body->getCenterOfMassPosition().getY()))) * 180 / M_PI;
 	}
 	float getFistVelocity() {
-		return linkBody[2]->getVelocityInLocalPoint(linkBody[2]->getCenterOfMassPosition()).getZ();
+		return abs(linkBody[2]->getVelocityInLocalPoint(linkBody[2]->getCenterOfMassPosition()).getZ());
 	}
 
 	float getSdAngle() {
 		return hinge_shoulder->getHingeAngle() / M_PI * 180;
 	}
 	float getSdAngularVelocity() {
-		return linkBody[0]->getAngularVelocity().getX();
+		return abs(linkBody[0]->getAngularVelocity().getX());
 	}
 
 	float getEbAngle() {
 		return hinge_elbow->getHingeAngle() / M_PI * 180;
 	}
 	float getEbAngularVelocity() {
-		return linkBody[1]->getAngularVelocity().getX();
+		return abs(linkBody[1]->getAngularVelocity().getX());
 	}
 };
 
