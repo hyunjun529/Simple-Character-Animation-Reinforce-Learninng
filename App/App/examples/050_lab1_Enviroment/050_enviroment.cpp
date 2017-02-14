@@ -355,16 +355,12 @@ void Lab1Enviroment::initPhysics()
 		}
 	}
 
-
-	btSphereShape* linkSphere_1 = new btSphereShape(radius);
-
 	// Target Position
+	btSphereShape* linkSphere_1 = new btSphereShape(radius);
 	btTransform start; start.setIdentity();
 	groundOrigin_target = btVector3(-0.4f, target_height[selected_target], -1.55f);
-
 	start.setOrigin(groundOrigin_target);
 	body = createRigidBody(0, start, linkSphere_1);
-
 	body->setFriction(0);
 
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
