@@ -19,20 +19,24 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 
 	bool m_once;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
-	btHingeConstraint* hinge_shader;
+	btHingeConstraint* hinge_shoulder;
 	btHingeConstraint* hinge_elbow;
 	btRigidBody* linkBody[3];
 	btVector3 groundOrigin_target;
 	btRigidBody* body;
-	btRigidBody* human_body;
 
 	short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
 	short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
 
-	btScalar F2T_distance_;
+	float fist_velocity;
+	float F2T_distance_;
 	float F2T_angle_;
-	float eb_angle_;
+
 	float sd_angle_;
+	float sd_angular_velocity;
+
+	float eb_angle_;
+	float eb_angular_velocity;
 
 
 	Lab1Enviroment(struct GUIHelperInterface* helper);
@@ -51,43 +55,65 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 		m_guiHelper->resetCamera(dist, pitch, yaw, targetPos[0], targetPos[1], targetPos[2]);
 	}
 
+
+	// Controller evnets
 	void initState(Lab1Enviroment* target) {
 		target->m_guiHelper->removeAllGraphicsInstances();
 		target->initPhysics();
 	}
 
-	void moveUpEb(btHingeConstraint *target) {
+	void moveEbAngleUp(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 		target->enableAngularMotor(true, 6.0, 4000.f);
-
 	}
-
-	void moveDownEb(btHingeConstraint *target) {
+	void moveEbAngleDown(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
-
-	void moveUpSd(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, 6.0, 4000.f);
-
+	void moveEbAngleStay(btHingeConstraint *target) {
+		lockLiftHinge(target);
 	}
 
-	void moveDownSd(btHingeConstraint *target) {
+	void moveSdAngleUp(btHingeConstraint *target) {
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+		target->enableAngularMotor(true, 6.0, 4000.f);
+	}
+	void moveSdAngleDown(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
+	void moveSdAngleStay(btHingeConstraint *target) {
+		lockLiftHinge(target);
+	}
 
-	float getAngleF2T() {
+
+	// get States
+	float getF2TDistance() {
+		return sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody[2]->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody[2]->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	}
+
+	float getF2TAngle() {
 		return (atan((linkBody[2]->getCenterOfMassPosition().getZ() - body->getCenterOfMassPosition().getZ()) / (linkBody[2]->getCenterOfMassPosition().getY() - body->getCenterOfMassPosition().getY()))) * 180 / M_PI;
 	}
 
-	float getAngleSd() {
-		return hinge_shader->getHingeAngle() / M_PI * 180;
+	float getFistVelocity() {
+		return linkBody[2]->getVelocityInLocalPoint(linkBody[2]->getCenterOfMassPosition()).getZ();
 	}
 
-	float getAngleEb() {
+	float getSdAngle() {
+		return hinge_shoulder->getHingeAngle() / M_PI * 180;
+	}
+
+	float getSdAngularVelocity() {
+		return linkBody[0]->getAngularVelocity().getX();
+	}
+
+	float getEbAngle() {
 		return hinge_elbow->getHingeAngle() / M_PI * 180;
+	}
+
+	float getEbAngularVelocity() {
+		return linkBody[1]->getAngularVelocity().getX();
 	}
 };
 
@@ -95,6 +121,7 @@ Lab1Enviroment::Lab1Enviroment(struct GUIHelperInterface* helper)
 	:CommonRigidBodyBase(helper),
 	m_once(true)
 {
+	std::cout.precision(5);
 }
 
 Lab1Enviroment::~Lab1Enviroment()
@@ -129,12 +156,24 @@ void Lab1Enviroment::lockLiftHinge(btHingeConstraint* hinge)
 
 void Lab1Enviroment::stepSimulation(float deltaTime)
 {
-	//get distance
-	F2T_distance_ = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody[2]->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody[2]->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	// get about Fist to Target
+	F2T_distance_ = getF2TDistance();
+	F2T_angle_ = getF2TAngle();
+
+	// get Fist Velocity
+	fist_velocity = getFistVelocity();
+
+	// get Shoulder states
+	sd_angle_ = getSdAngle();
+	sd_angular_velocity = getSdAngularVelocity();
+
+	// get Elbow states
+	eb_angle_ = getEbAngle();
+	eb_angular_velocity = getEbAngularVelocity();
 
 	
 	//collison check
-	int collisionTarget = -1;
+	bool collisionTarget = false;
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
 	for (int i = 0; i < numManifolds; i++)
 	{
@@ -154,42 +193,21 @@ void Lab1Enviroment::stepSimulation(float deltaTime)
 				const btVector3& normalOnB = pt.m_normalWorldOnB;
 
 				//check the head or body
-				if (F2T_distance_ <= sqrt(0.08f)) {
-					collisionTarget = 0;
-				}
-				else {
-					collisionTarget = 1;
-				}
+				collisionTarget = true;
 			}
 		}
 	}
 
-	// elbow angle
-	eb_angle_ = getAngleEb();
 
-	// shoulder angle
-	sd_angle_ = getAngleSd();
+	// Print current state
+	std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
+	std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
+	std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
+	std::cout << std::fixed << "fist_vel : " << fist_velocity;
+	if (collisionTarget) std::cout << "\tCollision !!!!!!!!!!!!";
+	std::cout << std::endl;
 
-	// Fist to Target angle
-	F2T_angle_ = getAngleF2T();
-	
-	//std::cout << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
-	//std::cout << "eb_ang : " << eb_angle_ << "\t" << "sd_ang : " << sd_angle_ << "\t" << std::endl;
-
-	//Joint Angular Speed 
-	btVector3 angular_speed_sd = linkBody[0]->getAngularVelocity();
-	btVector3 angular_speed_eb = linkBody[1]->getAngularVelocity();
-	btVector3 hand_speed = linkBody[2]->getVelocityInLocalPoint(linkBody[2]->getCenterOfMassPosition());
-
-	std::cout <<"SD_Angular Speed: "<< angular_speed_sd.getX() << "\t" << "EB_Angular Speed: " << angular_speed_eb.getX()<< "\t" << "hand Speed: " << hand_speed.getZ() << std::endl;
-
-	if (collisionTarget == 0) {
-		std::cout << "Collision Head" << std::endl;
-	}
-	if (collisionTarget == 1) {
-		std::cout << "Collision Body" << std::endl;
-	}
-
+	// step by step
 	m_dynamicsWorld->stepSimulation(1. / 240, 0);
 
 	static int count = 0;
@@ -281,12 +299,12 @@ void Lab1Enviroment::initPhysics()
 				btVector3 axisInA(1, 0, 0);
 				btVector3 axisInB(1, 0, 0);
 				bool useReferenceA = true;
-				hinge_shader = new btHingeConstraint(*prevBody, *linkBody[i],
+				hinge_shoulder = new btHingeConstraint(*prevBody, *linkBody[i],
 					pivotInA, pivotInB,
 					axisInA, axisInB, useReferenceA);
-				hinge_shader->setLimit(M_PI / 0.24f, M_PI / 0.24f);
-				m_dynamicsWorld->addConstraint(hinge_shader, true);
-				con = hinge_shader;
+				hinge_shoulder->setLimit(M_PI / 0.24f, M_PI / 0.24f);
+				m_dynamicsWorld->addConstraint(hinge_shoulder, true);
+				con = hinge_shoulder;
 			}
 			else if (i == 1)
 			{
@@ -364,25 +382,25 @@ bool Lab1Enviroment::keyboardCallback(int key, int state)
 		}
 		case B3G_LEFT_ARROW:
 		{
-			moveUpEb(hinge_elbow);
+			moveEbAngleUp(hinge_elbow);
 			handled = true;
 			break;
 		}
 		case B3G_RIGHT_ARROW:
 		{
-			moveDownEb(hinge_elbow);
+			moveEbAngleDown(hinge_elbow);
 			handled = true;
 			break;
 		}
 		case B3G_UP_ARROW:
 		{
-			moveUpSd(hinge_shader);
+			moveSdAngleUp(hinge_shoulder);
 			handled = true;
 			break;
 		}
 		case B3G_DOWN_ARROW:
 		{
-			moveDownSd(hinge_shader);
+			moveSdAngleDown(hinge_shoulder);
 			handled = true;
 			break;
 		}
@@ -402,7 +420,7 @@ bool Lab1Enviroment::keyboardCallback(int key, int state)
 		case B3G_UP_ARROW:
 		case B3G_DOWN_ARROW:
 		{
-			lockLiftHinge(hinge_shader);
+			lockLiftHinge(hinge_shoulder);
 			handled = true;
 			break;
 		}
