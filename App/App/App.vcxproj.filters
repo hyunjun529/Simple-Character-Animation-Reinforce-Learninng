@@ -37,6 +37,9 @@
     <ClCompile Include="examples\030_Body_NN_Test\030_enviroment.cpp">
       <Filter>source\030</Filter>
     </ClCompile>
+    <ClCompile Include="examples\050_lab1_Enviroment\050_enviroment.cpp">
+      <Filter>source\050</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonEnviroment.h">
@@ -153,6 +156,21 @@
     <ClInclude Include="examples\030_Body_NN_Test\Logger.h">
       <Filter>source\030</Filter>
     </ClInclude>
+    <ClInclude Include="examples\050_lab1_Enviroment\050_enviroment.h">
+      <Filter>source\050</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\050_lab1_Enviroment\Actions.h">
+      <Filter>source\050</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\050_lab1_Enviroment\ActionMemory.h">
+      <Filter>source\050</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\050_lab1_Enviroment\Lab1ReinforcementLearning.h">
+      <Filter>source\050</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\050_lab1_Enviroment\Logger.h">
+      <Filter>source\050</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
@@ -193,6 +211,9 @@
     </Filter>
     <Filter Include="source\030">
       <UniqueIdentifier>{12c4f748-6f7d-4ae9-917d-b94730a11f0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\050">
+      <UniqueIdentifier>{370f71ea-4f76-4dd5-93db-b683931412d4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

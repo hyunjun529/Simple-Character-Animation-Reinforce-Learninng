@@ -159,6 +159,7 @@
     <ClCompile Include="examples\021_lab0_Add_Angle\021_enviroment.cpp" />
     <ClCompile Include="examples\030_Body_NN_Test\030_enviroment.cpp" />
     <ClCompile Include="examples\040_Body_Enviroment_Test\040_enviroment.cpp" />
+    <ClCompile Include="examples\050_lab1_Enviroment\050_enviroment.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -199,6 +200,11 @@
     <ClInclude Include="examples\030_Body_NN_Test\Logger.h" />
     <ClInclude Include="examples\040_Body_Enviroment_Test\040_enviroment.h" />
     <ClInclude Include="examples\040_Body_Enviroment_Test\Actions.h" />
+    <ClInclude Include="examples\050_lab1_Enviroment\050_enviroment.h" />
+    <ClInclude Include="examples\050_lab1_Enviroment\ActionMemory.h" />
+    <ClInclude Include="examples\050_lab1_Enviroment\Actions.h" />
+    <ClInclude Include="examples\050_lab1_Enviroment\Lab1ReinforcementLearning.h" />
+    <ClInclude Include="examples\050_lab1_Enviroment\Logger.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

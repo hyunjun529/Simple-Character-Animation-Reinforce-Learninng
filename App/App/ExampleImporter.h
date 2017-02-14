@@ -14,6 +14,7 @@
 #include "021_lab0_Add_Angle/021_enviroment.h"
 #include "030_Body_NN_Test/030_enviroment.h"
 #include "040_Body_Enviroment_Test/040_enviroment.h"
+#include "050_lab1_Enviroment/050_enviroment.h"
 
 struct ExampleImporter
 {
@@ -40,4 +41,5 @@ static std::map<std::string, ExampleImporter> getExample = {
 	{ "021", ExampleImporter("021_lab0_Add_Angle", env_021) },
 	{ "030", ExampleImporter("030_Body_NN_Test", env_030) },
 	{ "040", ExampleImporter("040_Body_Enviroment_Test", env_040) },
+	{ "050", ExampleImporter("050_lab1_Enviroment", env_050) },
 };
