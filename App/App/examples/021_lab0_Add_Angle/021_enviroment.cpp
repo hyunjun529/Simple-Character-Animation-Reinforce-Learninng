@@ -18,11 +18,14 @@ ArmReinforcementLearning rl_eb_021_;
 
 struct lab0AddAngle : public CommonRigidBodyBase
 {
+	float Capsule_Width = 0.5f;
+	float Capsule_Radius = 0.12f;
+
 	bool m_once;
 	btAlignedObjectArray<btJointFeedback*> m_jointFeedback;
 	btHingeConstraint* hinge_shoulder;
 	btHingeConstraint* hinge_elbow;
-	btRigidBody* linkBody;
+	btRigidBody* linkBody[3];
 	btVector3 groundOrigin_target;
 	btRigidBody* body;
 	btRigidBody* human_body;
@@ -35,7 +38,8 @@ struct lab0AddAngle : public CommonRigidBodyBase
 	float eb_angle_;
 	float sd_angle_;
 
-	const int maxStep = 500;
+	const int initStep = 100;
+	const int maxStep = 500 + initStep;
 	int cntStep;
 	bool chkStudying;
 	bool chkPrinting;
@@ -85,7 +89,7 @@ struct lab0AddAngle : public CommonRigidBodyBase
 	}
 
 	float getAngleF2T() {
-		return (atan((linkBody->getCenterOfMassPosition().getZ() - body->getCenterOfMassPosition().getZ()) / (linkBody->getCenterOfMassPosition().getY() - body->getCenterOfMassPosition().getY()))) * 180 / M_PI;
+		return (atan((linkBody[2]->getCenterOfMassPosition().getZ() - body->getCenterOfMassPosition().getZ()) / (linkBody[2]->getCenterOfMassPosition().getY() - body->getCenterOfMassPosition().getY()))) * 180 / M_PI;
 	}
 
 	float getAngleEb() {
@@ -183,6 +187,16 @@ void lab0AddAngle::stepSimulation(float deltaTime)
 {
 	bool chkCollision = false;
 
+	if (cntStep < initStep) {
+
+		cntStep++;
+
+		m_dynamicsWorld->stepSimulation(1. / 240, 0);
+
+		static int count = 0;
+
+		return;
+	}
 
 	/********************************************************************************************
 	* start set Action
@@ -252,7 +266,7 @@ void lab0AddAngle::stepSimulation(float deltaTime)
 	*********************************************************************************************/
 
 	//get distance
-	F2T_distance_ = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody->getCenterOfMassPosition().getY()), 2)) - 0.225;
+	F2T_distance_ = sqrt(pow((body->getCenterOfMassPosition().getZ() - linkBody[2]->getCenterOfMassPosition().getZ()), 2) + pow((body->getCenterOfMassPosition().getY() - linkBody[2]->getCenterOfMassPosition().getY()), 2)) - 0.225;
 
 	//collison check
 	int collisionTarget = -1;
@@ -491,139 +505,142 @@ void lab0AddAngle::initPhysics()
 		+ btIDebugDraw::DBG_DrawConstraintLimits;
 	m_dynamicsWorld->getDebugDrawer()->setDebugMode(mode);
 
+	int numLinks = 3;
+	bool spherical = false;
+	bool canSleep = false;
+	bool selfCollide = false;
 
-	{ // create a door using hinge constraint attached to the world
+	btVector3 baseHalfExtents(0.4f, 0.7f, 0.1f);
+	btVector3 linkHalfExtents(0.05f, 0.37f, 0.1f);
 
-		int numLinks = 3;
-		bool spherical = false;					//set it ot false -to use 1DoF hinges instead of 3DoF sphericals
-		bool canSleep = false;
-		bool selfCollide = false;
+	btBoxShape* baseBox = new btBoxShape(baseHalfExtents);
+	btVector3 basePosition = btVector3(-0.9f, 3.0f, 0.f);
+	btTransform baseWorldTrans;
+	baseWorldTrans.setIdentity();
+	baseWorldTrans.setOrigin(basePosition);
 
-		btVector3 baseHalfExtents(0.05, 0.37, 0.1);
-		btVector3 linkHalfExtents(0.05, 0.37, 0.1);
+	btVector3 basePosition_origen = btVector3(-0.4f, 4.f, 0.f);
+	btTransform baseWorldTrans_origen;
+	baseWorldTrans_origen.setIdentity();
+	baseWorldTrans_origen.setOrigin(basePosition_origen);
 
-		btBoxShape* baseBox = new btBoxShape(baseHalfExtents);
-		btVector3 basePosition = btVector3(-0.4f, 4.f, 0.f);
-		btTransform baseWorldTrans;
-		baseWorldTrans.setIdentity();
-		baseWorldTrans.setOrigin(basePosition);
+	//init the base
+	btVector3 baseInertiaDiag(0.f, 0.f, 0.f);
+	float baseMass = 0.f;
+	float linkMass = 1.f;
 
-		//mbC->forceMultiDof();							//if !spherical, you can comment this line to check the 1DoF algorithm
-		//init the base
-		btVector3 baseInertiaDiag(0.f, 0.f, 0.f);
-		float baseMass = 0.f;
-		float linkMass = 1.f;
+	btRigidBody* base = createRigidBody(baseMass, baseWorldTrans, baseBox);
+	m_dynamicsWorld->removeRigidBody(base);
+	base->setDamping(0, 0);
+	m_dynamicsWorld->addRigidBody(base, collisionFilterGroup, collisionFilterMask);
 
-		btRigidBody* base = createRigidBody(baseMass, baseWorldTrans, baseBox);
-		m_dynamicsWorld->removeRigidBody(base);
-		base->setDamping(0, 0);
-		m_dynamicsWorld->addRigidBody(base, collisionFilterGroup, collisionFilterMask);
-		btBoxShape* linkBox1 = new btBoxShape(linkHalfExtents);
-		btBoxShape* linkBox2 = new btBoxShape(linkHalfExtents);
-		btSphereShape* linkSphere = new btSphereShape(radius);
+	/*	btBoxShape* linkBox1 = new btBoxShape(linkHalfExtents);
+	btBoxShape* linkBox2 = new btBoxShape(linkHalfExtents);*/
 
-		btRigidBody* prevBody = base;
+	btCollisionShape* linkBox1 = new btCapsuleShape(Capsule_Radius, Capsule_Width);
+	btCollisionShape* linkBox2 = new btCapsuleShape(Capsule_Radius, Capsule_Width);
+	btSphereShape* linkSphere = new btSphereShape(radius);
 
-		for (int i = 0; i<numLinks; i++)
+	btRigidBody* prevBody = base;
+
+	btQuaternion orn[3];
+	orn[0] = btQuaternion(btVector3(1, 0, 0), 0.25*3.1415926538);
+	orn[1] = btQuaternion(btVector3(1, 0, 0), 0.75*3.1415926538);
+	orn[2] = btQuaternion(btVector3(1, 0, 0), 0.25*3.1415926538);
+
+	for (int i = 0; i<numLinks; i++)
+	{
+		btTransform linkTrans;
+		linkTrans = baseWorldTrans_origen;
+
+		linkTrans.setOrigin(basePosition_origen - btVector3(0, linkHalfExtents[1] * 2.f*(i / 4 + 1) - 0.1, i*0.5 + 0.2));
+		linkTrans.setRotation(orn[i]);
+
+		btCollisionShape* colOb = 0;
+
+		if (i == 0)
 		{
-			btTransform linkTrans;
-			linkTrans = baseWorldTrans;
-
-			linkTrans.setOrigin(basePosition - btVector3(0, linkHalfExtents[1] * 2.f*(i + 1), 0));
-
-			btCollisionShape* colOb = 0;
-
-			if (i == 0)
-			{
-				colOb = linkBox1;
-			}
-			else if (i == 1)
-			{
-				colOb = linkBox2;
-			}
-			else
-			{
-				colOb = linkSphere;
-			}
-			linkBody = createRigidBody(linkMass, linkTrans, colOb);
-			m_dynamicsWorld->removeRigidBody(linkBody);
-			m_dynamicsWorld->addRigidBody(linkBody, collisionFilterGroup, collisionFilterMask);
-			linkBody->setDamping(0, 0);
-			btTypedConstraint* con = 0;
-
-			if (i == 0)
-			{
-				//create a hinge constraint
-				btVector3 pivotInA(0, -linkHalfExtents[1], 0);
-				btVector3 pivotInB(0, linkHalfExtents[1], 0);
-				btVector3 axisInA(1, 0, 0);
-				btVector3 axisInB(1, 0, 0);
-				bool useReferenceA = true;
-				hinge_shoulder = new btHingeConstraint(*prevBody, *linkBody,
-					pivotInA, pivotInB,
-					axisInA, axisInB, useReferenceA);
-				hinge_shoulder->setLimit(0.0f, 0.0f);
-				m_dynamicsWorld->addConstraint(hinge_shoulder, true);
-				con = hinge_shoulder;
-			}
-			else if (i == 1)
-			{
-				//create a hinge constraint
-				btVector3 pivotInA(0, -linkHalfExtents[1], 0);
-				btVector3 pivotInB(0, linkHalfExtents[1], 0);
-				btVector3 axisInA(1, 0, 0);
-				btVector3 axisInB(1, 0, 0);
-				bool useReferenceA = true;
-				hinge_elbow = new btHingeConstraint(*prevBody, *linkBody,
-					pivotInA, pivotInB,
-					axisInA, axisInB, useReferenceA);
-				hinge_elbow->setLimit(0.0f, 0.0f);
-				m_dynamicsWorld->addConstraint(hinge_elbow, true);
-				con = hinge_elbow;
-			}
-			else
-			{
-				btTransform pivotInA(btQuaternion::getIdentity(), btVector3(0, -radius, 0));						//par body's COM to cur body's COM offset
-				btTransform pivotInB(btQuaternion::getIdentity(), btVector3(0, radius, 0));							//cur body's COM to cur body's PIV offset
-				btGeneric6DofSpring2Constraint* fixed = new btGeneric6DofSpring2Constraint(*prevBody, *linkBody,
-					pivotInA, pivotInB);
-				fixed->setLinearLowerLimit(btVector3(0, 0, 0));
-				fixed->setLinearUpperLimit(btVector3(0, 0, 0));
-				fixed->setAngularLowerLimit(btVector3(0, 0, 0));
-				fixed->setAngularUpperLimit(btVector3(0, 0, 0));
-
-				con = fixed;
-
-			}
-			btAssert(con);
-			if (con)
-			{
-				btJointFeedback* fb = new btJointFeedback();
-				m_jointFeedback.push_back(fb);
-				con->setJointFeedback(fb);
-
-				m_dynamicsWorld->addConstraint(con, true);
-			}
-			prevBody = linkBody;
-
+			colOb = linkBox1;
+		}
+		else if (i == 1)
+		{
+			colOb = linkBox2;
+		}
+		else
+		{
+			colOb = linkSphere;
 		}
 
+		linkBody[i] = createRigidBody(linkMass, linkTrans, colOb);
+		m_dynamicsWorld->removeRigidBody(linkBody[i]);
+		m_dynamicsWorld->addRigidBody(linkBody[i], collisionFilterGroup, collisionFilterMask);
+		linkBody[i]->setDamping(0, 0);
+		btTypedConstraint* con = 0;
+
+		if (i == 0)
+		{
+			//create a hinge constraint
+			btVector3 pivotInA(0.5, -linkHalfExtents[1] + 1.0f, 0);
+			btVector3 pivotInB(0, linkHalfExtents[1], 0);
+			btVector3 axisInA(1, 0, 0);
+			btVector3 axisInB(1, 0, 0);
+			bool useReferenceA = true;
+			hinge_shoulder = new btHingeConstraint(*prevBody, *linkBody[i],
+				pivotInA, pivotInB,
+				axisInA, axisInB, useReferenceA);
+			hinge_shoulder->setLimit(M_PI / 0.24f, M_PI / 0.24f);
+			m_dynamicsWorld->addConstraint(hinge_shoulder, true);
+			con = hinge_shoulder;
+		}
+		else if (i == 1)
+		{
+			//create a hinge constraint
+			btVector3 pivotInA(0, -linkHalfExtents[1], 0);
+			btVector3 pivotInB(0, linkHalfExtents[1], 0);
+			btVector3 axisInA(1, 0, 0);
+			btVector3 axisInB(1, 0, 0);
+			bool useReferenceA = true;
+			hinge_elbow = new btHingeConstraint(*prevBody, *linkBody[i],
+				pivotInA, pivotInB,
+				axisInA, axisInB, useReferenceA);
+			hinge_elbow->setLimit(M_PI / 1.92f, M_PI / 1.92f);
+			m_dynamicsWorld->addConstraint(hinge_elbow, true);
+			con = hinge_elbow;
+		}
+		else
+		{
+			btTransform pivotInA(btQuaternion::getIdentity(), btVector3(0, -radius, 0));						//par body's COM to cur body's COM offset
+			btTransform pivotInB(btQuaternion::getIdentity(), btVector3(0, radius, 0));							//cur body's COM to cur body's PIV offset
+			btGeneric6DofSpring2Constraint* fixed = new btGeneric6DofSpring2Constraint(*prevBody, *linkBody[i],
+				pivotInA, pivotInB);
+			fixed->setLinearLowerLimit(btVector3(0, 0, 0));
+			fixed->setLinearUpperLimit(btVector3(0, 0, 0));
+			fixed->setAngularLowerLimit(btVector3(0, 0, 0));
+			fixed->setAngularUpperLimit(btVector3(0, 0, 0));
+
+			con = fixed;
+
+		}
+		btAssert(con);
+		if (con)
+		{
+			btJointFeedback* fb = new btJointFeedback();
+			m_jointFeedback.push_back(fb);
+			con->setJointFeedback(fb);
+
+			m_dynamicsWorld->addConstraint(con, true);
+		}
+		prevBody = linkBody[i];
 	}
 
-	if (1)
-	{
-
-		btSphereShape* linkSphere_1 = new btSphereShape(radius);
-
-		btTransform start; start.setIdentity();
-		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.6f);
-
-		start.setOrigin(groundOrigin_target);
-		body = createRigidBody(0, start, linkSphere_1);
-
-		body->setFriction(0);
-
-	}
+	// Target Position
+	btSphereShape* linkSphere_1 = new btSphereShape(radius);
+	btTransform start; start.setIdentity();
+	//groundOrigin_target = btVector3(-0.4f, target_height[selected_target], -1.6f);
+	groundOrigin_target = btVector3(-0.4f, 2.7f, -1.6f);
+	start.setOrigin(groundOrigin_target);
+	body = createRigidBody(0, start, linkSphere_1);
+	body->setFriction(0);
 
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
 }
