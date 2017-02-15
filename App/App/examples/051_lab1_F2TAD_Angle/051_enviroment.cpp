@@ -555,7 +555,7 @@ void lab1Example1::initPhysics()
 			hinge_shoulder = new btHingeConstraint(*prevBody, *linkBody[i],
 				pivotInA, pivotInB,
 				axisInA, axisInB, useReferenceA);
-			hinge_shoulder->setLimit(0.0f, 0.0f);
+			hinge_shoulder->setLimit(M_PI / 0.24f, M_PI / 0.24f);
 			m_dynamicsWorld->addConstraint(hinge_shoulder, true);
 			con = hinge_shoulder;
 		}
@@ -570,7 +570,7 @@ void lab1Example1::initPhysics()
 			hinge_elbow = new btHingeConstraint(*prevBody, *linkBody[i],
 				pivotInA, pivotInB,
 				axisInA, axisInB, useReferenceA);
-			hinge_elbow->setLimit(0.0f, 0.0f);
+			hinge_elbow->setLimit(M_PI / 1.92f, M_PI / 1.92f);
 			m_dynamicsWorld->addConstraint(hinge_elbow, true);
 			con = hinge_elbow;
 		}
