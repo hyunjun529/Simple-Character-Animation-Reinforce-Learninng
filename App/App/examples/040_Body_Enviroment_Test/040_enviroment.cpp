@@ -226,6 +226,12 @@ void BodyEnviromentTest::initPhysics()
 		baseWorldTrans.setIdentity();
 		baseWorldTrans.setOrigin(basePosition);
 
+		btVector3 basePosition_origen = btVector3(-0.4f, 4.f, 0.f);
+		btTransform baseWorldTrans_origen;
+		baseWorldTrans_origen.setIdentity();
+		baseWorldTrans_origen.setOrigin(basePosition_origen);
+
+
 		//init the base
 		btVector3 baseInertiaDiag(0.f, 0.f, 0.f);
 		float baseMass = 0.f;
@@ -243,14 +249,20 @@ void BodyEnviromentTest::initPhysics()
 		btCollisionShape* linkBox2 = new btCapsuleShape(Capsule_Radius, Capsule_Width);
 		btSphereShape* linkSphere = new btSphereShape(radius);
 
-		btRigidBody* prevBody = base;
+		btRigidBody* prevBody = base;	
+
+		btQuaternion orn[3];
+		orn[0] =  btQuaternion(btVector3(1, 0, 0), 0.25*3.1415926538);
+		orn[1] =  btQuaternion(btVector3(1, 0, 0), 0.75*3.1415926538);
+		orn[2] =  btQuaternion(btVector3(1, 0, 0), 0.25*3.1415926538);
 
 		for (int i = 0; i<numLinks; i++)
 		{
 			btTransform linkTrans;
-			linkTrans = baseWorldTrans;
-
-			linkTrans.setOrigin(basePosition - btVector3(0, linkHalfExtents[1] * 2.f*(i + 1), 0));
+			linkTrans = baseWorldTrans_origen;
+			
+			linkTrans.setOrigin(basePosition_origen - btVector3(0, linkHalfExtents[1] * 2.f*(i + 1), 0));
+			linkTrans.setRotation(orn[i]);
 
 			btCollisionShape* colOb = 0;
 
