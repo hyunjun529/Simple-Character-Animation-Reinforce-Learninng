@@ -158,7 +158,7 @@ lab1Example2::lab1Example2(struct GUIHelperInterface* helper)
 	// h529 : 기억을 재생함, pool로 사용 중
 	rl_.num_exp_replay_ = 0;
 	// h529 : 현재 총 4개
-	rl_.num_state_variables_ = 7;
+	rl_.num_state_variables_ = 4;
 	// h529 : 행동할 수 있는 Action의 개수, 현재 총 9개
 	rl_.num_game_actions_ = 9;
 
@@ -349,19 +349,19 @@ void lab1Example2::stepSimulation(float deltaTime)
 	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 151);
 	float weight_fist_vel = (1 - (Fist_velocity / 60));
 	float weightDistance_x = (1 - ((F2T_distance_ * cos(F2T_angle_ * M_PI / 180)) / 2.f));
-	float reward_ = weightDistance * weightAngle * weight_eb_Angle;
+	float reward_ = weightDistance_x;
 
 	// record validation 
 	chkForceReset = false;
 	if (weightDistance < 0.55f) {
-		reward_ = 0.f;
+		reward_ = 0.001f;
 		chkForceReset = true;
 	}
 
 	// set state VectorND
 	VectorND<float> state_;
 	state_.initialize(rl_.num_state_variables_, true);
-	
+	/*
 	state_[0] = sd_angle_;
 	state_[1] = sd_angular_velocity;
 	state_[2] = eb_angle_;
@@ -369,14 +369,14 @@ void lab1Example2::stepSimulation(float deltaTime)
 	state_[4] = F2T_distance_;
 	state_[5] = F2T_angle_;
 	state_[6] = Fist_velocity;
+	*/
 	
-	/*
 	state_[0] = sd_angle_;
 	state_[1] = eb_angle_;
 	state_[2] = F2T_distance_;
 	state_[3] = F2T_angle_;
 	//state_[4] = Fist_velocity;
-	*/
+	
 
 	// Print current state
 	if (chkPrinting) {
@@ -416,9 +416,9 @@ void lab1Example2::stepSimulation(float deltaTime)
 		//std::cout << std::fixed << "weight_sd_angle : " << weight_sd_Angle << "\t";
 		std::cout << std::fixed << "weight_eb_angle : " << weight_eb_Angle << "\t";
 		//std::cout << std::fixed << "weight_Fist_vel : " << weight_fist_vel << "\t";
-		std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
-		std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
-		//std::cout << std::fixed << "weight_F2T_Distance_x : " << weightDistance_x << "\t";
+		//std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
+		//std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
+		std::cout << std::fixed << "weight_F2T_Distance_x : " << weightDistance_x << "\t";
 		
 		std::cout << std::fixed << "reward : " << reward_ << "\t";
 		std::cout << std::fixed << "current_step : " << cntStep << "\t";
