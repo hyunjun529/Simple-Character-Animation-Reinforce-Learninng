@@ -341,13 +341,13 @@ void lab1Example2::stepSimulation(float deltaTime)
 	}
 
 	// calc Reward
-	float weightStepEarly = (1 - ((float)cntStep / ((float)maxStep * 1.25f)));
-	float weightDistance = (1 - (F2T_distance_ / 2.5f));
+	float weightStepEarly = (1 - ((float)cntStep / (((float)maxStep + (float)initStep ) * 1.25f)));
+	float weightDistance = (1 - (F2T_distance_ / 1.5f));
 	float weightAngle = (abs(F2T_angle_) * 2.0f);
 	float weight_sd_Angle = (1 - ((abs(sd_angle_ * 180 - 90))) / 150);
 	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 150);
 	float weight_fist_vel = (1 - (Fist_velocity / 60));
-	float reward_ = weightDistance * weightAngle * weight_sd_Angle * weight_eb_Angle;
+	float reward_ = weightDistance * weightAngle * weight_eb_Angle * weight_fist_vel;
 
 	// set state VectorND
 	VectorND<float> state_;
@@ -366,13 +366,13 @@ void lab1Example2::stepSimulation(float deltaTime)
 		//std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
 		//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
 		
-		std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
-		std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
-		std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
+		//std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
+		//std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
+		//std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
 		
-		//std::cout << std::fixed << "weight_Fist_vel : " << weight_fist_vel << "\t";
-		//std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
-		//std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
+		std::cout << std::fixed << "weight_Fist_vel : " << weight_fist_vel << "\t";
+		std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
+		std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
 		
 		std::cout << std::fixed << "reward : " << reward_ << "\t";
 		std::cout << std::fixed << "current_step : " << cntStep << "\t";
