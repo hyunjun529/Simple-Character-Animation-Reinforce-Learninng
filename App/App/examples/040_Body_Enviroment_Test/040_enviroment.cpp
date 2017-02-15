@@ -254,14 +254,14 @@ void BodyEnviromentTest::initPhysics()
 		btQuaternion orn[3];
 		orn[0] =  btQuaternion(btVector3(1, 0, 0), 0.25*3.1415926538);
 		orn[1] =  btQuaternion(btVector3(1, 0, 0), 0.75*3.1415926538);
-		orn[2] =  btQuaternion(btVector3(1, 0, 0), 0.25*3.1415926538);
+		orn[2] =  btQuaternion(btVector3(1, 0, 0), 0);
 
 		for (int i = 0; i<numLinks; i++)
 		{
 			btTransform linkTrans;
 			linkTrans = baseWorldTrans_origen;
 			
-			linkTrans.setOrigin(basePosition_origen - btVector3(0, linkHalfExtents[1] * 2.f*(i + 1), 0));
+			linkTrans.setOrigin(basePosition_origen - btVector3(0, linkHalfExtents[1] * 2.f*(i/4 + 1)-0.1,i*0.5+0.2));
 			linkTrans.setRotation(orn[i]);
 
 			btCollisionShape* colOb = 0;
@@ -351,7 +351,7 @@ void BodyEnviromentTest::initPhysics()
 		box->initializePolyhedralFeatures();
 
 		btTransform start; start.setIdentity();
-		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.25f);
+		groundOrigin_target = btVector3(-0.4f, 4.0f, -1.5f);
 
 		start.setOrigin(groundOrigin_target);
 		body = createRigidBody(0, start, box);
