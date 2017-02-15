@@ -157,8 +157,8 @@ lab1Example2::lab1Example2(struct GUIHelperInterface* helper)
 	rl_.num_input_histories_ = 1;
 	// h529 : 기억을 재생함, pool로 사용 중
 	rl_.num_exp_replay_ = 0;
-	// h529 : 현재 총 7개
-	rl_.num_state_variables_ = 5;
+	// h529 : 현재 총 4개
+	rl_.num_state_variables_ = 7;
 	// h529 : 행동할 수 있는 Action의 개수, 현재 총 9개
 	rl_.num_game_actions_ = 9;
 
@@ -348,7 +348,7 @@ void lab1Example2::stepSimulation(float deltaTime)
 	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 151) / 4.f;
 	float weight_fist_vel = (1 - (Fist_velocity / 60));
 	float weightDistance_x = (1 - ((F2T_distance_ * cos(F2T_angle_ * M_PI / 180)) / 2.f));
-	float reward_ = weightDistance_x * weightDistance;
+	float reward_ = weightDistance * weightAngle * weight_eb_Angle * weight_sd_Angle;
 
 	// record validation 
 	chkForceReset = false;
@@ -360,7 +360,7 @@ void lab1Example2::stepSimulation(float deltaTime)
 	// set state VectorND
 	VectorND<float> state_;
 	state_.initialize(rl_.num_state_variables_, true);
-	/*
+	
 	state_[0] = sd_angle_;
 	state_[1] = sd_angular_velocity;
 	state_[2] = eb_angle_;
@@ -368,12 +368,14 @@ void lab1Example2::stepSimulation(float deltaTime)
 	state_[4] = F2T_distance_;
 	state_[5] = F2T_angle_;
 	state_[6] = Fist_velocity;
-	*/
+	
+	/*
 	state_[0] = sd_angle_;
 	state_[1] = eb_angle_;
 	state_[2] = F2T_distance_;
 	state_[3] = F2T_angle_;
-	state_[4] = Fist_velocity;
+	//state_[4] = Fist_velocity;
+	*/
 
 	// Print current state
 	if (chkPrinting) {
@@ -403,8 +405,8 @@ void lab1Example2::stepSimulation(float deltaTime)
 
 		std::cout << std::fixed << "\t";
 
-		std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
-		std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
+		//std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
+		//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
 		
 		std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
 		std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
@@ -413,9 +415,9 @@ void lab1Example2::stepSimulation(float deltaTime)
 		//std::cout << std::fixed << "weight_sd_angle : " << weight_sd_Angle << "\t";
 		//std::cout << std::fixed << "weight_eb_angle : " << weight_eb_Angle << "\t";
 		//std::cout << std::fixed << "weight_Fist_vel : " << weight_fist_vel << "\t";
-		std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
-		std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
-		std::cout << std::fixed << "weight_F2T_Distance_x : " << weightDistance_x << "\t";
+		//std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
+		//std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
+		//std::cout << std::fixed << "weight_F2T_Distance_x : " << weightDistance_x << "\t";
 		
 		std::cout << std::fixed << "reward : " << reward_ << "\t";
 		std::cout << std::fixed << "current_step : " << cntStep << "\t";
@@ -672,7 +674,8 @@ void lab1Example2::initPhysics()
 	// Target Position
 	btSphereShape* linkSphere_1 = new btSphereShape(radius);
 	btTransform start; start.setIdentity();
-	groundOrigin_target = btVector3(-0.4f, target_height[selected_target], -1.6f);
+	//groundOrigin_target = btVector3(-0.4f, target_height[selected_target], -1.6f);
+	groundOrigin_target = btVector3(-0.4f, target_height[5], -1.6f);
 	start.setOrigin(groundOrigin_target);
 	body = createRigidBody(0, start, linkSphere_1);
 	body->setFriction(0);
