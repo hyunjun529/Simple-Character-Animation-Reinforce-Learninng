@@ -60,6 +60,7 @@ struct lab1Example2 : public CommonRigidBodyBase
 	int cntStep;
 	bool chkStudying;
 	bool chkPrinting;
+	bool chkForceReset;
 
 
 	lab1Example2(struct GUIHelperInterface* helper);
@@ -157,7 +158,7 @@ lab1Example2::lab1Example2(struct GUIHelperInterface* helper)
 	// h529 : 기억을 재생함, pool로 사용 중
 	rl_.num_exp_replay_ = 0;
 	// h529 : 현재 총 7개
-	rl_.num_state_variables_ = 7;
+	rl_.num_state_variables_ = 4;
 	// h529 : 행동할 수 있는 Action의 개수, 현재 총 9개
 	rl_.num_game_actions_ = 9;
 
@@ -231,7 +232,6 @@ void lab1Example2::stepSimulation(float deltaTime)
 	int action_ = rl_.nn_.getOutputIXEpsilonGreedy(dice);
 
 	switch (action_) {
-
 	case ACTION_SD_UP_EB_UP:
 	{
 		moveSdAngleUp(hinge_shoulder);
@@ -342,17 +342,28 @@ void lab1Example2::stepSimulation(float deltaTime)
 
 	// calc Reward
 	float weightStepEarly = (1 - ((float)cntStep / (((float)maxStep + (float)initStep ) * 1.25f)));
-	float weightDistance = (1 - (F2T_distance_ / 1.5f));
+	float weightDistance = (1 - (F2T_distance_ / 2.5f));
 	float weightAngle = (abs(F2T_angle_) * 2.0f);
 	float weight_sd_Angle = (1 - ((abs(sd_angle_ * 180 - 90))) / 150);
 	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 150);
 	float weight_fist_vel = (1 - (Fist_velocity / 60));
 	float weightDistance_x = (1 - ((F2T_distance_ * cos(F2T_angle_ * M_PI / 180)) / 2.f));
-	float reward_ = weightDistance_x + weightDistance * weightAngle;
+	float reward_ = weightDistance * weightAngle;
+
+	// record validation 
+	chkForceReset = false;
+	if (weightDistance < 0.4f) {
+		reward_ = 0.f;
+		chkForceReset = true;
+	}
+	else if (weightDistance < 0.6f) {
+		reward_ /= 2.f;
+	}
 
 	// set state VectorND
 	VectorND<float> state_;
 	state_.initialize(rl_.num_state_variables_, true);
+	/*
 	state_[0] = sd_angle_;
 	state_[1] = sd_angular_velocity;
 	state_[2] = eb_angle_;
@@ -360,22 +371,53 @@ void lab1Example2::stepSimulation(float deltaTime)
 	state_[4] = F2T_distance_;
 	state_[5] = F2T_angle_;
 	state_[6] = Fist_velocity;
+	*/
+	state_[0] = sd_angle_;
+	state_[1] = eb_angle_;
+	state_[2] = F2T_distance_;
+	state_[3] = F2T_angle_;
+	//state_[4] = Fist_velocity;
 
 	// Print current state
 	if (chkPrinting) {
-		std::cout << std::fixed << "selcted_action : " << action_ << "\t";
+		std::cout << std::fixed << "selcted_action : " << action_ << ", ";
+
+		// shoulder
+		if (action_ < 3) {
+			std::cout << "SD_UP, ";
+		}
+		else if (action_ < 6) {
+			std::cout << "SD_DN, ";
+		}
+		else if (action_ < 9) {
+			std::cout << "SD_ST, ";
+		}
+		
+		// elbow
+		if (action_ % 3 == 0) {
+			std::cout << "EB_UP, ";
+		}
+		else if (action_ % 3 == 1) {
+			std::cout << "EB_DN, ";
+		}
+		else if (action_ % 3 == 2) {
+			std::cout << "EB_ST, ";
+		}
+
+		std::cout << std::fixed << "\t";
+
 		std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
 		std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
 		
 		std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
 		std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
-		std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
+		//std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
 		
 		//std::cout << std::fixed << "weight_eb_angle : " << weight_eb_Angle << "\t";
 		//std::cout << std::fixed << "weight_Fist_vel : " << weight_fist_vel << "\t";
 		std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
 		std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
-		std::cout << std::fixed << "weight_F2T_Distance_x : " << weightDistance_x << "\t";
+		//std::cout << std::fixed << "weight_F2T_Distance_x : " << weightDistance_x << "\t";
 		
 		std::cout << std::fixed << "reward : " << reward_ << "\t";
 		std::cout << std::fixed << "current_step : " << cntStep << "\t";
@@ -395,7 +437,7 @@ void lab1Example2::stepSimulation(float deltaTime)
 	* start Training
 	*********************************************************************************************/
 
-	if ((chkCollision || cntStep > maxStep) && chkStudying) {
+	if ((chkCollision || cntStep > maxStep || chkForceReset) && chkStudying) {
 
 		// logging
 		lg_.fout << sd_angle_ << ", " << eb_angle_ << ", " << F2T_angle_ << ", " << F2T_distance_ << ", " << selected_target << ", " << reward_ << ", " << cntStep << std::endl;
