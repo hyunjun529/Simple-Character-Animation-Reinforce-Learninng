@@ -43,6 +43,12 @@
     <ClCompile Include="examples\051_lab1_F2TAD_Angle\051_enviroment.cpp">
       <Filter>source\051</Filter>
     </ClCompile>
+    <ClCompile Include="examples\052_lab1_Second\052_enviroment.cpp">
+      <Filter>source\052</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\053_lab1_Third\053_enviroment.cpp">
+      <Filter>source\053</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonEnviroment.h">
@@ -195,6 +201,42 @@
     <ClInclude Include="examples\051_lab1_F2TAD_Angle\Targets.h">
       <Filter>source\051</Filter>
     </ClInclude>
+    <ClInclude Include="examples\052_lab1_Second\052_enviroment.h">
+      <Filter>source\052</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\052_lab1_Second\ActionMemory.h">
+      <Filter>source\052</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\052_lab1_Second\Actions.h">
+      <Filter>source\052</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\052_lab1_Second\Lab1ReinforcementLearning.h">
+      <Filter>source\052</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\052_lab1_Second\Logger.h">
+      <Filter>source\052</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\052_lab1_Second\Targets.h">
+      <Filter>source\052</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\053_lab1_Third\053_enviroment.h">
+      <Filter>source\053</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\053_lab1_Third\ActionMemory.h">
+      <Filter>source\053</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\053_lab1_Third\Actions.h">
+      <Filter>source\053</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\053_lab1_Third\Lab1ReinforcementLearning.h">
+      <Filter>source\053</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\053_lab1_Third\Logger.h">
+      <Filter>source\053</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\053_lab1_Third\Targets.h">
+      <Filter>source\053</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
@@ -241,6 +283,12 @@
     </Filter>
     <Filter Include="source\051">
       <UniqueIdentifier>{4e4d7597-1341-45bf-8e1a-8b23ecf2016b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\052">
+      <UniqueIdentifier>{a2119fe8-4fa0-490c-a367-3460ab87f13a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\053">
+      <UniqueIdentifier>{df585ca0-2fb9-400a-895f-af989eacb2bd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

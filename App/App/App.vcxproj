@@ -161,6 +161,8 @@
     <ClCompile Include="examples\040_Body_Enviroment_Test\040_enviroment.cpp" />
     <ClCompile Include="examples\050_lab1_Enviroment\050_enviroment.cpp" />
     <ClCompile Include="examples\051_lab1_F2TAD_Angle\051_enviroment.cpp" />
+    <ClCompile Include="examples\052_lab1_Second\052_enviroment.cpp" />
+    <ClCompile Include="examples\053_lab1_Third\053_enviroment.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -213,6 +215,18 @@
     <ClInclude Include="examples\051_lab1_F2TAD_Angle\Lab1ReinforcementLearning.h" />
     <ClInclude Include="examples\051_lab1_F2TAD_Angle\Logger.h" />
     <ClInclude Include="examples\051_lab1_F2TAD_Angle\Targets.h" />
+    <ClInclude Include="examples\052_lab1_Second\052_enviroment.h" />
+    <ClInclude Include="examples\052_lab1_Second\ActionMemory.h" />
+    <ClInclude Include="examples\052_lab1_Second\Actions.h" />
+    <ClInclude Include="examples\052_lab1_Second\Lab1ReinforcementLearning.h" />
+    <ClInclude Include="examples\052_lab1_Second\Logger.h" />
+    <ClInclude Include="examples\052_lab1_Second\Targets.h" />
+    <ClInclude Include="examples\053_lab1_Third\053_enviroment.h" />
+    <ClInclude Include="examples\053_lab1_Third\ActionMemory.h" />
+    <ClInclude Include="examples\053_lab1_Third\Actions.h" />
+    <ClInclude Include="examples\053_lab1_Third\Lab1ReinforcementLearning.h" />
+    <ClInclude Include="examples\053_lab1_Third\Logger.h" />
+    <ClInclude Include="examples\053_lab1_Third\Targets.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
