@@ -343,12 +343,13 @@ void lab1Example2::stepSimulation(float deltaTime)
 	// calc Reward
 	float weightStepEarly = (1 - ((float)cntStep / (((float)maxStep + (float)initStep ) * 1.25f)));
 	float weightDistance = (1 - (F2T_distance_ / 2.5f));
-	float weightAngle = abs(F2T_angle_);
+	//float weightAngle = abs(F2T_angle_);
+	float weightAngle = (abs(F2T_angle_) * 2.0f);
 	float weight_sd_Angle = (1 - ((abs(sd_angle_ * 180 - 90))) / 150);
-	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 151) / 4.f;
+	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 151);
 	float weight_fist_vel = (1 - (Fist_velocity / 60));
 	float weightDistance_x = (1 - ((F2T_distance_ * cos(F2T_angle_ * M_PI / 180)) / 2.f));
-	float reward_ = weightDistance * weightAngle * weight_eb_Angle * weight_sd_Angle;
+	float reward_ = weightDistance * weightAngle * weight_eb_Angle;
 
 	// record validation 
 	chkForceReset = false;
@@ -405,18 +406,18 @@ void lab1Example2::stepSimulation(float deltaTime)
 
 		std::cout << std::fixed << "\t";
 
-		//std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
-		//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
+		std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
+		std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
 		
 		std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
 		std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
-		//std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
+		std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
 		
 		//std::cout << std::fixed << "weight_sd_angle : " << weight_sd_Angle << "\t";
-		//std::cout << std::fixed << "weight_eb_angle : " << weight_eb_Angle << "\t";
+		std::cout << std::fixed << "weight_eb_angle : " << weight_eb_Angle << "\t";
 		//std::cout << std::fixed << "weight_Fist_vel : " << weight_fist_vel << "\t";
-		//std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
-		//std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
+		std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
+		std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
 		//std::cout << std::fixed << "weight_F2T_Distance_x : " << weightDistance_x << "\t";
 		
 		std::cout << std::fixed << "reward : " << reward_ << "\t";
