@@ -54,7 +54,7 @@ struct lab1Example1 : public CommonRigidBodyBase
 
 	Logger lg_;
 
-	const int maxStep = 500;
+	const int maxStep = 1000;
 	int cntStep;
 	bool chkStudying;
 	bool chkPrinting;
@@ -85,11 +85,11 @@ struct lab1Example1 : public CommonRigidBodyBase
 	}
 
 	void moveEbAngleUp(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.285f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 		target->enableAngularMotor(true, 6.0, 4000.f);
 	}
 	void moveEbAngleDown(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.285f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
 	void moveEbAngleStay(btHingeConstraint *target) {
@@ -97,11 +97,11 @@ struct lab1Example1 : public CommonRigidBodyBase
 	}
 
 	void moveSdAngleUp(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 		target->enableAngularMotor(true, 6.0, 4000.f);
 	}
 	void moveSdAngleDown(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
 	void moveSdAngleStay(btHingeConstraint *target) {
@@ -155,7 +155,7 @@ lab1Example1::lab1Example1(struct GUIHelperInterface* helper)
 	// h529 : 기억을 재생함, pool로 사용 중
 	rl_.num_exp_replay_ = 0;
 	// h529 : 현재 총 7개
-	rl_.num_state_variables_ = 5;
+	rl_.num_state_variables_ = 7;
 	// h529 : 행동할 수 있는 Action의 개수, 현재 총 6개
 	rl_.num_game_actions_ = 6;
 
@@ -221,30 +221,36 @@ void lab1Example1::stepSimulation(float deltaTime)
 	case ACTION_SHOULDER_UP:
 	{
 		moveSdAngleUp(hinge_shoulder);
+		moveEbAngleStay(hinge_elbow);
 		break;
 	}
 	case ACTION_SHOULDER_DOWN:
 	{
 		moveSdAngleDown(hinge_shoulder);
+		moveEbAngleStay(hinge_elbow);
 		break;
 	}
 	case ACTION_SHOULDER_STAY:
 	{
 		moveSdAngleStay(hinge_shoulder);
+		moveEbAngleStay(hinge_elbow);
 		break;
 	}
 	case ACTION_ELBOW_UP:
 	{
+		moveSdAngleStay(hinge_shoulder);
 		moveEbAngleUp(hinge_elbow);
 		break;
 	}
 	case ACTION_ELBOW_DOWN:
 	{
+		moveSdAngleStay(hinge_shoulder);
 		moveEbAngleDown(hinge_elbow);
 		break;
 	}
 	case ACTION_ELBOW_STAY:
 	{
+		moveSdAngleStay(hinge_shoulder);
 		moveEbAngleStay(hinge_elbow);
 		break;
 	}
@@ -262,7 +268,7 @@ void lab1Example1::stepSimulation(float deltaTime)
 
 	// get about Fist to Target
 	F2T_distance_ = getF2TDistance();
-	F2T_angle_ = getF2TAngle();
+	F2T_angle_ = getF2TAngle() / 180;
 
 	// get Fist Velocity
 	Fist_velocity = getFistVelocity();
@@ -305,21 +311,15 @@ void lab1Example1::stepSimulation(float deltaTime)
 	// calc Reward
 	float weightStepEarly = (1 - ((float)cntStep / ((float)maxStep * 1.25f)));
 	float weightDistance = (1 - (F2T_distance_ / 2.5f));
-	float weightAngle = (abs(F2T_angle_ / 180) * 2.0f);
+	float weightAngle = (abs(F2T_angle_) * 2.0f);
 	float weight_sd_Angle = (1 - ((abs(sd_angle_ * 180 - 90))) / 140);
 	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 120);
 	float weight_fist_vel = (1 - (Fist_velocity / 40));
-	float reward_ = (weightDistance + weightAngle) * weight_fist_vel;
+	float reward_ = weightDistance * 2 + weightAngle + weight_fist_vel;
 
 	// set state VectorND
 	VectorND<float> state_;
 	state_.initialize(rl_.num_state_variables_, true);
-	state_[0] = sd_angle_;
-	state_[1] = eb_angle_;
-	state_[2] = F2T_distance_;
-	state_[3] = F2T_angle_;
-	state_[4] = Fist_velocity;
-	/*
 	state_[0] = sd_angle_;
 	state_[1] = sd_angular_velocity;
 	state_[2] = eb_angle_;
@@ -327,21 +327,24 @@ void lab1Example1::stepSimulation(float deltaTime)
 	state_[4] = F2T_distance_;
 	state_[5] = F2T_angle_;
 	state_[6] = Fist_velocity;
-	*/
 
 	// Print current state
 	if (chkPrinting) {
 		std::cout << std::fixed << "selcted_action : " << action_ << "\t";
 		//std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
 		//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
-		//std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
+		
+		//std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
+		//std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
 		//std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
-		std::cout << std::fixed << "weight_Fist_vel : " << weight_fist_vel << "\t";
+		
+		//std::cout << std::fixed << "weight_Fist_vel : " << weight_fist_vel << "\t";
 		std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
 		std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
+		
 		std::cout << std::fixed << "reward : " << reward_ << "\t";
 		std::cout << std::fixed << "current_step : " << cntStep << "\t";
-		if (chkCollision) std::cout << "\tCollision !!!!!!!!!!!!";
+		if (chkCollision) std::cout << "Collision !!!!!!!!!!!!\t";
 		std::cout << std::endl;
 	}
 
@@ -532,7 +535,7 @@ void lab1Example1::initPhysics()
 			hinge_shoulder = new btHingeConstraint(*prevBody, *linkBody[i],
 				pivotInA, pivotInB,
 				axisInA, axisInB, useReferenceA);
-			hinge_shoulder->setLimit(M_PI / 0.48f, M_PI / 0.48f);
+			hinge_shoulder->setLimit(0.0f, 0.0f);
 			m_dynamicsWorld->addConstraint(hinge_shoulder, true);
 			con = hinge_shoulder;
 		}
@@ -547,7 +550,7 @@ void lab1Example1::initPhysics()
 			hinge_elbow = new btHingeConstraint(*prevBody, *linkBody[i],
 				pivotInA, pivotInB,
 				axisInA, axisInB, useReferenceA);
-			hinge_elbow->setLimit(M_PI / 1.3f, M_PI / 1.3f);
+			hinge_elbow->setLimit(0.0f, 0.0f);
 			m_dynamicsWorld->addConstraint(hinge_elbow, true);
 			con = hinge_elbow;
 		}
