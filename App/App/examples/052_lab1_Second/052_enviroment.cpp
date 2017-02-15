@@ -158,7 +158,7 @@ lab1Example2::lab1Example2(struct GUIHelperInterface* helper)
 	// h529 : 기억을 재생함, pool로 사용 중
 	rl_.num_exp_replay_ = 0;
 	// h529 : 현재 총 7개
-	rl_.num_state_variables_ = 4;
+	rl_.num_state_variables_ = 5;
 	// h529 : 행동할 수 있는 Action의 개수, 현재 총 9개
 	rl_.num_game_actions_ = 9;
 
@@ -166,7 +166,7 @@ lab1Example2::lab1Example2(struct GUIHelperInterface* helper)
 
 	for (int h = 0; h < rl_.num_input_histories_; h++)
 	{
-		rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 2, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
+		rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 0, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
 	}
 
 	/********************************************************************************************
@@ -348,11 +348,11 @@ void lab1Example2::stepSimulation(float deltaTime)
 	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 151) / 4.f;
 	float weight_fist_vel = (1 - (Fist_velocity / 60));
 	float weightDistance_x = (1 - ((F2T_distance_ * cos(F2T_angle_ * M_PI / 180)) / 2.f));
-	float reward_ = weightDistance_x * weightDistance * weightAngle;
+	float reward_ = weightDistance_x * weightDistance;
 
 	// record validation 
 	chkForceReset = false;
-	if (weightDistance < 0.6f) {
+	if (weightDistance < 0.55f) {
 		reward_ = 0.f;
 		chkForceReset = true;
 	}
@@ -373,7 +373,7 @@ void lab1Example2::stepSimulation(float deltaTime)
 	state_[1] = eb_angle_;
 	state_[2] = F2T_distance_;
 	state_[3] = F2T_angle_;
-	//state_[4] = Fist_velocity;
+	state_[4] = Fist_velocity;
 
 	// Print current state
 	if (chkPrinting) {
@@ -492,7 +492,7 @@ void lab1Example2::stepSimulation(float deltaTime)
 		// is really need?
 		for (int h = 0; h < rl_.num_input_histories_; h++)
 		{
-			rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 2, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
+			rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 0, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
 		}
 		cntStep = 0;
 
@@ -506,7 +506,7 @@ void lab1Example2::stepSimulation(float deltaTime)
 		// is really need?
 		for (int h = 0; h < rl_.num_input_histories_; h++)
 		{
-			rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 2, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
+			rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 0, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
 		}
 
 		cntStep = 0;
