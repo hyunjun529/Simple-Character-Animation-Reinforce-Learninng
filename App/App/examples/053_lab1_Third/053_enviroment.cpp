@@ -55,7 +55,8 @@ struct lab1Example3 : public CommonRigidBodyBase
 
 	Logger lg_;
 
-	const int maxStep = 500;
+	const int initStep = 100;
+	const int maxStep = 500 + initStep;
 	int cntStep;
 	bool chkStudying;
 	bool chkPrinting;
@@ -204,6 +205,17 @@ void lab1Example3::lockLiftHinge(btHingeConstraint* hinge)
 
 void lab1Example3::stepSimulation(float deltaTime)
 {
+	if (cntStep < initStep) {
+
+		cntStep++;
+
+		m_dynamicsWorld->stepSimulation(1. / 240, 0);
+
+		static int count = 0;
+
+		return;
+	}
+
 	/********************************************************************************************
 	* start set Action
 	*********************************************************************************************/
@@ -301,7 +313,7 @@ void lab1Example3::stepSimulation(float deltaTime)
 	eb_angle_ = getEbAngle() / 180;
 	eb_angular_velocity = getEbAngularVelocity();
 
-	
+
 	//collison check
 	bool chkCollision = false;
 	int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
@@ -353,15 +365,15 @@ void lab1Example3::stepSimulation(float deltaTime)
 		std::cout << std::fixed << "selcted_action : " << action_ << "\t";
 		//std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
 		//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
-		
+
 		std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
 		std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
 		std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
-		
+
 		//std::cout << std::fixed << "weight_Fist_vel : " << weight_fist_vel << "\t";
 		//std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
 		//std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
-		
+
 		std::cout << std::fixed << "reward : " << reward_ << "\t";
 		std::cout << std::fixed << "current_step : " << cntStep << "\t";
 		if (chkCollision) std::cout << "Collision !!!!!!!!!!!!\t";
@@ -500,6 +512,11 @@ void lab1Example3::initPhysics()
 	baseWorldTrans.setIdentity();
 	baseWorldTrans.setOrigin(basePosition);
 
+	btVector3 basePosition_origen = btVector3(-0.4f, 4.f, 0.f);
+	btTransform baseWorldTrans_origen;
+	baseWorldTrans_origen.setIdentity();
+	baseWorldTrans_origen.setOrigin(basePosition_origen);
+
 	//init the base
 	btVector3 baseInertiaDiag(0.f, 0.f, 0.f);
 	float baseMass = 0.f;
@@ -509,19 +526,28 @@ void lab1Example3::initPhysics()
 	m_dynamicsWorld->removeRigidBody(base);
 	base->setDamping(0, 0);
 	m_dynamicsWorld->addRigidBody(base, collisionFilterGroup, collisionFilterMask);
-		
+
+	/*	btBoxShape* linkBox1 = new btBoxShape(linkHalfExtents);
+	btBoxShape* linkBox2 = new btBoxShape(linkHalfExtents);*/
+
 	btCollisionShape* linkBox1 = new btCapsuleShape(Capsule_Radius, Capsule_Width);
 	btCollisionShape* linkBox2 = new btCapsuleShape(Capsule_Radius, Capsule_Width);
 	btSphereShape* linkSphere = new btSphereShape(radius);
 
 	btRigidBody* prevBody = base;
 
+	btQuaternion orn[3];
+	orn[0] = btQuaternion(btVector3(1, 0, 0), 0.25*3.1415926538);
+	orn[1] = btQuaternion(btVector3(1, 0, 0), 0.75*3.1415926538);
+	orn[2] = btQuaternion(btVector3(1, 0, 0), 0.25*3.1415926538);
+
 	for (int i = 0; i<numLinks; i++)
 	{
 		btTransform linkTrans;
-		linkTrans = baseWorldTrans;
+		linkTrans = baseWorldTrans_origen;
 
-		linkTrans.setOrigin(basePosition - btVector3(0, linkHalfExtents[1] * 2.f*(i + 1), 0));
+		linkTrans.setOrigin(basePosition_origen - btVector3(0, linkHalfExtents[1] * 2.f*(i + 1), 0));
+		linkTrans.setRotation(orn[i]);
 
 		btCollisionShape* colOb = 0;
 
@@ -555,7 +581,7 @@ void lab1Example3::initPhysics()
 			hinge_shoulder = new btHingeConstraint(*prevBody, *linkBody[i],
 				pivotInA, pivotInB,
 				axisInA, axisInB, useReferenceA);
-			hinge_shoulder->setLimit(0.0f, 0.0f);
+			hinge_shoulder->setLimit(M_PI / 0.24f, M_PI / 0.24f);
 			m_dynamicsWorld->addConstraint(hinge_shoulder, true);
 			con = hinge_shoulder;
 		}
@@ -570,7 +596,7 @@ void lab1Example3::initPhysics()
 			hinge_elbow = new btHingeConstraint(*prevBody, *linkBody[i],
 				pivotInA, pivotInB,
 				axisInA, axisInB, useReferenceA);
-			hinge_elbow->setLimit(0.0f, 0.0f);
+			hinge_elbow->setLimit(M_PI / 1.92f, M_PI / 1.92f);
 			m_dynamicsWorld->addConstraint(hinge_elbow, true);
 			con = hinge_elbow;
 		}
