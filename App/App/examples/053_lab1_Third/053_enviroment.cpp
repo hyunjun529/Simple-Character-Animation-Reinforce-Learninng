@@ -546,7 +546,7 @@ void lab1Example3::initPhysics()
 		btTransform linkTrans;
 		linkTrans = baseWorldTrans_origen;
 
-		linkTrans.setOrigin(basePosition_origen - btVector3(0, linkHalfExtents[1] * 2.f*(i + 1), 0));
+		linkTrans.setOrigin(basePosition_origen - btVector3(0, linkHalfExtents[1] * 2.f*(i / 4 + 1) - 0.1, i*0.5 + 0.2));
 		linkTrans.setRotation(orn[i]);
 
 		btCollisionShape* colOb = 0;
