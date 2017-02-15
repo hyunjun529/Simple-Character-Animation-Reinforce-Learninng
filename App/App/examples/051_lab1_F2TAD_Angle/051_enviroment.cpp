@@ -41,6 +41,7 @@ struct lab1Example1 : public CommonRigidBodyBase
 	};
 
 	float Fist_velocity;
+
 	float F2T_distance_;
 	float F2T_angle_;
 
@@ -54,7 +55,7 @@ struct lab1Example1 : public CommonRigidBodyBase
 
 	Logger lg_;
 
-	const int maxStep = 1000;
+	const int maxStep = 500;
 	int cntStep;
 	bool chkStudying;
 	bool chkPrinting;
@@ -156,8 +157,8 @@ lab1Example1::lab1Example1(struct GUIHelperInterface* helper)
 	rl_.num_exp_replay_ = 0;
 	// h529 : 현재 총 7개
 	rl_.num_state_variables_ = 7;
-	// h529 : 행동할 수 있는 Action의 개수, 현재 총 6개
-	rl_.num_game_actions_ = 6;
+	// h529 : 행동할 수 있는 Action의 개수, 현재 총 9개
+	rl_.num_game_actions_ = 9;
 
 	rl_.initialize();
 
@@ -218,37 +219,56 @@ void lab1Example1::stepSimulation(float deltaTime)
 	int action_ = rl_.nn_.getOutputIXEpsilonGreedy(dice);
 
 	switch (action_) {
-	case ACTION_SHOULDER_UP:
+
+	case ACTION_SD_UP_EB_UP:
+	{
+		moveSdAngleUp(hinge_shoulder);
+		moveEbAngleUp(hinge_elbow);
+		break;
+	}
+	case ACTION_SD_UP_EB_DN:
+	{
+		moveSdAngleUp(hinge_shoulder);
+		moveEbAngleDown(hinge_elbow);
+		break;
+	}
+	case ACTION_SD_UP_EB_ST:
 	{
 		moveSdAngleUp(hinge_shoulder);
 		moveEbAngleStay(hinge_elbow);
 		break;
 	}
-	case ACTION_SHOULDER_DOWN:
+	case ACTION_SD_DN_EB_UP:
+	{
+		moveSdAngleDown(hinge_shoulder);
+		moveEbAngleUp(hinge_elbow);
+		break;
+	}
+	case ACTION_SD_DN_EB_DN:
+	{
+		moveSdAngleDown(hinge_shoulder);
+		moveEbAngleDown(hinge_elbow);
+		break;
+	}
+	case ACTION_SD_DN_EB_ST:
 	{
 		moveSdAngleDown(hinge_shoulder);
 		moveEbAngleStay(hinge_elbow);
 		break;
 	}
-	case ACTION_SHOULDER_STAY:
-	{
-		moveSdAngleStay(hinge_shoulder);
-		moveEbAngleStay(hinge_elbow);
-		break;
-	}
-	case ACTION_ELBOW_UP:
+	case ACTION_SD_ST_EB_UP:
 	{
 		moveSdAngleStay(hinge_shoulder);
 		moveEbAngleUp(hinge_elbow);
 		break;
 	}
-	case ACTION_ELBOW_DOWN:
+	case ACTION_SD_ST_EB_DN:
 	{
 		moveSdAngleStay(hinge_shoulder);
 		moveEbAngleDown(hinge_elbow);
 		break;
 	}
-	case ACTION_ELBOW_STAY:
+	case ACTION_SD_ST_EB_ST:
 	{
 		moveSdAngleStay(hinge_shoulder);
 		moveEbAngleStay(hinge_elbow);
@@ -312,10 +332,10 @@ void lab1Example1::stepSimulation(float deltaTime)
 	float weightStepEarly = (1 - ((float)cntStep / ((float)maxStep * 1.25f)));
 	float weightDistance = (1 - (F2T_distance_ / 2.5f));
 	float weightAngle = (abs(F2T_angle_) * 2.0f);
-	float weight_sd_Angle = (1 - ((abs(sd_angle_ * 180 - 90))) / 140);
-	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 120);
-	float weight_fist_vel = (1 - (Fist_velocity / 40));
-	float reward_ = weightDistance * 2 + weightAngle + weight_fist_vel;
+	float weight_sd_Angle = (1 - ((abs(sd_angle_ * 180 - 90))) / 150);
+	float weight_eb_Angle = (1 - (eb_angle_ * 180) / 150);
+	float weight_fist_vel = (1 - (Fist_velocity / 60));
+	float reward_ = weightDistance * weightAngle * weight_sd_Angle * weight_eb_Angle;
 
 	// set state VectorND
 	VectorND<float> state_;
@@ -334,13 +354,13 @@ void lab1Example1::stepSimulation(float deltaTime)
 		//std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
 		//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
 		
-		//std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
-		//std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
-		//std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
+		std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
+		std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
+		std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
 		
 		//std::cout << std::fixed << "weight_Fist_vel : " << weight_fist_vel << "\t";
-		std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
-		std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
+		//std::cout << std::fixed << "weight_F2T_Distance : " << weightDistance << "\t";
+		//std::cout << std::fixed << "weight_F2T_angle : " << weightAngle << "\t";
 		
 		std::cout << std::fixed << "reward : " << reward_ << "\t";
 		std::cout << std::fixed << "current_step : " << cntStep << "\t";

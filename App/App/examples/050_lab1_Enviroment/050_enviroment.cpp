@@ -38,7 +38,7 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 		TARGET_5_HEIGHT,
 	};
 
-	float fist_velocity;
+	float Fist_velocity;
 	float F2T_distance_;
 	float F2T_angle_;
 
@@ -73,11 +73,11 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 	}
 
 	void moveEbAngleUp(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.285f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 		target->enableAngularMotor(true, 6.0, 4000.f);
 	}
 	void moveEbAngleDown(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.285f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
 	void moveEbAngleStay(btHingeConstraint *target) {
@@ -85,11 +85,11 @@ struct Lab1Enviroment : public CommonRigidBodyBase
 	}
 
 	void moveSdAngleUp(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 		target->enableAngularMotor(true, 6.0, 4000.f);
 	}
 	void moveSdAngleDown(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.5f);
+		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
 		target->enableAngularMotor(true, -6.0, 4000.f);
 	}
 	void moveSdAngleStay(btHingeConstraint *target) {
@@ -164,17 +164,17 @@ void Lab1Enviroment::stepSimulation(float deltaTime)
 {
 	// get about Fist to Target
 	F2T_distance_ = getF2TDistance();
-	F2T_angle_ = getF2TAngle();
+	F2T_angle_ = getF2TAngle() / 180;
 
 	// get Fist Velocity
-	fist_velocity = getFistVelocity();
+	Fist_velocity = getFistVelocity();
 
 	// get Shoulder states
-	sd_angle_ = getSdAngle();
+	sd_angle_ = getSdAngle() / 180;
 	sd_angular_velocity = getSdAngularVelocity();
 
 	// get Elbow states
-	eb_angle_ = getEbAngle();
+	eb_angle_ = getEbAngle() / 180;
 	eb_angular_velocity = getEbAngularVelocity();
 
 	
@@ -208,8 +208,9 @@ void Lab1Enviroment::stepSimulation(float deltaTime)
 	// Print current state
 	std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
 	std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
-	std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t" << "F2T_dis : " << F2T_distance_ << "\t";
-	std::cout << std::fixed << "fist_vel : " << fist_velocity;
+	std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
+	std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
+	std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
 	if (collisionTarget) std::cout << "\tCollision !!!!!!!!!!!!";
 	std::cout << std::endl;
 
