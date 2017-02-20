@@ -52,8 +52,8 @@ static std::map<std::string, ExampleImporter> getExample = {
 	{ "051", ExampleImporter("051_lab1_F2TAD_Angle", env_051) },
 	{ "052", ExampleImporter("052_lab1_Second", env_052) },
 	{ "053", ExampleImporter("053_lab1_Third", env_053) },
-	{ "200", ExampleImporter("200_LabF_Enviroment_Test", env_200) },
-	{ "201", ExampleImporter("201_LabF_Enviroment_Test", env_201) },
-	{ "202", ExampleImporter("202_LabF_Enviroment_Test", env_202) },
-	{ "203", ExampleImporter("203_LabF_Enviroment_Test", env_203) },
+	{ "200", ExampleImporter("200_LabF_SingleJointShoulder + RandomTarget", env_200) },
+	{ "201", ExampleImporter("201_LabF_SingleJointElbow + RandomTarget", env_201) },
+	{ "202", ExampleImporter("202_LabF_TwoJoint + RandomTarget", env_202) },
+	{ "203", ExampleImporter("203_LabF_TwoJoint with Fixed starting position + Random Target", env_203) },
 };
