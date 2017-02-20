@@ -163,6 +163,7 @@
     <ClCompile Include="examples\051_lab1_F2TAD_Angle\051_enviroment.cpp" />
     <ClCompile Include="examples\052_lab1_Second\052_enviroment.cpp" />
     <ClCompile Include="examples\053_lab1_Third\053_enviroment.cpp" />
+    <ClCompile Include="examples\200_labF_Enviroment_Test\200_enviroment.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -227,6 +228,12 @@
     <ClInclude Include="examples\053_lab1_Third\Lab1ReinforcementLearning.h" />
     <ClInclude Include="examples\053_lab1_Third\Logger.h" />
     <ClInclude Include="examples\053_lab1_Third\Targets.h" />
+    <ClInclude Include="examples\200_labF_Enviroment_Test\200_enviroment.h" />
+    <ClInclude Include="examples\200_labF_Enviroment_Test\ActionMemory.h" />
+    <ClInclude Include="examples\200_labF_Enviroment_Test\Actions.h" />
+    <ClInclude Include="examples\200_labF_Enviroment_Test\Logger.h" />
+    <ClInclude Include="examples\200_labF_Enviroment_Test\RL.h" />
+    <ClInclude Include="examples\200_labF_Enviroment_Test\Targets.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
