@@ -58,6 +58,9 @@
     <ClCompile Include="examples\202_labF_Enviroment_Test_3\202_enviroment.cpp">
       <Filter>source\202</Filter>
     </ClCompile>
+    <ClCompile Include="examples\203_labF_Enviroment_Test_4\203_enviroment.cpp">
+      <Filter>source\203</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonEnviroment.h">
@@ -300,6 +303,24 @@
     <ClInclude Include="examples\202_labF_Enviroment_Test_3\Targets.h">
       <Filter>source\202</Filter>
     </ClInclude>
+    <ClInclude Include="examples\203_labF_Enviroment_Test_4\203_enviroment.h">
+      <Filter>source\203</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\203_labF_Enviroment_Test_4\ActionMemory.h">
+      <Filter>source\203</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\203_labF_Enviroment_Test_4\Actions.h">
+      <Filter>source\203</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\203_labF_Enviroment_Test_4\Logger.h">
+      <Filter>source\203</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\203_labF_Enviroment_Test_4\RL.h">
+      <Filter>source\203</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\203_labF_Enviroment_Test_4\Targets.h">
+      <Filter>source\203</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
@@ -361,6 +382,9 @@
     </Filter>
     <Filter Include="source\202">
       <UniqueIdentifier>{c0c5151b-27b3-48d3-8a74-f49e4ccca5bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\203">
+      <UniqueIdentifier>{63d85463-9619-4ca0-823d-01629ec20375}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
