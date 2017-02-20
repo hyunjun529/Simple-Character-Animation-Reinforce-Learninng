@@ -165,6 +165,7 @@
     <ClCompile Include="examples\053_lab1_Third\053_enviroment.cpp" />
     <ClCompile Include="examples\200_labF_Enviroment_Test\200_enviroment.cpp" />
     <ClCompile Include="examples\201_labF_Enviroment_Test_2\201_enviroment.cpp" />
+    <ClCompile Include="examples\202_labF_Enviroment_Test_3\202_enviroment.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -241,6 +242,12 @@
     <ClInclude Include="examples\201_labF_Enviroment_Test_2\Logger.h" />
     <ClInclude Include="examples\201_labF_Enviroment_Test_2\RL.h" />
     <ClInclude Include="examples\201_labF_Enviroment_Test_2\Targets.h" />
+    <ClInclude Include="examples\202_labF_Enviroment_Test_3\202_enviroment.h" />
+    <ClInclude Include="examples\202_labF_Enviroment_Test_3\ActionMemory.h" />
+    <ClInclude Include="examples\202_labF_Enviroment_Test_3\Actions.h" />
+    <ClInclude Include="examples\202_labF_Enviroment_Test_3\Logger.h" />
+    <ClInclude Include="examples\202_labF_Enviroment_Test_3\RL.h" />
+    <ClInclude Include="examples\202_labF_Enviroment_Test_3\Targets.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
