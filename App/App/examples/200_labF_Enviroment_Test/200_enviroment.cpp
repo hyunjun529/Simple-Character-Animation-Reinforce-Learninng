@@ -28,25 +28,19 @@ struct LabF200 : public CommonRigidBodyBase
 	short collisionFilterGroup = short(btBroadphaseProxy::CharacterFilter);
 	short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
 
-	int selected_target = 0;
-	float target_height[TARGET_SIZE] = {
-		TARGET_0_HEIGHT,
-		TARGET_1_HEIGHT,
-		TARGET_2_HEIGHT,
-		TARGET_3_HEIGHT,
-		TARGET_4_HEIGHT,
-		TARGET_5_HEIGHT,
-	};
+	float target_height;
 
 	float Fist_velocity;
 	float F2T_distance_;
 	float F2T_angle_;
 
 	float sd_angle_;
-	float sd_angular_velocity;
+	float sd_current_angular_velocity;
+	float sd_target_angular_velocity;
 
 	float eb_angle_;
-	float eb_angular_velocity;
+	float eb_current_angular_velocity;
+	float eb_target_angular_velocity;
 
 
 	LabF200(struct GUIHelperInterface* helper);
@@ -67,33 +61,54 @@ struct LabF200 : public CommonRigidBodyBase
 
 
 	// Controller evnets
-	void initState(LabF200* target) {
-		target->m_guiHelper->removeAllGraphicsInstances();
-		target->initPhysics();
+	void initState() {
+		m_guiHelper->removeAllGraphicsInstances();
+		initPhysics();
+	}
+	void initTarget() {
+		btSphereShape* linkSphere_1 = new btSphereShape(radius);
+		btTransform start;
+		start.setIdentity();
+		groundOrigin_target = btVector3(-0.4f, target_height, -1.6f);
+		start.setOrigin(groundOrigin_target);
+		body->setWorldTransform(start);
+
+		m_guiHelper->syncPhysicsToGraphics(m_dynamicsWorld);
+		m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
 	}
 
-	void moveEbAngleUp(btHingeConstraint *target) {
+	void moveEbAngle(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, 6.0, 4000.f);
+		target->enableAngularMotor(true, eb_target_angular_velocity, 4000.f);
+	}
+	void moveEbAngleUp(btHingeConstraint *target) {
+		eb_target_angular_velocity += 0.5f;
 	}
 	void moveEbAngleDown(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, -6.0, 4000.f);
+		eb_target_angular_velocity -= 0.5f;
 	}
 	void moveEbAngleStay(btHingeConstraint *target) {
 		lockLiftHinge(target);
 	}
 
-	void moveSdAngleUp(btHingeConstraint *target) {
+	void moveSdAngle(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, 6.0, 4000.f);
+		target->enableAngularMotor(true, sd_target_angular_velocity, 4000.f);
+
+	}
+	void moveSdAngleUp(btHingeConstraint *target) {
+		sd_target_angular_velocity += 0.5f;
+		
 	}
 	void moveSdAngleDown(btHingeConstraint *target) {
-		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, -6.0, 4000.f);
+		sd_target_angular_velocity -= 0.5f;
 	}
 	void moveSdAngleStay(btHingeConstraint *target) {
 		lockLiftHinge(target);
+	}
+
+	float getRandomTargetPosition() {
+		return (TARGET_HEIGHT_MAX - TARGET_HEIGHT_MIN) * ((float)rand() / (float)RAND_MAX) + TARGET_HEIGHT_MIN;
 	}
 
 
@@ -128,6 +143,9 @@ LabF200::LabF200(struct GUIHelperInterface* helper)
 	m_once(true)
 {
 	std::cout.precision(5);
+	target_height = getRandomTargetPosition();
+	sd_target_angular_velocity = 0.f;
+	eb_target_angular_velocity = 0.f;
 }
 
 LabF200::~LabF200()
@@ -162,6 +180,9 @@ void LabF200::lockLiftHinge(btHingeConstraint* hinge)
 
 void LabF200::stepSimulation(float deltaTime)
 {
+	moveSdAngle(hinge_shoulder);
+	//moveEbAngle(hinge_elbow);
+
 	// get about Fist to Target
 	F2T_distance_ = getF2TDistance();
 	F2T_angle_ = getF2TAngle() / 180;
@@ -171,11 +192,11 @@ void LabF200::stepSimulation(float deltaTime)
 
 	// get Shoulder states
 	sd_angle_ = getSdAngle() / 180;
-	sd_angular_velocity = getSdAngularVelocity();
+	sd_current_angular_velocity = getSdAngularVelocity();
 
 	// get Elbow states
 	eb_angle_ = getEbAngle() / 180;
-	eb_angular_velocity = getEbAngularVelocity();
+	eb_current_angular_velocity = getEbAngularVelocity();
 
 	
 	//collison check
@@ -206,8 +227,8 @@ void LabF200::stepSimulation(float deltaTime)
 
 
 	// Print current state
-	std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_angular_velocity << "\t";
-	std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_angular_velocity << "\t";
+	std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_current_angular_velocity << "\t";
+	//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_current_angular_velocity << "\t";
 	std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
 	std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
 	std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
@@ -216,9 +237,10 @@ void LabF200::stepSimulation(float deltaTime)
 
 	// Reset Target Position
 	if (collisionTarget) {
-		selected_target = (int)rand() % 6;
+		target_height = getRandomTargetPosition();
 
-		initState(this);
+		//initState();
+		initTarget();
 	}
 
 	// step by step
@@ -312,7 +334,8 @@ void LabF200::initPhysics()
 			hinge_shoulder = new btHingeConstraint(*prevBody, *linkBody[i],
 				pivotInA, pivotInB,
 				axisInA, axisInB, useReferenceA);
-			hinge_shoulder->setLimit(M_PI / 0.48f, M_PI / 0.48f);
+			hinge_shoulder->setLimit(0.f, 0.f);
+			//hinge_shoulder->setLimit(M_PI / 0.48f, M_PI / 0.48f);
 			m_dynamicsWorld->addConstraint(hinge_shoulder, true);
 			con = hinge_shoulder;
 		}
@@ -327,7 +350,8 @@ void LabF200::initPhysics()
 			hinge_elbow = new btHingeConstraint(*prevBody, *linkBody[i],
 				pivotInA, pivotInB,
 				axisInA, axisInB, useReferenceA);
-			hinge_elbow->setLimit(M_PI / 1.3f, M_PI / 1.3f);
+			hinge_elbow->setLimit(0.f, 0.f);
+			//hinge_elbow->setLimit(M_PI / 1.3f, M_PI / 1.3f);
 			m_dynamicsWorld->addConstraint(hinge_elbow, true);
 			con = hinge_elbow;
 		}
@@ -360,7 +384,7 @@ void LabF200::initPhysics()
 	// Target Position
 	btSphereShape* linkSphere_1 = new btSphereShape(radius);
 	btTransform start; start.setIdentity();
-	groundOrigin_target = btVector3(-0.4f, target_height[selected_target], -1.6f);
+	groundOrigin_target = btVector3(-0.4f, target_height, -1.6f);
 	start.setOrigin(groundOrigin_target);
 	body = createRigidBody(0, start, linkSphere_1);
 	body->setFriction(0);
@@ -377,9 +401,10 @@ bool LabF200::keyboardCallback(int key, int state)
 		{
 		case B3G_HOME:
 		{
-			initState(this);
+			initState();
 			break;
 		}
+		/*
 		case B3G_LEFT_ARROW:
 		{
 			moveEbAngleUp(hinge_elbow);
@@ -392,6 +417,7 @@ bool LabF200::keyboardCallback(int key, int state)
 			handled = true;
 			break;
 		}
+		*/
 		case B3G_UP_ARROW:
 		{
 			moveSdAngleUp(hinge_shoulder);
