@@ -19,6 +19,7 @@
 #include "052_lab1_Second/052_enviroment.h"
 #include "053_lab1_Third/053_enviroment.h"
 #include "200_labF_Enviroment_Test/200_enviroment.h"
+#include "201_labF_Enviroment_Test_2/201_enviroment.h"
 
 struct ExampleImporter
 {
@@ -50,4 +51,5 @@ static std::map<std::string, ExampleImporter> getExample = {
 	{ "052", ExampleImporter("052_lab1_Second", env_052) },
 	{ "053", ExampleImporter("053_lab1_Third", env_053) },
 	{ "200", ExampleImporter("200_LabF_Enviroment_Test", env_200) },
+	{ "201", ExampleImporter("201_LabF_Enviroment_Test", env_201) },
 };
