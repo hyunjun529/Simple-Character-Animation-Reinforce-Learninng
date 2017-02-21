@@ -40,16 +40,21 @@ struct LabF210 : public CommonRigidBodyBase
 	float sd_angle_;
 	float sd_current_angular_velocity;
 	float sd_target_angular_velocity;
-	const float sd_max_angular_velocity = 3.f;
+	const float sd_max_angular_velocity = 9.f;
 
 	float eb_angle_;
 	float eb_current_angular_velocity;
 	float eb_target_angular_velocity;
-	const float eb_max_angular_velocity = 3.f;
+	const float eb_max_angular_velocity = 9.f;
 
 	NeuralNetwork nn_;
 	int num_state_variables_;
 	int num_game_actions_;
+
+	const int initStep = 100;
+	int cntStep = 0;
+
+	bool chkLearning = true;
 
 
 	LabF210(struct GUIHelperInterface* helper);
@@ -126,12 +131,14 @@ struct LabF210 : public CommonRigidBodyBase
 		target->enableAngularMotor(true, sd_target_angular_velocity, 4000.f);
 	}
 	void moveSdAngleUp(btHingeConstraint *target) {
-		if (sd_target_angular_velocity < sd_max_angular_velocity)
-			sd_target_angular_velocity += 0.5f;
+		if (sd_target_angular_velocity < 0) sd_target_angular_velocity = 5.f;
+		if (sd_max_angular_velocity <= abs(sd_target_angular_velocity)) return;
+		sd_target_angular_velocity += 1.f;
 	}
 	void moveSdAngleDown(btHingeConstraint *target) {
-		if (sd_target_angular_velocity > sd_max_angular_velocity * -1)
-			sd_target_angular_velocity -= 0.5f;
+		if (sd_target_angular_velocity > 0) sd_target_angular_velocity = -5.f;
+		if (sd_max_angular_velocity <= abs(sd_target_angular_velocity)) return;
+		sd_target_angular_velocity -= 1.f;
 	}
 	void moveSdAngleStay(btHingeConstraint *target) {
 		//lockLiftHinge(target);
@@ -172,6 +179,9 @@ LabF210::LabF210(struct GUIHelperInterface* helper)
 	sd_target_angular_velocity = 0.f;
 	eb_target_angular_velocity = 0.f;
 
+	chkLearning = true;
+	cntStep = 0;
+
 	const int num_hidden_layers = 1;
 	num_state_variables_ = 4;
 	num_game_actions_ = 3;
@@ -195,6 +205,13 @@ LabF210::~LabF210()
 
 void LabF210::stepSimulation(float deltaTime)
 {
+	if (cntStep < initStep) {
+		cntStep++;
+		m_dynamicsWorld->stepSimulation(1. / 240, 0);
+		return;
+	}
+
+
 	/***************************************************************************************************/
 	// start Set State
 	/***************************************************************************************************/
@@ -247,7 +264,7 @@ void LabF210::stepSimulation(float deltaTime)
 	input[0] = F2T_distance_;
 	input[1] = F2T_angle_;
 	input[2] = sd_angle_;
-	input[3] = sd_current_angular_velocity;
+	input[3] = sd_target_angular_velocity;
 
 	nn_.setInputVector(input);
 	nn_.feedForward();
@@ -264,7 +281,7 @@ void LabF210::stepSimulation(float deltaTime)
 	// start Set Action
 	/***************************************************************************************************/
 
-	float dice = (true) ? (0.1f) : (0.0f);
+	float dice = (chkLearning) ? (0.3f) : (0.0f);
 	int action_ = nn_.getOutputIXEpsilonGreedy(dice);
 
 	switch (action_) {
@@ -300,21 +317,23 @@ void LabF210::stepSimulation(float deltaTime)
 	float cost_F2T_Distance = 1.f - (F2T_distance_ / 2.4f);
 	float reward_ = cost_F2T_Distance;
 
-	VectorND<float> reward_vector(output);
+	if(chkLearning){
+		VectorND<float> reward_vector(output);
 
-	for (int d = 0; d < reward_vector.num_dimension_; d++) {
-		if (action_ == d) {
-			reward_vector[d] = reward_ > 0.01f ? 0.999 : 0.001;
+		for (int d = 0; d < reward_vector.num_dimension_; d++) {
+			if (action_ == d) {
+				reward_vector[d] = reward_;
+			}
+			else {
+				reward_vector[d] = reward_vector[d];
+			}
 		}
-		else {
-			reward_vector[d] = reward_vector[d] < 0.001 ? 0.001 : reward_vector[d];
-		}
-	}
 
-	// back to the future
-	int num_tr = (collisionTarget) ? (10) : (1);
-	for (int i = 0; i < num_tr; i++) {
-		nn_.propBackward(reward_vector);
+		// back to the future
+		int num_tr = (collisionTarget) ? (100) : (10);
+		for (int i = 0; i < num_tr; i++) {
+			nn_.propBackward(reward_vector);
+		}
 	}
 
 	/***************************************************************************************************/
@@ -327,14 +346,20 @@ void LabF210::stepSimulation(float deltaTime)
 	/***************************************************************************************************/
 
 	// Print current state
+	if (chkLearning) {
+		std::cout << std::fixed << "mod : learn" << "\t";
+	}
+	else {
+		std::cout << std::fixed << "mod : result" << "\t";
+	}
 	std::cout << std::fixed << "action : " << action_ << "\t";
-	std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t";
-	//std::cout << std::fixed << "sd_ang_vel : " << sd_current_angular_velocity << "\t";
-	std::cout << std::fixed << "sd_ang_vel : " << sd_target_angular_velocity << "\t";
+	//std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t";
+	//std::cout << std::fixed << "sd_ang_vel_current : " << sd_current_angular_velocity << "\t";
+	std::cout << std::fixed << "sd_ang_vel_target : " << sd_target_angular_velocity << "\t";
 	//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_current_angular_velocity << "\t";
 	std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
-	std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
-	std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
+	//std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
+	//std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
 	std::cout << std::fixed << "reward : " << reward_ << "\t";
 	if (collisionTarget) std::cout << "\tCollision !!!!!!!!!!!!";
 	std::cout << std::endl;
@@ -354,11 +379,6 @@ void LabF210::stepSimulation(float deltaTime)
 
 		//initState();
 		initTarget();
-	}
-
-	// end point
-	if (Fist_velocity < 0.01f && sd_max_angular_velocity <= abs(sd_target_angular_velocity)) {
-		initState();
 	}
 
 	// step by step
@@ -455,6 +475,7 @@ void LabF210::initPhysics()
 				pivotInA, pivotInB,
 				axisInA, axisInB, useReferenceA);
 			hinge_shoulder->setLimit(0.f, 0.f);
+			//hinge_shoulder->setLimit(M_PI / 0.40f, M_PI / 0.40f);
 			//hinge_shoulder->setLimit(M_PI / 0.48f, M_PI / 0.48f);
 			m_dynamicsWorld->addConstraint(hinge_shoulder, true);
 			con = hinge_shoulder;
@@ -523,6 +544,10 @@ bool LabF210::keyboardCallback(int key, int state)
 		{
 			initState();
 			break;
+		}
+		case B3G_END:
+		{
+			chkLearning = (chkLearning) ? (false) : (true);
 		}
 		/*
 		case B3G_LEFT_ARROW:

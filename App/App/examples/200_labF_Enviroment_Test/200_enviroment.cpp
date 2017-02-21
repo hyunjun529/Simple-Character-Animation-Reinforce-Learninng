@@ -37,6 +37,7 @@ struct LabF200 : public CommonRigidBodyBase
 	float sd_angle_;
 	float sd_current_angular_velocity;
 	float sd_target_angular_velocity;
+	float sd_max_angular_velocity = 5.f;
 
 	float eb_angle_;
 	float eb_current_angular_velocity;
@@ -97,14 +98,17 @@ struct LabF200 : public CommonRigidBodyBase
 
 	}
 	void moveSdAngleUp(btHingeConstraint *target) {
-		sd_target_angular_velocity += 0.5f;
-		
+		if (sd_target_angular_velocity < 0) sd_target_angular_velocity = 3.f;
+		if (sd_max_angular_velocity <= abs(sd_target_angular_velocity)) return;
+		sd_target_angular_velocity += 1.f;
 	}
 	void moveSdAngleDown(btHingeConstraint *target) {
-		sd_target_angular_velocity -= 0.5f;
+		if (sd_target_angular_velocity > 0) sd_target_angular_velocity = -3.f;
+		if (sd_max_angular_velocity <= abs(sd_target_angular_velocity)) return;
+		sd_target_angular_velocity -= 1.f;
 	}
 	void moveSdAngleStay(btHingeConstraint *target) {
-		lockLiftHinge(target);
+		//lockLiftHinge(target);
 	}
 
 	float getRandomTargetPosition() {
@@ -227,7 +231,7 @@ void LabF200::stepSimulation(float deltaTime)
 
 
 	// Print current state
-	std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_current_angular_velocity << "\t";
+	std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t" << "sd_ang_vel : " << sd_target_angular_velocity << "\t";
 	//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_current_angular_velocity << "\t";
 	std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
 	std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
