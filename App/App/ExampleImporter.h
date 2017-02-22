@@ -23,6 +23,7 @@
 #include "202_labF_Enviroment_Test_3/202_enviroment.h"
 #include "203_labF_Enviroment_Test_4/203_enviroment.h"
 #include "210_labF_SingleJoint_Random/210_enviroment.h"
+#include "211_labF_SingleJoint_Normal/211_enviroment.h"
 
 struct ExampleImporter
 {
@@ -58,4 +59,5 @@ static std::map<std::string, ExampleImporter> getExample = {
 	{ "202", ExampleImporter("202_LabF_TwoJoint + RandomTarget", env_202) },
 	{ "203", ExampleImporter("203_LabF_TwoJoint with Fixed starting position + Random Target", env_203) },
 	{ "210", ExampleImporter("210_LabF_SingleJointShoulder + RandomTarget + RandomMove", env_210) },
+	{ "211", ExampleImporter("210_LabF_SingleJointShoulder + RandomTarget + Normal RL", env_211) },
 };

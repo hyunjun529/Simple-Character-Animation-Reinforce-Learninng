@@ -64,6 +64,9 @@
     <ClCompile Include="examples\210_labF_SingleJoint_Random\210_enviroment.cpp">
       <Filter>source\210</Filter>
     </ClCompile>
+    <ClCompile Include="examples\211_labF_SingleJoint_Normal\211_enviroment.cpp">
+      <Filter>source\211</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonEnviroment.h">
@@ -342,6 +345,24 @@
     <ClInclude Include="examples\210_labF_SingleJoint_Random\Targets.h">
       <Filter>source\210</Filter>
     </ClInclude>
+    <ClInclude Include="examples\211_labF_SingleJoint_Normal\211_enviroment.h">
+      <Filter>source\211</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\211_labF_SingleJoint_Normal\ActionMemory.h">
+      <Filter>source\211</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\211_labF_SingleJoint_Normal\Actions.h">
+      <Filter>source\211</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\211_labF_SingleJoint_Normal\Logger.h">
+      <Filter>source\211</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\211_labF_SingleJoint_Normal\RL.h">
+      <Filter>source\211</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\211_labF_SingleJoint_Normal\Targets.h">
+      <Filter>source\211</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
@@ -409,6 +430,9 @@
     </Filter>
     <Filter Include="source\210">
       <UniqueIdentifier>{7cd8f287-344c-4703-9843-ead4555e6977}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\211">
+      <UniqueIdentifier>{5f3ed130-0911-4620-add0-371503608326}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
