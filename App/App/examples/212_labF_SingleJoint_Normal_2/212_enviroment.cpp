@@ -191,7 +191,7 @@ LabF212::LabF212(struct GUIHelperInterface* helper)
 
 	target_height = getRandomTargetPosition();
 	
-	const int num_hidden_layers = 1;
+	const int num_hidden_layers = 4;
 
 	num_state_variables_ = NUM_STATE_VARIABLES;
 	num_game_actions_ = NUM_STATE_ACTIONS;
@@ -297,7 +297,7 @@ void LabF212::stepSimulation(float deltaTime)
 	input[0] = F2T_distance_;
 	input[1] = F2T_angle_;
 	input[2] = sd_angle_;
-	//input[3] = sd_angular_velocity;
+	input[3] = sd_angular_velocity;
 
 	// Forward Propagation
 	nn_.setInputVector(input);
@@ -351,7 +351,17 @@ void LabF212::stepSimulation(float deltaTime)
 	//float cost_F2T_Distance = F2T_distance_;
 
 	float reward_ = cost_F2T_Distance;
-
+	/*
+	// if stop move
+	if (abs(input[0] - old_input_vector_[0]) < 0.1f) {
+		reward_ = 0.001f;
+	}
+	// if Fist move far a way
+	else if (input[0] >= old_input_vector_[0]) {
+		reward_ *= 0.01f;
+	}
+	*/
+	
 	if (abs(input[0] - old_input_vector_[0]) < 0.1f
 		|| input[0] >= old_input_vector_[0]) {
 		reward_ = 0.001f;
@@ -359,6 +369,7 @@ void LabF212::stepSimulation(float deltaTime)
 	else {
 		reward_ = 0.999f;
 	}
+	
 
 	if(chkLearning)
 	{
@@ -374,7 +385,7 @@ void LabF212::stepSimulation(float deltaTime)
 		}
 
 		// back to the future
-		int num_tr = (collisionTarget) ? (100) : (500);
+		int num_tr = (collisionTarget) ? (500) : (1000);
 		for (int i = 0; i < num_tr; i++) {
 			nn_.propBackward(reward_vector);
 		}
@@ -423,7 +434,7 @@ void LabF212::stepSimulation(float deltaTime)
 	old_input_vector_[0] = F2T_distance_;
 	old_input_vector_[1] = F2T_angle_;
 	old_input_vector_[2] = sd_angle_;
-	//old_input_vector_[3] = sd_angular_velocity;
+	old_input_vector_[3] = sd_angular_velocity;
 
 	// Reset Target Position
 	if (collisionTarget) {
