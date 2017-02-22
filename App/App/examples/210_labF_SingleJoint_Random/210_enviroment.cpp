@@ -51,8 +51,9 @@ struct LabF210 : public CommonRigidBodyBase
 	int num_state_variables_;
 	int num_game_actions_;
 
-	const int initStep = 100;
+	int initStep = 100;
 	int cntStep = 0;
+	int delayStep = 10;
 
 	bool chkLearning = true;
 
@@ -75,6 +76,7 @@ struct LabF210 : public CommonRigidBodyBase
 
 	// Controller evnets
 	void initState() {
+		initStep = 100;
 		sd_target_angular_velocity = 0.f;
 		eb_target_angular_velocity = 0.f;
 		m_guiHelper->removeAllGraphicsInstances();
@@ -133,15 +135,17 @@ struct LabF210 : public CommonRigidBodyBase
 	void moveSdAngleUp(btHingeConstraint *target) {
 		if (sd_target_angular_velocity < 0) sd_target_angular_velocity = 5.f;
 		if (sd_max_angular_velocity <= abs(sd_target_angular_velocity)) return;
-		sd_target_angular_velocity += 1.f;
+		//sd_target_angular_velocity += 1.f;
+		sd_target_angular_velocity = 6.f;
 	}
 	void moveSdAngleDown(btHingeConstraint *target) {
 		if (sd_target_angular_velocity > 0) sd_target_angular_velocity = -5.f;
 		if (sd_max_angular_velocity <= abs(sd_target_angular_velocity)) return;
-		sd_target_angular_velocity -= 1.f;
+		//sd_target_angular_velocity -= 1.f;
+		sd_target_angular_velocity = -6.f;
 	}
 	void moveSdAngleStay(btHingeConstraint *target) {
-		//lockLiftHinge(target);
+		lockLiftHinge(target);
 	}
 
 
@@ -183,8 +187,8 @@ LabF210::LabF210(struct GUIHelperInterface* helper)
 	cntStep = 0;
 
 	const int num_hidden_layers = 1;
-	num_state_variables_ = 4;
-	num_game_actions_ = 3;
+	num_state_variables_ = 2;
+	num_game_actions_ = 2;
 
 	nn_.initialize(num_state_variables_, num_game_actions_, num_hidden_layers);
 
@@ -211,6 +215,16 @@ void LabF210::stepSimulation(float deltaTime)
 		return;
 	}
 
+	initStep = -1;
+
+	if (cntStep < delayStep) {
+		cntStep++;
+		m_dynamicsWorld->stepSimulation(1. / 240, 0);
+		return;
+	}
+	else {
+		cntStep = 0;
+	}
 
 	/***************************************************************************************************/
 	// start Set State
@@ -263,8 +277,8 @@ void LabF210::stepSimulation(float deltaTime)
 	input.initialize(num_state_variables_);
 	input[0] = F2T_distance_;
 	input[1] = F2T_angle_;
-	input[2] = sd_angle_;
-	input[3] = sd_target_angular_velocity;
+	//input[2] = sd_angle_;
+	//input[3] = sd_target_angular_velocity;
 
 	nn_.setInputVector(input);
 	nn_.feedForward();
@@ -281,7 +295,7 @@ void LabF210::stepSimulation(float deltaTime)
 	// start Set Action
 	/***************************************************************************************************/
 
-	float dice = (chkLearning) ? (0.3f) : (0.0f);
+	float dice = (chkLearning) ? (1.f) : (0.0f);
 	int action_ = nn_.getOutputIXEpsilonGreedy(dice);
 
 	switch (action_) {
@@ -313,8 +327,8 @@ void LabF210::stepSimulation(float deltaTime)
 	// start Training
 	/***************************************************************************************************/
 
-	// set reward, reward_vector
 	float cost_F2T_Distance = 1.f - (F2T_distance_ / 2.4f);
+	
 	float reward_ = cost_F2T_Distance;
 
 	if(chkLearning){
