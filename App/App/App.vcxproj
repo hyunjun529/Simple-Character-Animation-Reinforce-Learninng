@@ -169,6 +169,7 @@
     <ClCompile Include="examples\203_labF_Enviroment_Test_4\203_enviroment.cpp" />
     <ClCompile Include="examples\210_labF_SingleJoint_Random\210_enviroment.cpp" />
     <ClCompile Include="examples\211_labF_SingleJoint_Normal\211_enviroment.cpp" />
+    <ClCompile Include="examples\212_labF_SingleJoint_Normal_2\212_enviroment.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -270,6 +271,13 @@
     <ClInclude Include="examples\211_labF_SingleJoint_Normal\RL.h" />
     <ClInclude Include="examples\211_labF_SingleJoint_Normal\Targets.h" />
     <ClInclude Include="examples\211_labF_SingleJoint_Normal\Variables.h" />
+    <ClInclude Include="examples\212_labF_SingleJoint_Normal_2\212_enviroment.h" />
+    <ClInclude Include="examples\212_labF_SingleJoint_Normal_2\ActionMemory.h" />
+    <ClInclude Include="examples\212_labF_SingleJoint_Normal_2\Actions.h" />
+    <ClInclude Include="examples\212_labF_SingleJoint_Normal_2\Logger.h" />
+    <ClInclude Include="examples\212_labF_SingleJoint_Normal_2\RL.h" />
+    <ClInclude Include="examples\212_labF_SingleJoint_Normal_2\Targets.h" />
+    <ClInclude Include="examples\212_labF_SingleJoint_Normal_2\Variables.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
