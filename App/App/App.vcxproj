@@ -269,6 +269,7 @@
     <ClInclude Include="examples\211_labF_SingleJoint_Normal\Logger.h" />
     <ClInclude Include="examples\211_labF_SingleJoint_Normal\RL.h" />
     <ClInclude Include="examples\211_labF_SingleJoint_Normal\Targets.h" />
+    <ClInclude Include="examples\211_labF_SingleJoint_Normal\Variables.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

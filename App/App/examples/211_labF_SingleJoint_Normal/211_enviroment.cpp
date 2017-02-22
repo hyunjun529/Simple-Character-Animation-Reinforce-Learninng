@@ -14,6 +14,7 @@
 #include <iostream>
 #include "Actions.h"
 #include "Targets.h"
+#include "Variables.h"
 
 struct LabF211 : public CommonRigidBodyBase
 {
@@ -38,18 +39,19 @@ struct LabF211 : public CommonRigidBodyBase
 	float F2T_angle_;
 
 	float sd_angle_;
-	float sd_current_angular_velocity;
-	float sd_target_angular_velocity;
-	const float sd_max_angular_velocity = 9.f;
+	float sd_angular_velocity;
+	const float sd_max_angular_velocity = SD_MAX_ANGULAR_VELOCITY;
 
 	float eb_angle_;
-	float eb_current_angular_velocity;
-	float eb_target_angular_velocity;
-	const float eb_max_angular_velocity = 9.f;
+	float eb_angular_velocity;
+	const float eb_max_angular_velocity = EB_MAX_ANGULAR_VELOCITY;
 
 	NeuralNetwork nn_;
 	int num_state_variables_;
 	int num_game_actions_;
+
+	int old_action_;
+	VectorND<float> old_input_vector_;
 
 	int initStep = 100;
 	int cntStep = 0;
@@ -77,8 +79,8 @@ struct LabF211 : public CommonRigidBodyBase
 	// Controller evnets
 	void initState() {
 		initStep = 100;
-		sd_target_angular_velocity = 0.f;
-		eb_target_angular_velocity = 0.f;
+		sd_angular_velocity = 0.f;
+		eb_angular_velocity = 0.f;
 		m_guiHelper->removeAllGraphicsInstances();
 		initPhysics();
 	}
@@ -116,13 +118,17 @@ struct LabF211 : public CommonRigidBodyBase
 
 	void moveEbAngle(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, eb_target_angular_velocity, 4000.f);
+		target->enableAngularMotor(true, eb_angular_velocity, 4000.f);
 	}
 	void moveEbAngleUp(btHingeConstraint *target) {
-		eb_target_angular_velocity += 0.5f;
+		if (eb_angular_velocity < 0) eb_angular_velocity = 5.f;
+		if (eb_max_angular_velocity <= abs(eb_angular_velocity)) return;
+		eb_angular_velocity += 1.f;
 	}
 	void moveEbAngleDown(btHingeConstraint *target) {
-		eb_target_angular_velocity -= 0.5f;
+		if (eb_angular_velocity > 0) eb_angular_velocity = -5.f;
+		if (eb_max_angular_velocity <= abs(eb_angular_velocity)) return;
+		eb_angular_velocity -= 1.f;
 	}
 	void moveEbAngleStay(btHingeConstraint *target) {
 		//lockLiftHinge(target);
@@ -130,22 +136,20 @@ struct LabF211 : public CommonRigidBodyBase
 
 	void moveSdAngle(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
-		target->enableAngularMotor(true, sd_target_angular_velocity, 4000.f);
+		target->enableAngularMotor(true, sd_angular_velocity, 4000.f);
 	}
 	void moveSdAngleUp(btHingeConstraint *target) {
-		if (sd_target_angular_velocity < 0) sd_target_angular_velocity = 5.f;
-		if (sd_max_angular_velocity <= abs(sd_target_angular_velocity)) return;
-		//sd_target_angular_velocity += 1.f;
-		sd_target_angular_velocity = 6.f;
+		if (sd_angular_velocity < 0) sd_angular_velocity = 5.f;
+		if (sd_max_angular_velocity <= abs(sd_angular_velocity)) return;
+		sd_angular_velocity += 1.f;
 	}
 	void moveSdAngleDown(btHingeConstraint *target) {
-		if (sd_target_angular_velocity > 0) sd_target_angular_velocity = -5.f;
-		if (sd_max_angular_velocity <= abs(sd_target_angular_velocity)) return;
-		//sd_target_angular_velocity -= 1.f;
-		sd_target_angular_velocity = -6.f;
+		if (sd_angular_velocity > 0) sd_angular_velocity = -5.f;
+		if (sd_max_angular_velocity <= abs(sd_angular_velocity)) return;
+		sd_angular_velocity -= 1.f;
 	}
 	void moveSdAngleStay(btHingeConstraint *target) {
-		lockLiftHinge(target);
+		//lockLiftHinge(target);
 	}
 
 
@@ -179,16 +183,18 @@ LabF211::LabF211(struct GUIHelperInterface* helper)
 	m_once(true)
 {
 	std::cout.precision(5);
-	target_height = getRandomTargetPosition();
-	sd_target_angular_velocity = 0.f;
-	eb_target_angular_velocity = 0.f;
-
+	
 	chkLearning = true;
-	cntStep = 0;
 
+	sd_angular_velocity = 0.f;
+	eb_angular_velocity = 0.f;
+
+	target_height = getRandomTargetPosition();
+	
 	const int num_hidden_layers = 1;
-	num_state_variables_ = 2;
-	num_game_actions_ = 2;
+
+	num_state_variables_ = NUM_STATE_VARIABLES;
+	num_game_actions_ = NUM_STATE_ACTIONS;
 
 	nn_.initialize(num_state_variables_, num_game_actions_, num_hidden_layers);
 
@@ -196,7 +202,10 @@ LabF211::LabF211(struct GUIHelperInterface* helper)
 		nn_.layers_[i].act_type_ = LayerBase::ReLU;
 
 	nn_.eta_ = 1e-5;
-	nn_.alpha_ = 0.9f;
+	nn_.alpha_ = LEARNING_RATE;
+
+	old_action_ = 0;
+	old_input_vector_.initialize(num_state_variables_);
 }
 
 LabF211::~LabF211()
@@ -209,14 +218,21 @@ LabF211::~LabF211()
 
 void LabF211::stepSimulation(float deltaTime)
 {
+	/***************************************************************************************************/
+	// start check excute step
+	/***************************************************************************************************/
+
+	// init motion
 	if (cntStep < initStep) {
 		cntStep++;
 		m_dynamicsWorld->stepSimulation(1. / 240, 0);
 		return;
 	}
+	else {
+		initStep = -1;
+	}
 
-	initStep = -1;
-
+	// delay step for accuracy reward
 	if (cntStep < delayStep) {
 		cntStep++;
 		m_dynamicsWorld->stepSimulation(1. / 240, 0);
@@ -225,6 +241,11 @@ void LabF211::stepSimulation(float deltaTime)
 	else {
 		cntStep = 0;
 	}
+
+	/***************************************************************************************************/
+	// end check excute step
+	/***************************************************************************************************/
+
 
 	/***************************************************************************************************/
 	// start Set State
@@ -239,11 +260,9 @@ void LabF211::stepSimulation(float deltaTime)
 
 	// get Shoulder states
 	sd_angle_ = getSdAngle() / 180;
-	sd_current_angular_velocity = getSdAngularVelocity();
 
 	// get Elbow states
 	eb_angle_ = getEbAngle() / 180;
-	eb_current_angular_velocity = getEbAngularVelocity();
 
 
 	//collison check
@@ -277,9 +296,10 @@ void LabF211::stepSimulation(float deltaTime)
 	input.initialize(num_state_variables_);
 	input[0] = F2T_distance_;
 	input[1] = F2T_angle_;
-	//input[2] = sd_angle_;
-	//input[3] = sd_target_angular_velocity;
+	input[2] = sd_angle_;
+	//input[3] = sd_angular_velocity;
 
+	// Forward Propagation
 	nn_.setInputVector(input);
 	nn_.feedForward();
 
@@ -295,7 +315,7 @@ void LabF211::stepSimulation(float deltaTime)
 	// start Set Action
 	/***************************************************************************************************/
 
-	float dice = (chkLearning) ? (1.f) : (0.0f);
+	float dice = (chkLearning) ? (RANDOM_ACTION_RATE) : (0.0f);
 	int action_ = nn_.getOutputIXEpsilonGreedy(dice);
 
 	switch (action_) {
@@ -328,14 +348,24 @@ void LabF211::stepSimulation(float deltaTime)
 	/***************************************************************************************************/
 
 	float cost_F2T_Distance = 1.f - (F2T_distance_ / 2.4f);
-	
+	//float cost_F2T_Distance = F2T_distance_;
+
 	float reward_ = cost_F2T_Distance;
 
-	if(chkLearning){
+	if (abs(input[0] - old_input_vector_[0]) < 0.1f
+		|| input[0] >= old_input_vector_[0]) {
+		reward_ = 0.001f;
+	}
+	else {
+		reward_ = 0.999f;
+	}
+
+	//if(chkLearning)
+	{
 		VectorND<float> reward_vector(output);
 
 		for (int d = 0; d < reward_vector.num_dimension_; d++) {
-			if (action_ == d) {
+			if (old_action_ == d) {
 				reward_vector[d] = reward_;
 			}
 			else {
@@ -344,7 +374,7 @@ void LabF211::stepSimulation(float deltaTime)
 		}
 
 		// back to the future
-		int num_tr = (collisionTarget) ? (100) : (10);
+		int num_tr = (collisionTarget) ? (100) : (500);
 		for (int i = 0; i < num_tr; i++) {
 			nn_.propBackward(reward_vector);
 		}
@@ -366,13 +396,12 @@ void LabF211::stepSimulation(float deltaTime)
 	else {
 		std::cout << std::fixed << "mod : result" << "\t";
 	}
-	std::cout << std::fixed << "action : " << action_ << "\t";
+	std::cout << std::fixed << "action : " << old_action_ << "\t";
 	//std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t";
-	//std::cout << std::fixed << "sd_ang_vel_current : " << sd_current_angular_velocity << "\t";
-	std::cout << std::fixed << "sd_ang_vel_target : " << sd_target_angular_velocity << "\t";
+	//std::cout << std::fixed << "sd_ang_vel_target : " << sd_angular_velocity << "\t";
 	//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_current_angular_velocity << "\t";
-	std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
-	//std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
+	std::cout << std::fixed << "F2T_dis : " << old_input_vector_[0] << "\t";
+	std::cout << std::fixed << "F2T_ang : " << old_input_vector_[1] << "\t";
 	//std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
 	std::cout << std::fixed << "reward : " << reward_ << "\t";
 	if (collisionTarget) std::cout << "\tCollision !!!!!!!!!!!!";
@@ -386,6 +415,15 @@ void LabF211::stepSimulation(float deltaTime)
 	/***************************************************************************************************/
 	// start process Step
 	/***************************************************************************************************/
+
+	// set Old 
+	old_action_ = action_;
+
+	old_input_vector_.initialize(num_state_variables_);
+	old_input_vector_[0] = F2T_distance_;
+	old_input_vector_[1] = F2T_angle_;
+	old_input_vector_[2] = sd_angle_;
+	//old_input_vector_[3] = sd_angular_velocity;
 
 	// Reset Target Position
 	if (collisionTarget) {

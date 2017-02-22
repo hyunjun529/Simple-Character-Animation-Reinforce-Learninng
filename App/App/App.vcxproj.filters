@@ -363,6 +363,9 @@
     <ClInclude Include="examples\211_labF_SingleJoint_Normal\Targets.h">
       <Filter>source\211</Filter>
     </ClInclude>
+    <ClInclude Include="examples\211_labF_SingleJoint_Normal\Variables.h">
+      <Filter>source\211</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
