@@ -122,6 +122,22 @@ struct LabF202 : public CommonRigidBodyBase
 	float getFistVelocity() {
 		return abs(linkBody[2]->getVelocityInLocalPoint(linkBody[2]->getCenterOfMassPosition()).getZ());
 	}
+	float getF2Tcos() {
+		// X = Z
+		float fist_Z = linkBody[2]->getCenterOfMassPosition().getZ();
+		float fist_Y = linkBody[2]->getCenterOfMassPosition().getY();
+		float target_Z = body->getCenterOfMassPosition().getZ();
+		float target_Y = body->getCenterOfMassPosition().getY();
+		return cos((abs(target_Z) - abs(fist_Z)) / getF2TDistance());
+	}
+	float getF2Tsin() {
+		// X = Z
+		float fist_Z = linkBody[2]->getCenterOfMassPosition().getZ();
+		float fist_Y = linkBody[2]->getCenterOfMassPosition().getY();
+		float target_Z = body->getCenterOfMassPosition().getZ();
+		float target_Y = body->getCenterOfMassPosition().getY();
+		return sin((abs(target_Y) - abs(fist_Y)) / getF2TDistance());
+	}
 
 	float getSdAngle() {
 		return hinge_shoulder->getHingeAngle() / M_PI * 180;
@@ -231,6 +247,8 @@ void LabF202::stepSimulation(float deltaTime)
 	std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_current_angular_velocity << "\t";
 	std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
 	std::cout << std::fixed << "F2T_ang : " << F2T_angle_ << "\t";
+	std::cout << std::fixed << "F2T_sin : " << getF2Tsin() << "\t";
+	std::cout << std::fixed << "F2T_cos : " << getF2Tcos() << "\t";
 	std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
 	if (collisionTarget) std::cout << "\tCollision !!!!!!!!!!!!";
 	std::cout << std::endl;
