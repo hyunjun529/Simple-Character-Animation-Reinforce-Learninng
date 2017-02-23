@@ -33,6 +33,8 @@ struct LabF212 : public CommonRigidBodyBase
 	short collisionFilterMask = short(btBroadphaseProxy::AllFilter ^ (btBroadphaseProxy::CharacterFilter));
 
 	float target_height;
+	float target_z;
+	float target_y;
 
 	float Fist_velocity;
 	float F2T_distance_;
@@ -136,6 +138,7 @@ struct LabF212 : public CommonRigidBodyBase
 
 	void moveSdAngle(btHingeConstraint *target) {
 		target->setLimit(M_PI / 360.0f, M_PI / 1.2f);
+		//target->setLimit(M_PI / 360.0f, 0);
 		target->enableAngularMotor(true, sd_angular_velocity, 4000.f);
 	}
 	void moveSdAngleUp(btHingeConstraint *target) {
@@ -161,6 +164,13 @@ struct LabF212 : public CommonRigidBodyBase
 	}
 	float getFistVelocity() {
 		return abs(linkBody[2]->getVelocityInLocalPoint(linkBody[2]->getCenterOfMassPosition()).getZ());
+	}
+
+	float getTargetZ() {
+		return body->getCenterOfMassPosition().getZ();
+	}
+	float getTargetY() {
+		return body->getCenterOfMassPosition().getY();
 	}
 
 	float getSdAngle() {
@@ -191,7 +201,7 @@ LabF212::LabF212(struct GUIHelperInterface* helper)
 
 	target_height = getRandomTargetPosition();
 	
-	const int num_hidden_layers = 4;
+	const int num_hidden_layers = 5;
 
 	num_state_variables_ = NUM_STATE_VARIABLES;
 	num_game_actions_ = NUM_STATE_ACTIONS;
@@ -251,6 +261,11 @@ void LabF212::stepSimulation(float deltaTime)
 	// start Set State
 	/***************************************************************************************************/
 
+
+	// get about target;
+	target_z = getTargetZ();
+	target_y = getTargetY();
+
 	// get about Fist to Target
 	F2T_distance_ = getF2TDistance();
 	F2T_angle_ = getF2TAngle() / 180;
@@ -294,10 +309,19 @@ void LabF212::stepSimulation(float deltaTime)
 	// set Vector
 	VectorND<float> input;
 	input.initialize(num_state_variables_);
+	input[0] = sd_angle_;
+	//input[1] = sd_angular_velocity;
+	input[1] = F2T_distance_;
+	input[2] = target_y;
+	//input[4] = target_z;
+	/*
 	input[0] = F2T_distance_;
 	input[1] = F2T_angle_;
 	input[2] = sd_angle_;
 	input[3] = sd_angular_velocity;
+	input[4] = target_z;
+	input[5] = target_y;
+	*/
 
 	// Forward Propagation
 	nn_.setInputVector(input);
@@ -347,10 +371,11 @@ void LabF212::stepSimulation(float deltaTime)
 	// start Training
 	/***************************************************************************************************/
 
-	float cost_F2T_Distance = 1.f - (F2T_distance_ / 2.4f);
-	//float cost_F2T_Distance = F2T_distance_;
+	float cost_F2T_Distance = 1.f - (F2T_distance_ / 2.0f);
+	float cost_Fist_Velocity = Fist_velocity * 0.01f;
+	//float cost_F2T_Distance = - F2T_distance_;
 
-	float reward_ = cost_F2T_Distance;
+	float reward_ = cost_F2T_Distance + cost_Fist_Velocity;
 	/*
 	// if stop move
 	if (abs(input[0] - old_input_vector_[0]) < 0.1f) {
@@ -361,7 +386,7 @@ void LabF212::stepSimulation(float deltaTime)
 		reward_ *= 0.01f;
 	}
 	*/
-	
+	/*
 	if (abs(input[0] - old_input_vector_[0]) < 0.1f
 		|| input[0] >= old_input_vector_[0]) {
 		reward_ = 0.001f;
@@ -369,10 +394,17 @@ void LabF212::stepSimulation(float deltaTime)
 	else {
 		reward_ = 0.999f;
 	}
+	*/
 	
 
 	if(chkLearning)
 	{
+		nn_.setInputVector(old_input_vector_);
+		nn_.feedForward();
+
+		VectorND<float> output;
+		nn_.copyOutputVectorTo(false, output);
+
 		VectorND<float> reward_vector(output);
 
 		for (int d = 0; d < reward_vector.num_dimension_; d++) {
@@ -385,7 +417,7 @@ void LabF212::stepSimulation(float deltaTime)
 		}
 
 		// back to the future
-		int num_tr = (collisionTarget) ? (500) : (1000);
+		int num_tr = (collisionTarget) ? (1000) : (1000);
 		for (int i = 0; i < num_tr; i++) {
 			nn_.propBackward(reward_vector);
 		}
@@ -408,14 +440,16 @@ void LabF212::stepSimulation(float deltaTime)
 		std::cout << std::fixed << "mod : result" << "\t";
 	}
 	std::cout << std::fixed << "action : " << old_action_ << "\t";
-	//std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t";
-	//std::cout << std::fixed << "sd_ang_vel_target : " << sd_angular_velocity << "\t";
+	std::cout << std::fixed << "sd_ang : " << old_input_vector_[0] << "\t";
+	//std::cout << std::fixed << "sd_ang_vel_target : " << old_input_vector_[1] << "\t";
 	//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_current_angular_velocity << "\t";
-	std::cout << std::fixed << "F2T_dis : " << old_input_vector_[0] << "\t";
-	std::cout << std::fixed << "F2T_ang : " << old_input_vector_[1] << "\t";
-	//std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
+	std::cout << std::fixed << "F2T_dis : " << old_input_vector_[1] << "\t";
+	//std::cout << std::fixed << "F2T_ang : " << old_input_vector_[1] << "\t";
+	std::cout << std::fixed << "Target_Z : " << old_input_vector_[2] << "\t";
+	//std::cout << std::fixed << "Target_Y : " << old_input_vector_[5] << "\t";
+	std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
 	std::cout << std::fixed << "reward : " << reward_ << "\t";
-	if (collisionTarget) std::cout << "\tCollision !!!!!!!!!!!!";
+	if (collisionTarget) std::cout << "Collision !!!!!!!!!!!!";
 	std::cout << std::endl;
 
 	/***************************************************************************************************/
@@ -431,10 +465,19 @@ void LabF212::stepSimulation(float deltaTime)
 	old_action_ = action_;
 
 	old_input_vector_.initialize(num_state_variables_);
+	old_input_vector_[0] = sd_angle_;
+	//old_input_vector_[1] = sd_angular_velocity;
+	old_input_vector_[1] = F2T_distance_;
+	old_input_vector_[2] = target_y;
+	//old_input_vector_[4] = target_z;
+	/*
 	old_input_vector_[0] = F2T_distance_;
 	old_input_vector_[1] = F2T_angle_;
 	old_input_vector_[2] = sd_angle_;
 	old_input_vector_[3] = sd_angular_velocity;
+	old_input_vector_[4] = target_z;
+	old_input_vector_[5] = target_y;
+	*/
 
 	// Reset Target Position
 	if (collisionTarget) {
