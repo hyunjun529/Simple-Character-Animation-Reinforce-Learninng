@@ -1,6 +1,6 @@
 #pragma once
 
-#define LEARNING_RATE 0.9f
+#define LEARNING_RATE 0.05f
 #define RANDOM_ACTION_RATE 0.2f
 
 #define NUM_STATE_VARIABLES 3
