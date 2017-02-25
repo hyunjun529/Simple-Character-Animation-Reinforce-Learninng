@@ -354,7 +354,7 @@ void LabF213::stepSimulation(float deltaTime)
 	old_output_vector_temp.copyPartial(output_vector_temp, 0, 0, rl_.num_game_actions_);
 
 	// set Action
-	float dice = (chkLearning) ? (RANDOM_ACTION_RATE) : (0.0f);
+	float dice = (chkLearning) ? (RANDOM_ACTION_RATE) : (0.01f);
 	int action_ = rl_.nn_.getOutputIXEpsilonGreedy(dice);
 	old_action_ = action_;
 
@@ -397,7 +397,7 @@ void LabF213::stepSimulation(float deltaTime)
 			std::cout << "It's High Noon ..." << std::endl;
 			std::cout << "It's High Noon ..." << std::endl;
 
-			int tr_num = 100;
+			int tr_num = 20;
 
 			for (int tr = 0; tr < tr_num; tr++)
 				for (int m_tr = rl_.memory_.num_elements_ - 2; m_tr >= rl_.num_input_histories_; m_tr--)
