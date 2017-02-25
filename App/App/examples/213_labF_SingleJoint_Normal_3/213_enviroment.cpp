@@ -15,6 +15,7 @@
 #include "Actions.h"
 #include "Targets.h"
 #include "Variables.h"
+#include "RL.h"
 
 struct LabF213 : public CommonRigidBodyBase
 {
@@ -48,15 +49,20 @@ struct LabF213 : public CommonRigidBodyBase
 	float eb_angular_velocity;
 	const float eb_max_angular_velocity = EB_MAX_ANGULAR_VELOCITY;
 
-	NeuralNetwork nn_;
-	int num_state_variables_;
-	int num_game_actions_;
+	ArmReinforcementLearning rl_;
 
 	int initStep = 100;
 	int cntStep = 0;
-	int delayStep = 5;
+	int delayStep = STEP_DELAY;
+
+	int cntCollision = 0;
+	int maxCollision = COLLISION_CNT_MAX;
 
 	bool chkLearning = true;
+
+	int old_action_;
+	VectorND<float> old_state_;
+	VectorND<float> old_output_vector_temp;
 
 
 	LabF213(struct GUIHelperInterface* helper);
@@ -112,7 +118,17 @@ struct LabF213 : public CommonRigidBodyBase
 		return;
 	}
 	float getRandomTargetPosition() {
-		return (TARGET_HEIGHT_MAX - TARGET_HEIGHT_MIN) * ((float)rand() / (float)RAND_MAX) + TARGET_HEIGHT_MIN;
+		float current_target = target_height;
+		float new_target = 0.f;
+		bool chkOverlap = false;
+		
+		do {
+			new_target = (TARGET_HEIGHT_MAX - TARGET_HEIGHT_MIN) * ((float)rand() / (float)RAND_MAX) + TARGET_HEIGHT_MIN;
+			if (current_target - 1.f < new_target && current_target + 1.f > new_target) chkOverlap = true;
+			else chkOverlap = false;
+		} while (chkOverlap);
+
+		return new_target;
 	}
 
 	void moveEbAngle(btHingeConstraint *target) {
@@ -200,16 +216,21 @@ LabF213::LabF213(struct GUIHelperInterface* helper)
 	
 	const int num_hidden_layers = 5;
 
-	num_state_variables_ = NUM_STATE_VARIABLES;
-	num_game_actions_ = NUM_STATE_ACTIONS;
+	rl_.num_input_histories_ = 1;
+	rl_.num_exp_replay_ = 0;
+	rl_.num_state_variables_ = NUM_STATE_VARIABLES;
+	rl_.num_game_actions_ = NUM_STATE_ACTIONS;
 
-	nn_.initialize(num_state_variables_, num_game_actions_, num_hidden_layers);
+	rl_.initialize();
 
-	for (int i = 0; i <= num_hidden_layers + 1; i++)
-		nn_.layers_[i].act_type_ = LayerBase::ReLU;
+	for (int h = 0; h < rl_.num_input_histories_; h++)
+	{
+		rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 2, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
+	}
 
-	nn_.eta_ = 1e-5;
-	nn_.alpha_ = LEARNING_RATE;
+	old_action_ = 0;
+	old_state_.initialize(rl_.num_state_variables_);
+	old_output_vector_temp.initialize(rl_.num_game_actions_);
 }
 
 LabF213::~LabF213()
@@ -252,9 +273,8 @@ void LabF213::stepSimulation(float deltaTime)
 
 
 	/***************************************************************************************************/
-	// start Set State
+	// start get Enviroment & Reward
 	/***************************************************************************************************/
-
 
 	// get about target;
 	target_z = getTargetZ();
@@ -296,45 +316,47 @@ void LabF213::stepSimulation(float deltaTime)
 
 				//check the head or body
 				collisionTarget = true;
+				if (chkLearning) cntCollision++;
 			}
 		}
 	}
 
-	// set Vector
-	VectorND<float> input;
-	input.initialize(num_state_variables_);
-	input[0] = sd_angle_;
-	//input[1] = sd_angular_velocity;
-	input[1] = F2T_distance_;
-	input[2] = target_y;
-	//input[4] = target_z;
-	/*
-	input[0] = F2T_distance_;
-	input[1] = F2T_angle_;
-	input[2] = sd_angle_;
-	input[3] = sd_angular_velocity;
-	input[4] = target_z;
-	input[5] = target_y;
-	*/
+	// set Reward
+	float cost_F2T_Distance = 1.f - (F2T_distance_ / 2.5f);
+	float cost_Fist_Velocity = Fist_velocity * 0.01f;
+	//float reward_ = cost_F2T_Distance + cost_Fist_Velocity;
+	float reward_ = cost_F2T_Distance;
 
-	// Forward Propagation
-	nn_.setInputVector(input);
-	nn_.feedForward();
-
-	VectorND<float> output;
-	nn_.copyOutputVectorTo(false, output);
+	rl_.recordHistory(old_state_, reward_, old_action_, old_output_vector_temp);
 
 	/***************************************************************************************************/
-	// End Set State
+	// End get Enviroment & Reward
 	/***************************************************************************************************/
 
 
 	/***************************************************************************************************/
-	// start Set Action
+	// start Set State & Action
 	/***************************************************************************************************/
 
+	// set State Vector
+	VectorND<float> state_;
+	state_.initialize(rl_.num_state_variables_, true);
+	state_[0] = sd_angle_;
+	state_[1] = F2T_distance_;
+	state_[2] = target_y;
+	old_state_.copyPartial(state_, 0, 0, rl_.num_state_variables_);
+
+	// get Q Vector
+	rl_.nn_.setInputVector(state_);
+	rl_.nn_.feedForward();
+	VectorND<float> output_vector_temp;
+	rl_.nn_.copyOutputVectorTo(false, output_vector_temp);
+	old_output_vector_temp.copyPartial(output_vector_temp, 0, 0, rl_.num_game_actions_);
+
+	// set Action
 	float dice = (chkLearning) ? (RANDOM_ACTION_RATE) : (0.0f);
-	int action_ = nn_.getOutputIXEpsilonGreedy(dice);
+	int action_ = rl_.nn_.getOutputIXEpsilonGreedy(dice);
+	old_action_ = action_;
 
 	switch (action_) {
 	case ACTION_SHOULDER_UP: {
@@ -357,7 +379,7 @@ void LabF213::stepSimulation(float deltaTime)
 	//moveEbAngle(hinge_elbow);
 
 	/***************************************************************************************************/
-	// End Set Action
+	// End Set State & Action
 	/***************************************************************************************************/
 
 
@@ -365,34 +387,73 @@ void LabF213::stepSimulation(float deltaTime)
 	// start Training
 	/***************************************************************************************************/
 
-	float cost_F2T_Distance = 1.f - (F2T_distance_ / 2.0f);
-	float cost_Fist_Velocity = Fist_velocity * 0.01f;
-	//float cost_F2T_Distance = - F2T_distance_;
-
-	float reward_ = cost_F2T_Distance + cost_Fist_Velocity;
-	/*
-	// if stop move
-	if (abs(input[0] - old_input_vector_[0]) < 0.1f) {
-		reward_ = 0.001f;
-	}
-	// if Fist move far a way
-	else if (input[0] >= old_input_vector_[0]) {
-		reward_ *= 0.01f;
-	}
-	*/
-	/*
-	if (abs(input[0] - old_input_vector_[0]) < 0.1f
-		|| input[0] >= old_input_vector_[0]) {
-		reward_ = 0.001f;
-	}
-	else {
-		reward_ = 0.999f;
-	}
-	*/
-	
+	VectorND<float> output_target_temp;
 
 	if(chkLearning)
 	{
+		if (cntCollision >= maxCollision)
+		{
+			std::cout << "It's High Noon ..." << std::endl;
+			std::cout << "It's High Noon ..." << std::endl;
+			std::cout << "It's High Noon ..." << std::endl;
+
+			int tr_num = 100;
+
+			for (int tr = 0; tr < tr_num; tr++)
+				for (int m_tr = rl_.memory_.num_elements_ - 2; m_tr >= rl_.num_input_histories_; m_tr--)
+				{
+					// h529 : 방학숙제에서 발췌
+
+					// stochastic training
+					// h529 : 전체를 요약한 부분을 확률적으로 선택해서 학습하는 방법론
+					// h529 : http://sanghyukchun.github.io/74/
+					int m = rand() % (rl_.memory_.num_elements_ - 1 - rl_.num_input_histories_) + rl_.num_input_histories_;
+
+					// memory index from end
+					const int inv_m = m - (rl_.memory_.num_elements_ - 1);
+
+					float Q_next = 0.0f;
+
+					if (m != rl_.memory_.num_elements_ - 2) // if next is not the terminal state
+					{
+						// Q_next = ...;
+						Q_next = rl_.memory_.q_values_array_[m + 1].getMaxValue();
+					}
+
+					float Q_target;
+					// Q_target = ...;
+					Q_target = Q_next + rl_.memory_.reward_array_[m];
+
+					// forward propagation from previous inputs
+					rl_.makeInputVectorFromHistory(inv_m - 1, rl_.old_input_vector_);
+					rl_.nn_.setInputVector(rl_.old_input_vector_);
+					for (int i = 0; i < 100; i++)
+					{
+						rl_.nn_.feedForward();
+						rl_.nn_.copyOutputVectorTo(false, output_target_temp);
+
+						// output_target_temp[...] = ...;
+						output_target_temp[rl_.memory_.selected_array_[m]] = Q_target;
+
+						rl_.nn_.propBackward(output_target_temp);
+					}
+
+					rl_.nn_.check();
+				}
+
+			// reset
+			rl_.memory_.reset();
+
+			// is really need?
+			for (int h = 0; h < rl_.num_input_histories_; h++)
+			{
+				rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 2, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
+			}
+
+			cntCollision = 0;
+
+			initState();
+		}
 	}
 
 	/***************************************************************************************************/
@@ -411,13 +472,13 @@ void LabF213::stepSimulation(float deltaTime)
 	else {
 		std::cout << std::fixed << "mod : result" << "\t";
 	}
-	std::cout << std::fixed << "action : " << action_ << "\t";
-	std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t";
+	std::cout << std::fixed << "action : " << old_action_ << "\t";
+	std::cout << std::fixed << "sd_ang : " << old_state_[0] << "\t";
 	//std::cout << std::fixed << "sd_ang_vel_target : " << old_input_vector_[1] << "\t";
 	//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_current_angular_velocity << "\t";
-	std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
+	std::cout << std::fixed << "F2T_dis : " << old_state_[1] << "\t";
 	//std::cout << std::fixed << "F2T_ang : " << old_input_vector_[1] << "\t";
-	std::cout << std::fixed << "Target_Z : " << target_z << "\t";
+	std::cout << std::fixed << "Target_Y : " << old_state_[2] << "\t";
 	//std::cout << std::fixed << "Target_Y : " << old_input_vector_[5] << "\t";
 	std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
 	std::cout << std::fixed << "reward : " << reward_ << "\t";
@@ -438,6 +499,7 @@ void LabF213::stepSimulation(float deltaTime)
 		target_height = getRandomTargetPosition();
 
 		//initState();
+		bool chkDuplicate = false;
 		initTarget();
 	}
 

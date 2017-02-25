@@ -2,6 +2,7 @@
 
 #include "NeuralNetwork.h"
 #include "ActionMemory.h"
+#include "Variables.h"
 
 class ArmReinforcementLearning
 {
@@ -23,26 +24,21 @@ public:
 		//assert(num_exp_replay_ >= num_input_histories_);
 
 		// initialize neural network
-		const int num_hidden_layers = 1;
+		const int num_hidden_layers = NUM_HIDDEN_LAYER;
 
-		// h529 : state_variables_ by input_histories로 2차원 배열 생성 > 이게 나중에 value로 넘어감
 		nn_.initialize(num_state_variables_ * num_input_histories_, num_game_actions_, num_hidden_layers);
 
 		for (int i = 0; i <= num_hidden_layers + 1; i++)
 			nn_.layers_[i].act_type_ = LayerBase::ReLU;
 
-		// h529 : Learning rate
 		nn_.eta_ = 1e-5;
-		// h529 : Momentum, 일종의 수치해석 기법
-		nn_.alpha_ = 0.9f;
-
-		// h529 : Q-Learning 방정식에서 Gamma, 0~1사이로 학습 비율
+		
+		nn_.alpha_ = LEARNING_RATE;
+		
 		gamma_ = 0.5f;
 
-		// initialize replay memory
 		memory_.reserve(1e5);
 
-		// h529 : value
 		old_input_vector_.initialize(nn_.num_input_, true);
 		next_input_vector_.initialize(nn_.num_input_, true);
 
