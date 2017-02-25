@@ -210,9 +210,6 @@ LabF213::LabF213(struct GUIHelperInterface* helper)
 
 	nn_.eta_ = 1e-5;
 	nn_.alpha_ = LEARNING_RATE;
-
-	old_action_ = 0;
-	old_input_vector_.initialize(num_state_variables_);
 }
 
 LabF213::~LabF213()
@@ -414,13 +411,13 @@ void LabF213::stepSimulation(float deltaTime)
 	else {
 		std::cout << std::fixed << "mod : result" << "\t";
 	}
-	std::cout << std::fixed << "action : " << old_action_ << "\t";
-	std::cout << std::fixed << "sd_ang : " << old_input_vector_[0] << "\t";
+	std::cout << std::fixed << "action : " << action_ << "\t";
+	std::cout << std::fixed << "sd_ang : " << sd_angle_ << "\t";
 	//std::cout << std::fixed << "sd_ang_vel_target : " << old_input_vector_[1] << "\t";
 	//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_current_angular_velocity << "\t";
-	std::cout << std::fixed << "F2T_dis : " << old_input_vector_[1] << "\t";
+	std::cout << std::fixed << "F2T_dis : " << F2T_distance_ << "\t";
 	//std::cout << std::fixed << "F2T_ang : " << old_input_vector_[1] << "\t";
-	std::cout << std::fixed << "Target_Z : " << old_input_vector_[2] << "\t";
+	std::cout << std::fixed << "Target_Z : " << target_z << "\t";
 	//std::cout << std::fixed << "Target_Y : " << old_input_vector_[5] << "\t";
 	std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
 	std::cout << std::fixed << "reward : " << reward_ << "\t";
