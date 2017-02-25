@@ -190,7 +190,7 @@ struct LabF213 : public CommonRigidBodyBase
 		return hinge_shoulder->getHingeAngle() / M_PI * 180;
 	}
 	float getSdAngularVelocity() {
-		return abs(linkBody[0]->getAngularVelocity().getX());
+		return linkBody[0]->getAngularVelocity().getX();
 	}
 
 	float getEbAngle() {
@@ -310,7 +310,7 @@ void LabF213::stepSimulation(float deltaTime)
 		for (int j = 0; j < numContacts; j++)
 		{
 			btManifoldPoint& pt = contactManifold->getContactPoint(j);
-			if (pt.getDistance() < 0.f)
+			if (pt.getDistance() < 0.01f)
 			{
 				const btVector3& ptA = pt.getPositionWorldOnA();
 				const btVector3& ptB = pt.getPositionWorldOnB();
@@ -328,8 +328,8 @@ void LabF213::stepSimulation(float deltaTime)
 	float cost_Fist_Velocity = Fist_velocity * 0.01f;
 	float cost_collision = (collisionTarget) ? (1.0f) : (0.0f);
 	//float reward_ = cost_F2T_Distance;
-	//float reward_ = cost_F2T_Distance + cost_Fist_Velocity + cost_collision;
-	float reward_ = cost_F2T_Distance + cost_collision;
+	//float reward_ = cost_F2T_Distance + cost_collision;
+	float reward_ = cost_F2T_Distance + cost_Fist_Velocity + cost_collision;
 
 	rl_.recordHistory(old_state_, reward_, old_action_, old_output_vector_temp);
 
