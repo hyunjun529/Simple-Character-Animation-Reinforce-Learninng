@@ -35,7 +35,7 @@ public:
 		
 		nn_.alpha_ = LEARNING_RATE;
 		
-		gamma_ = 0.5f;
+		gamma_ = 0.9f;
 
 		memory_.reserve(1e5);
 
