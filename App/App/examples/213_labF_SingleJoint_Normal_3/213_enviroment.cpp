@@ -223,11 +223,6 @@ LabF213::LabF213(struct GUIHelperInterface* helper)
 
 	rl_.initialize();
 
-	for (int h = 0; h < rl_.num_input_histories_; h++)
-	{
-		rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 2, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
-	}
-
 	old_action_ = 0;
 	old_state_.initialize(rl_.num_state_variables_);
 	old_output_vector_temp.initialize(rl_.num_game_actions_);
@@ -479,10 +474,12 @@ void LabF213::stepSimulation(float deltaTime)
 			rl_.memory_.reset();
 
 			// is really need?
+			/*
 			for (int h = 0; h < rl_.num_input_histories_; h++)
 			{
 				rl_.recordHistory(VectorND<float>(rl_.num_state_variables_), 0.0f, 2, VectorND<float>(rl_.num_game_actions_)); // choice 2 is stay
 			}
+			*/
 
 			cntCollision = 0;
 			
