@@ -231,6 +231,11 @@ LabF213::LabF213(struct GUIHelperInterface* helper)
 	old_action_ = 0;
 	old_state_.initialize(rl_.num_state_variables_);
 	old_output_vector_temp.initialize(rl_.num_game_actions_);
+	old_state_[0] = 0.f;
+	old_state_[1] = 1.47f;
+	old_state_[2] = 2.7f;
+	old_output_vector_temp[0] = 0.01f;
+	old_output_vector_temp[1] = 0.01f;
 }
 
 LabF213::~LabF213()
@@ -480,6 +485,12 @@ void LabF213::stepSimulation(float deltaTime)
 			}
 
 			cntCollision = 0;
+			
+			old_state_[0] = 0.f;
+			old_state_[1] = 1.47f;
+			old_state_[2] = 2.7f;
+			old_output_vector_temp[0] = 0.01f;
+			old_output_vector_temp[1] = 0.01f;
 
 			initState();
 		}
