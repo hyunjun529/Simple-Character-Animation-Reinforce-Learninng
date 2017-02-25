@@ -52,12 +52,9 @@ struct LabF213 : public CommonRigidBodyBase
 	int num_state_variables_;
 	int num_game_actions_;
 
-	int old_action_;
-	VectorND<float> old_input_vector_;
-
 	int initStep = 100;
 	int cntStep = 0;
-	int delayStep = 10;
+	int delayStep = 5;
 
 	bool chkLearning = true;
 
@@ -399,28 +396,6 @@ void LabF213::stepSimulation(float deltaTime)
 
 	if(chkLearning)
 	{
-		nn_.setInputVector(old_input_vector_);
-		nn_.feedForward();
-
-		VectorND<float> output;
-		nn_.copyOutputVectorTo(false, output);
-
-		VectorND<float> reward_vector(output);
-
-		for (int d = 0; d < reward_vector.num_dimension_; d++) {
-			if (old_action_ == d) {
-				reward_vector[d] = reward_;
-			}
-			else {
-				reward_vector[d] = reward_vector[d];
-			}
-		}
-
-		// back to the future
-		int num_tr = (collisionTarget) ? (1000) : (1000);
-		for (int i = 0; i < num_tr; i++) {
-			nn_.propBackward(reward_vector);
-		}
 	}
 
 	/***************************************************************************************************/
@@ -460,24 +435,6 @@ void LabF213::stepSimulation(float deltaTime)
 	/***************************************************************************************************/
 	// start process Step
 	/***************************************************************************************************/
-
-	// set Old 
-	old_action_ = action_;
-
-	old_input_vector_.initialize(num_state_variables_);
-	old_input_vector_[0] = sd_angle_;
-	//old_input_vector_[1] = sd_angular_velocity;
-	old_input_vector_[1] = F2T_distance_;
-	old_input_vector_[2] = target_y;
-	//old_input_vector_[4] = target_z;
-	/*
-	old_input_vector_[0] = F2T_distance_;
-	old_input_vector_[1] = F2T_angle_;
-	old_input_vector_[2] = sd_angle_;
-	old_input_vector_[3] = sd_angular_velocity;
-	old_input_vector_[4] = target_z;
-	old_input_vector_[5] = target_y;
-	*/
 
 	// Reset Target Position
 	if (collisionTarget) {
