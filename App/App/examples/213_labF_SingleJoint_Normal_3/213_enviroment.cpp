@@ -124,7 +124,7 @@ struct LabF213 : public CommonRigidBodyBase
 		
 		do {
 			new_target = (TARGET_HEIGHT_MAX - TARGET_HEIGHT_MIN) * ((float)rand() / (float)RAND_MAX) + TARGET_HEIGHT_MIN;
-			if (current_target - 1.f < new_target && current_target + 1.f > new_target) chkOverlap = true;
+			if (current_target - 0.6f < new_target && current_target + 0.6f > new_target) chkOverlap = true;
 			else chkOverlap = false;
 		} while (chkOverlap);
 
