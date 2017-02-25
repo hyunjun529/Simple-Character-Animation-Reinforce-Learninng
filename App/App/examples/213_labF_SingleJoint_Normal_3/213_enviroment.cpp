@@ -310,7 +310,7 @@ void LabF213::stepSimulation(float deltaTime)
 		for (int j = 0; j < numContacts; j++)
 		{
 			btManifoldPoint& pt = contactManifold->getContactPoint(j);
-			if (pt.getDistance() < 0.01f)
+			if (pt.getDistance() < 0.3f)
 			{
 				const btVector3& ptA = pt.getPositionWorldOnA();
 				const btVector3& ptB = pt.getPositionWorldOnB();
@@ -325,11 +325,12 @@ void LabF213::stepSimulation(float deltaTime)
 
 	// set Reward
 	float cost_F2T_Distance = 1.f - (F2T_distance_ / 2.4f);
-	float cost_Fist_Velocity = Fist_velocity * 0.01f;
+	//float cost_Velocity = Fist_velocity * 0.01f;
+	float cost_Velocity = abs(sd_angle_) * 0.1f;
 	float cost_collision = (collisionTarget) ? (1.0f) : (0.0f);
 	//float reward_ = cost_F2T_Distance;
 	//float reward_ = cost_F2T_Distance + cost_collision;
-	float reward_ = cost_F2T_Distance + cost_Fist_Velocity + cost_collision;
+	float reward_ = cost_F2T_Distance + cost_Velocity + cost_collision;
 
 	rl_.recordHistory(old_state_, reward_, old_action_, old_output_vector_temp);
 
