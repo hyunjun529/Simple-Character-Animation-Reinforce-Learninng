@@ -324,8 +324,9 @@ void LabF213::stepSimulation(float deltaTime)
 	// set Reward
 	float cost_F2T_Distance = 1.f - (F2T_distance_ / 2.5f);
 	float cost_Fist_Velocity = Fist_velocity * 0.01f;
-	//float reward_ = cost_F2T_Distance + cost_Fist_Velocity;
-	float reward_ = cost_F2T_Distance;
+	float cost_collision = (collisionTarget) ? (1.0f) : (0.0f);
+	float reward_ = cost_F2T_Distance + cost_Fist_Velocity + cost_collision;
+	//float reward_ = cost_F2T_Distance;
 
 	rl_.recordHistory(old_state_, reward_, old_action_, old_output_vector_temp);
 
