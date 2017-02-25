@@ -4,7 +4,7 @@
 
 #define RANDOM_ACTION_RATE 0.8f
 
-#define NUM_HIDDEN_LAYER 2;
+#define NUM_HIDDEN_LAYER 1;
 #define NUM_STATE_VARIABLES 3
 #define NUM_STATE_ACTIONS 2
 
