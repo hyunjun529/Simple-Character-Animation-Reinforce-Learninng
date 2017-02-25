@@ -229,6 +229,7 @@ LabF213::LabF213(struct GUIHelperInterface* helper)
 	old_state_[0] = 0.f;
 	old_state_[1] = 1.47f;
 	old_state_[2] = 2.7f;
+	old_state_[3] = 0.f;
 	old_output_vector_temp[0] = 0.01f;
 	old_output_vector_temp[1] = 0.01f;
 }
@@ -289,6 +290,7 @@ void LabF213::stepSimulation(float deltaTime)
 
 	// get Shoulder states
 	sd_angle_ = getSdAngle() / 180;
+	sd_angular_velocity = getSdAngularVelocity();
 
 	// get Elbow states
 	eb_angle_ = getEbAngle() / 180;
@@ -322,11 +324,12 @@ void LabF213::stepSimulation(float deltaTime)
 	}
 
 	// set Reward
-	float cost_F2T_Distance = 1.f - (F2T_distance_ / 2.5f);
+	float cost_F2T_Distance = 1.f - (F2T_distance_ / 2.4f);
 	float cost_Fist_Velocity = Fist_velocity * 0.01f;
 	float cost_collision = (collisionTarget) ? (1.0f) : (0.0f);
-	float reward_ = cost_F2T_Distance + cost_Fist_Velocity + cost_collision;
 	//float reward_ = cost_F2T_Distance;
+	//float reward_ = cost_F2T_Distance + cost_Fist_Velocity + cost_collision;
+	float reward_ = cost_F2T_Distance + cost_collision;
 
 	rl_.recordHistory(old_state_, reward_, old_action_, old_output_vector_temp);
 
@@ -348,15 +351,15 @@ void LabF213::stepSimulation(float deltaTime)
 	}
 	std::cout << std::fixed << "action : " << old_action_ << "\t";
 	std::cout << std::fixed << "sd_ang : " << old_state_[0] << "\t";
-	//std::cout << std::fixed << "sd_ang_vel_target : " << old_input_vector_[1] << "\t";
+	std::cout << std::fixed << "sd_ang_vel_target : " << old_state_[3] << "\t";
 	//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_current_angular_velocity << "\t";
 	std::cout << std::fixed << "F2T_dis : " << old_state_[1] << "\t";
 	//std::cout << std::fixed << "F2T_ang : " << old_input_vector_[1] << "\t";
 	std::cout << std::fixed << "Target_Y : " << old_state_[2] << "\t";
 	//std::cout << std::fixed << "Target_Y : " << old_input_vector_[5] << "\t";
-	//std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
+	//std::cout << std::fixed << "Fist_vel : " << old_state_[3] << "\t";
 	std::cout << std::fixed << "reward : " << reward_ << "\t";
-	if (collisionTarget) std::cout << "Collision !!!!!!!!!!!!";
+	if (collisionTarget) std::cout << "*C*";
 	std::cout << std::endl;
 
 	/***************************************************************************************************/
@@ -374,6 +377,7 @@ void LabF213::stepSimulation(float deltaTime)
 	state_[0] = sd_angle_;
 	state_[1] = F2T_distance_;
 	state_[2] = target_y;
+	state_[3] = sd_angular_velocity;
 	old_state_.copyPartial(state_, 0, 0, rl_.num_state_variables_);
 
 	// get Q Vector
@@ -487,6 +491,7 @@ void LabF213::stepSimulation(float deltaTime)
 			old_state_[0] = 0.f;
 			old_state_[1] = 1.47f;
 			old_state_[2] = 2.7f;
+			old_state_[3] = 0.f;
 			old_output_vector_temp[0] = 0.01f;
 			old_output_vector_temp[1] = 0.01f;
 
