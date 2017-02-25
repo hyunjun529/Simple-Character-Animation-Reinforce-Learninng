@@ -335,6 +335,35 @@ void LabF213::stepSimulation(float deltaTime)
 
 
 	/***************************************************************************************************/
+	// start Printing current condition
+	/***************************************************************************************************/
+
+	// Print current state
+	if (chkLearning) {
+		std::cout << std::fixed << "mod : learn" << "\t";
+	}
+	else {
+		std::cout << std::fixed << "mod : result" << "\t";
+	}
+	std::cout << std::fixed << "action : " << old_action_ << "\t";
+	std::cout << std::fixed << "sd_ang : " << old_state_[0] << "\t";
+	//std::cout << std::fixed << "sd_ang_vel_target : " << old_input_vector_[1] << "\t";
+	//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_current_angular_velocity << "\t";
+	std::cout << std::fixed << "F2T_dis : " << old_state_[1] << "\t";
+	//std::cout << std::fixed << "F2T_ang : " << old_input_vector_[1] << "\t";
+	std::cout << std::fixed << "Target_Y : " << old_state_[2] << "\t";
+	//std::cout << std::fixed << "Target_Y : " << old_input_vector_[5] << "\t";
+	//std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
+	std::cout << std::fixed << "reward : " << reward_ << "\t";
+	if (collisionTarget) std::cout << "Collision !!!!!!!!!!!!";
+	std::cout << std::endl;
+
+	/***************************************************************************************************/
+	// End Printing current condition
+	/***************************************************************************************************/
+
+
+	/***************************************************************************************************/
 	// start Set State & Action
 	/***************************************************************************************************/
 
@@ -397,7 +426,7 @@ void LabF213::stepSimulation(float deltaTime)
 			std::cout << "It's High Noon ..." << std::endl;
 			std::cout << "It's High Noon ..." << std::endl;
 
-			int tr_num = 20;
+			int tr_num = 100;
 
 			for (int tr = 0; tr < tr_num; tr++)
 				for (int m_tr = rl_.memory_.num_elements_ - 2; m_tr >= rl_.num_input_histories_; m_tr--)
@@ -460,35 +489,6 @@ void LabF213::stepSimulation(float deltaTime)
 	// End Training
 	/***************************************************************************************************/
 	
-
-	/***************************************************************************************************/
-	// start Printing current condition
-	/***************************************************************************************************/
-
-	// Print current state
-	if (chkLearning) {
-		std::cout << std::fixed << "mod : learn" << "\t";
-	}
-	else {
-		std::cout << std::fixed << "mod : result" << "\t";
-	}
-	std::cout << std::fixed << "action : " << old_action_ << "\t";
-	std::cout << std::fixed << "sd_ang : " << old_state_[0] << "\t";
-	//std::cout << std::fixed << "sd_ang_vel_target : " << old_input_vector_[1] << "\t";
-	//std::cout << std::fixed << "eb_ang : " << eb_angle_ << "\t" << "eb_ang_vel : " << eb_current_angular_velocity << "\t";
-	std::cout << std::fixed << "F2T_dis : " << old_state_[1] << "\t";
-	//std::cout << std::fixed << "F2T_ang : " << old_input_vector_[1] << "\t";
-	std::cout << std::fixed << "Target_Y : " << old_state_[2] << "\t";
-	//std::cout << std::fixed << "Target_Y : " << old_input_vector_[5] << "\t";
-	std::cout << std::fixed << "Fist_vel : " << Fist_velocity << "\t";
-	std::cout << std::fixed << "reward : " << reward_ << "\t";
-	if (collisionTarget) std::cout << "Collision !!!!!!!!!!!!";
-	std::cout << std::endl;
-
-	/***************************************************************************************************/
-	// End Printing current condition
-	/***************************************************************************************************/
-
 
 	/***************************************************************************************************/
 	// start process Step
