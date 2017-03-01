@@ -29,7 +29,8 @@ OpenGL + Bullet Physics + Bullet Physics ExampleBrowser + [NN](https://github.co
 
 ## Architecture
 
-ToDo:
+![arc1](/_imgs/arc1.PNG)
+![arc2](/_imgs/arc2.PNG)
 
 
 ## Libs
