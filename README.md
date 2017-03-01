@@ -53,14 +53,14 @@ run App.sln.
 
 ### Shortcuts
 
-- ESC : 
-- Home :
-- End : 
-- Insert : 
-- Arrow Up : 
-- Arrow Down : 
-- Arrow Left : 
-- Arrow Right :
+- ESC : On/Off Rendering 
+- Home : Init Enviroment
+- End : On/Off Tranining
+- Insert : On/Off Command line log
+- Arrow Up : Up Shoulder Joint
+- Arrow Down : Down Shoulder Joint
+- Arrow Left : Up(In) Elbow Joint
+- Arrow Right : Down(Out) Elbow Joint
 
 
 ### Add Examples
@@ -73,7 +73,7 @@ run App.sln.
 
 ### List
 
-- 000 : Simple Skeleton, Collision check
+- 000 : Simple Skeleton with Collision check
 - 001 : Single Joint + Linear Regression
 - 002 : Two Joint, Display Fist to Target(F2T) angle/distance, Shoulder angle, Elbow angle
 - 003 : Fiie I/O, Memory Replay
@@ -82,20 +82,20 @@ run App.sln.
 - 012 : Two Joint + Q Learning, F2T distance/angle Reward
 - 020 : lab0. (Two Joint Single Target + Q Learning + MemoryReplay + File I/O) Skeleton
 - 021 : lab0. add angle
-- 030 : 
-- 040 :
-- 050 : 
-- 051 : 
-- 052 : 
-- 053 : 
-- 200 : 
-- 201 : 
-- 202 : 
-- 203 : 
-- 210 : 
-- 211 : 
-- 212 : 
-- 213 : 
+- 030 : Two Joint + Two Network
+- 040 : Test Init Motion
+- 050 : lab1. Enviroment Test
+- 051 : lab1. using F2T distance
+- 052 : lab1. using F2T distance/angle
+- 053 : lab1. using All State
+- 200 : labF. Single Joint (Shoulder) Sekelton using Angluar Velocitiy
+- 201 : labF. Single Joint (Elbow) Sekelton using Angluar Velocitiy
+- 202 : labF. Two Joint Sekelton using Angluar Velocitiy
+- 203 : labF. Two Joint with Fixed starting position Sekelton using Angluar Velocitiy
+- 210 : labF. Single Joint (Shoulder) + Random Target + Random Move
+- 211 : labF. Single Joint (Shoulder) + Random Target + Normal RL
+- 212 : labF. Single Joint (Shoulder) + Random Target + Normal RL(2)
+- 213 : labF. Single Joint (Shoulder) + Random Target + RL using Experience Replay
 
 
 ## history
