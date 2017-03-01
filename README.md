@@ -65,7 +65,10 @@ run App.sln.
 
 ### Add Examples
 
-ToDo :
+1. copy xxx exampel to yyy example
+2. change filename yyy_env.cpp, yyy_env.h
+3. change class name to yyy_env.cpp, yyy_env.h
+4. add new example ExampleImporter.cpp
 
 
 ### List
